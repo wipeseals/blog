@@ -25,8 +25,6 @@ RAM 上の値を Disk Drive に見せかけたデバイスとして Windows か�
       - Endpoint Descriptor1: Bulk out
       - Endpoint Descriptor2: Bulk in
 
-<!-- more -->
-
 ### USB Mass Storage Class
 
 USB（に限らない話だが）を用いた通信は Host/Device 双方の FW で共通のプロトコル定義に基づいた実装が必要だが、一般的に使われる機能については USB の仕様としてクラス定義されている。
@@ -37,6 +35,8 @@ USB（に限らない話だが）を用いた通信は Host/Device 双方の FW 
 開発者は Device 側の FW を定義に基づいて実装するだけで良い。
 
 このクラス定義のうち、外付け記憶装置を制御するための 1 つとして MSC がある。
+
+<!-- more -->
 
 ### USB の転送方法
 

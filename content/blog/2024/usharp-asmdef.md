@@ -15,8 +15,6 @@ tags = ["tech", "VRChat", "Unity", "UdonSharp", "memo"]
 
 _記事を書いている途中に公式ドキュメントを見つけました。 <https://udonsharp.docs.vrchat.com/migration/#does-not-belong-to-u-assembly>_
 
-<!-- more -->
-
 ## Assembly Definition (asmdef) について
 
 asmdef は定義済アセンブリを明示するための設定ファイル。
@@ -25,6 +23,8 @@ Unity C#で記述した Script がコンパイルされる際、 asmdef で定�
 自分の書いた Script とその他無関係の Script が同一のアセンブリにビルドされるため、クラス名の衝突であったりコンパイルの時間増加等の問題につながるため、特別な理由がなければ定義しておくほうが無難。
 
 参考: [特殊フォルダーとスクリプトのコンパイル順 - Unity Documentation 2022.3](https://docs.unity3d.com/ja/2022.3/Manual/ScriptCompileOrderFolders.html)
+
+<!-- more -->
 
 ## 今回のエラーについて
 

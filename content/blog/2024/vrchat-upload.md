@@ -7,8 +7,6 @@ tags = ["tech", "vrchat", "unity", "memo"]
 
 Zenn 執筆環境構築のテスト記事も兼ねてアバター導入環境について言及。多分もっと丁寧な記事があると思うので備忘録程度。
 
-<!-- more -->
-
 ## 必要な環境とその手順
 
 - VRChat アカウント
@@ -32,6 +30,8 @@ Zenn 執筆環境構築のテスト記事も兼ねてアバター導入環境に
   - [https://vrc-get.anatawa12.com/alcom/](https://vrc-get.anatawa12.com/alcom/) から DL 可能
 - 何らかの画像エディタ
   - アバターの改変用。筆者はクリスタ常用 (だが、どちらかといえば PSD 同梱してくださる方が多い印象)
+
+<!-- more -->
 
 ## Avatar Project で毎回使っているライブラリ群
 
