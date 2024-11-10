@@ -2,8 +2,8 @@ base_url = "https://blog.wipeseals.me"
 theme = "terminimal"
 compile_sass = true
 build_search_index = true
-description = "test description"
-taxonomies = [{ name = "tags" }]
+description = "Miscellaneous logs..."
+taxonomies = [{ name = "tags", feed = true }]
 
 [markdown]
 highlight_code = true
@@ -11,8 +11,8 @@ highlight_code = true
 
 [extra]
 show_only_description = true
-accent_color = "blue"
-background_color = "dark"
+accent_color = "blue-light"
+background_color = "light"
 logo_text = "blog.wipeseals.me"
 logo_home_link = "/"
 author = "wipeseals"
@@ -22,7 +22,6 @@ menu_items = [
 
     { name = "tags", url = "$BASE_URL/tags" },
     { name = "archive", url = "$BASE_URL/archive" },
-
     { name = "about me", url = "https://wipeseals.me" },
     { name = "github", url = "https://github.com/wipeseals", newtab = true },
 ]
