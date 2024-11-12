@@ -7,7 +7,7 @@ taxonomies = [{ name = "tags", feed = true }]
 
 [markdown]
 highlight_code = true
-
+highlight_theme = "ir-white"
 
 [extra]
 show_only_description = true
