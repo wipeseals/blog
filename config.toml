@@ -1,4 +1,5 @@
 base_url = "https://blog.wipeseals.me"
+title = "blog.wipeseals.me"
 theme = "terminimal"
 compile_sass = true
 build_search_index = true
