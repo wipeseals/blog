@@ -103,7 +103,7 @@ litex>
 
 - vivado 導入前に locale の設定が必要 (en_US.UTF-8 に設定)
 - WSL2 であること。もしくは何らかの X11 forwading 環境があること (Vivado install 時の GUI 表示に必要)
-- vivado の path が通すこと
+- vivado の path を通すこと
 
 #### Vivado 導入
 
@@ -169,14 +169,14 @@ INFO: [Common 17-206] Exiting Vivado at Mon Feb 24 16:20:11 2025...
 
 `\build\digilent_arty\gateware` に Vivado の Project 一式があるので、Windows 側の Vivado Hardware Manager で `digilent_arty.bin` で書き込む。
 
-![screenshot](/static/2025/setup-litex/config-bitstream.png)
+![screenshot](/2025/setup-litex/config-bitstream.png)
 
 #### 書き込み (SPI Flash)
 
 同ディレクトリに `digilent_arty.bin` があるので、これを SPI Flash に書き込む。
-回路図より搭載されている SPI Flash は N25Q128A13ESF40 なので、Add Configuration Memory Device でこれを指定。
+回路図より搭載されている SPI Flash は N25Q128A13ESF40 なので、Add Configuration Memory Device でこれ (と同じ Cmd Set を持っていそうなデバイス) を指定。
 
-![screenshot](/static/2025/setup-litex/config-spiflash.png)
+![screenshot](/2025/setup-litex/config-spiflash.png)
 
 これで FPGA の電源を入れ直しても、LiteX が起動するようになるはず。
 
@@ -295,13 +295,9 @@ Warning: AMD software was installed successfully, but an unexpected status was r
 
 en_US.UTF-8 の locale を設定する。
 
+参考: <https://adaptivesupport.amd.com/s/question/0D54U00006FYojlSAD/vivado-20222-on-ubuntu-with-error-lcall-cannot-change-locale-enusutf8?language=ja>
+
 ```bash
 $ sudo locale-gen "en_US.UTF-8"
 $ sudo update-locale LANG=en_US.UTF-8
-```
-
-参考: <https://adaptivesupport.amd.com/s/question/0D54U00006FYojlSAD/vivado-20222-on-ubuntu-with-error-lcall-cannot-change-locale-enusutf8?language=ja>
-
-```
-
 ```
