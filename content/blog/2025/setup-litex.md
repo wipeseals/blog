@@ -112,6 +112,19 @@ FPGAs_AdaptiveSoCs_Unified_2024.2_1113_1001/payload/rdi_0035_2024.2_1113_1001.xz
 FPGAs_AdaptiveSoCs_Unified_2024.2_1113_1001/payload/sdnet_0001_2024.2_1113_1001.xz
 FPGAs_AdaptiveSoCs_Unified_2024.2_1113_1001/payload/rdi_0729_2024.2_1113_1001.xz
 ...
+
+# localeの設定をしておく
+$ sudo locale-gen "en_US.UTF-8"
+$ sudo update-locale LANG=en_US.UTF-8
+
+
+# setup dirに権限必要なケースあるのでsudo
+$ cd FPGAs_AdaptiveSoCs_Unified_2024.2_1113_1001
+$ sudo ./xsetup
+# 以後GUI Setup
+
+# bashrc にて環境変数設定
+$ echo 'source /tools/Xilinx/Vivado/2024.2/settings64.sh' >> ~/.bashrc
 ```
 
 TODO: ここから記載
@@ -223,3 +236,21 @@ $ python3 ./litex_setup.py --init --install  --user --config=full
 litex の git repo ごと取得して実行していたが、実行箇所が git repo の場合は上位ディレクトリに展開されるようだった。
 
 Quick Start Guide 通り、 `litex_setup.py` のみを取得して実行するように修正。
+
+### vivado セットアップ時・実行時に locale のエラー
+
+以下表示でセットアップ失敗。vivado 自体はあるので実行できるが同様にエラーになる。
+
+```bash
+######## Execution of Pre/Post Installation Tasks Failed ########
+Warning: AMD software was installed successfully, but an unexpected status was returned from the following post installation task(s) /tools/Xilinx/Vivado/2024.2/bin/rdiArgs.sh: line 37: warning: setlocale: LC_ALL: cannot change locale (en_US.UTF-8): No such file or directory /bin/bash: warning: setlocale: LC_ALL: cannot change locale (en_US.UTF-8) terminate called after throwing an instance of 'std::runtime_error' what(): locale::facet::_S_create_c_locale name not valid /tools/Xilinx/Vivado/2024.2/bin/rdiArgs.sh: line 421: 74809 Aborted "$RDI_PROG" "$@" /tools/Xilinx/Vivado/2024.2/bin/rdiArgs.sh: line 37: warning: setlocale: LC_ALL: cannot change locale (en_US.UTF-8): No such file or directory /bin/bash: warning: setlocale: LC_ALL: cannot change locale (en_US.UTF-8) terminate called after throwing an instance of 'std::runtime_error' what(): locale::facet::_S_create_c_locale name not valid /tools/Xilinx/Vivado/2024.2/bin/rdiArgs.sh: line 421: 74902 Aborted "$RDI_PROG" "$@"
+```
+
+en_US.UTF-8 の locale を設定する。
+
+```bash
+$ sudo locale-gen "en_US.UTF-8"
+$ sudo update-locale LANG=en_US.UTF-8
+```
+
+参考: <https://adaptivesupport.amd.com/s/question/0D54U00006FYojlSAD/vivado-20222-on-ubuntu-with-error-lcall-cannot-change-locale-enusutf8?language=ja>
