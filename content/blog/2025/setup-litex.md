@@ -45,6 +45,8 @@ $ sudo ./litex_setup.py --gcc=riscv
 
 ### 実機無しでのテスト
 
+ハマりポイントは特になし。verilator があれば動くはず。
+
 ```bash
 # sim に必要なPackage導入
 $ sudo apt install libevent-dev libjson-c-dev verilator
@@ -97,12 +99,15 @@ litex>
 
 ### Arty 向けにビルド
 
-`litex-boards/litex_boards/targets/` にボード定義があるのでこれの help を見てみると、build,load,flash など合成及び書き込みに関する情報と、ボード上の HW (usb/ethernet/....) の有効無効切り替え、CPU の設定等々がある。
-WSL 上からの直接書き込みは色々罠があるかように思えるので、一旦ビルドだけを行う。 (hw_server を Host 側で立てればいけるはず)
+要点
+
+- vivado 導入前に locale の設定が必要 (en_US.UTF-8 に設定)
+- WSL2 であること。もしくは何らかの X11 forwading 環境があること (Vivado install 時の GUI 表示に必要)
+- vivado の path が通すこと
 
 #### Vivado 導入
 
-Offline installer を取得し、WSL 上で展開。WSL2 は GUI の画面転送を公式サポートしているので installer の GUI はそのまま表示されるのでそこでセットアップを進める。
+Offline installer を取得し、WSL 上で展開。WSL2 は GUI の画面転送を公式サポートしているので installer の GUI はそのまま表示される。GUI 上でセットアップを進める。
 
 ```bash
 $ tar -xvf /path/to/FPGAs_AdaptiveSoCs_Unified_2024.2_1113_1001.tar
@@ -113,25 +118,67 @@ FPGAs_AdaptiveSoCs_Unified_2024.2_1113_1001/payload/sdnet_0001_2024.2_1113_1001.
 FPGAs_AdaptiveSoCs_Unified_2024.2_1113_1001/payload/rdi_0729_2024.2_1113_1001.xz
 ...
 
-# localeの設定をしておく
+# locale の設定をしておく
 $ sudo locale-gen "en_US.UTF-8"
 $ sudo update-locale LANG=en_US.UTF-8
 
-
-# setup dirに権限必要なケースあるのでsudo
+# setup dir に権限必要なケースあるので sudo
 $ cd FPGAs_AdaptiveSoCs_Unified_2024.2_1113_1001
 $ sudo ./xsetup
-# 以後GUI Setup
+
+# 以後 GUI Setup
 
 # bashrc にて環境変数設定
 $ echo 'source /tools/Xilinx/Vivado/2024.2/settings64.sh' >> ~/.bashrc
+
 ```
 
-TODO: ここから記載
+#### 論理合成
+
+vivado に path が通っていれば、Vivado を使う FPGA の合成が通るはず。
+
+`litex-boards/litex_boards/targets/` にボード定義があるのでこれの help を見てみると、build,load,flash など合成及び書き込みに関する情報と、ボード上の HW (usb/ethernet/....) の有効無効切り替え、CPU の設定等々がある。
+WSL 上からの直接書き込みは hw_server を Host 側で立てればいけるはずだが、今回の主目的は LiteX 立ち上げなので、 Windows 側の Vivado で書き込むことにする。
 
 ```bash
 $ python litex-boards/litex_boards/targets/digilent_arty.py --build
+...
+Creating config memory files...
+Creating bitstream load up from address 0x00000000
+Loading bitfile digilent_arty.bit
+Writing file ./digilent_arty.bin
+Writing log file ./digilent_arty.prm
+===================================
+Configuration Memory information
+===================================
+File Format        BIN
+Interface          SPIX4
+Size               16M
+Start Address      0x00000000
+End Address        0x00FFFFFF
+
+Addr1         Addr2         Date                    File(s)
+0x00000000    0x0021728B    Feb 24 16:20:10 2025    digilent_arty.bit
+0 Infos, 0 Warnings, 0 Critical Warnings and 0 Errors encountered.
+write_cfgmem completed successfully
+# quit
+INFO: [Common 17-206] Exiting Vivado at Mon Feb 24 16:20:11 2025...
 ```
+
+#### 書き込み (bitstream)
+
+`\build\digilent_arty\gateware` に Vivado の Project 一式があるので、Windows 側の Vivado Hardware Manager で `digilent_arty.bin` で書き込む。
+
+![screenshot](/static/2025/setup-litex/config-bitstream.png)
+
+#### 書き込み (SPI Flash)
+
+同ディレクトリに `digilent_arty.bin` があるので、これを SPI Flash に書き込む。
+回路図より搭載されている SPI Flash は N25Q128A13ESF40 なので、Add Configuration Memory Device でこれを指定。
+
+![screenshot](/static/2025/setup-litex/config-spiflash.png)
+
+これで FPGA の電源を入れ直しても、LiteX が起動するようになるはず。
 
 ---
 
@@ -254,3 +301,7 @@ $ sudo update-locale LANG=en_US.UTF-8
 ```
 
 参考: <https://adaptivesupport.amd.com/s/question/0D54U00006FYojlSAD/vivado-20222-on-ubuntu-with-error-lcall-cannot-change-locale-enusutf8?language=ja>
+
+```
+
+```
