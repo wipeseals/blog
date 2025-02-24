@@ -172,7 +172,7 @@ INFO: [Common 17-206] Exiting Vivado at Mon Feb 24 16:20:11 2025...
 
 #### 書き込み (bitstream)
 
-`\build\digilent_arty\gateware` に Vivado の Project 一式があるので、Windows 側の Vivado Hardware Manager で `digilent_arty.bin` で書き込む。
+`\build\digilent_arty\gateware` に Vivado の Project 一式があるので、Windows 側の Vivado Hardware Manager で `digilent_arty.bin` を書き込む。
 
 ![screenshot](/2025/setup-litex/config-bitstream.png)
 
@@ -195,7 +195,7 @@ $ itex_bare_metal_demo --build-path=build/digilent_arty
 ```
 
 - <https://github.com/cr1901/teraterm-litex/releases> から install
-- teraterm の転送オプションに追加された `litex` を使用し、結合したバイナリを 0x40000000 に転送する設定 + Acitve=true に設定
+- teraterm の転送オプションに追加された `litex` を使用し、`demo.bin` を 0x40000000 に転送する設定 + Acitve=true に設定
   - ![screenshot](/2025/setup-litex/teraterm-litex-2.png)
 - VexRiscv を再起動するか、Terminal 中で `serialboot` を入力し、 `L5DdSMmkekro` が表示されたら転送が開始される
 - 無事に demo app が起動したら、 `donut` を入力して無事動作確認 OK
