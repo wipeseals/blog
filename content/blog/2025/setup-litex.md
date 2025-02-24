@@ -1,16 +1,20 @@
 +++
-title = "LiteX を ubuntu 24.04 on WSL2 で動かす"
+title = "LiteX を Ubuntu 24.04 on WSL2 で使用し、 Demo Applicationを動作させる"
 date = 2025-02-24
 draft = true
 [taxonomies]
-tags = ["tech", "litex", "fpga", "Embedded"]
+tags = ["tech", "litex", "fpga", "Linux", "Embedded"]
 +++
 
-liteX を Windows 環境で使用したく、試していたときの備忘録。
+LiteX を Windows 環境で使用したく、試していたときの備忘録。以下の通り無事 demo app の動作確認までたどり着けたので書き残す。
+
+![movie gif](/2025/setup-litex/vexriscv-donut.mp4.gif)
 
 ---
 
-## まとめ
+## 手順まとめ
+
+時系列順に実行した内容のまとめを先に記載する。細かいトラブルシューティングは後半に記載。
 
 ### 環境構築
 
@@ -180,9 +184,27 @@ INFO: [Common 17-206] Exiting Vivado at Mon Feb 24 16:20:11 2025...
 
 これで FPGA の電源を入れ直しても、LiteX が起動するようになるはず。
 
+### サンプルアプリのビルド・動作確認
+
+自前で RISC-V toolchain を用意しビルドしても良かったが、切り分けが面倒になりそうなのでまずは Demo Application を動作させる。。
+<https://github.com/enjoy-digital/litex/tree/master/litex/soc/software/demo#readme> の手順に従い `demo.bin` をビルドする。
+
+```bash
+$ itex_bare_metal_demo --build-path=build/digilent_arty
+```
+
+- <https://github.com/cr1901/teraterm-litex/releases> から install
+- teraterm の転送オプションに追加された `litex` を使用し、結合したバイナリを 0x40000000 に転送する設定 + Acitve=true に設定
+  - ![screenshot](/2025/setup-litex/teraterm-litex-2.png)
+- VexRiscv を再起動するか、Terminal 中で `serialboot` を入力し、 `L5DdSMmkekro` が表示されたら転送が開始される
+- 無事に demo app が起動したら、 `donut` を入力して無事動作確認 OK
+  - ![screenshot](/2025/setup-litex/teraterm-litex-3.png)
+
 ---
 
-## ハマった点と対処
+## Troubleshooting
+
+戦術の内容を実行した際の経緯等々。
 
 ### migen 導入時の `python -m pip install` が通らない
 
