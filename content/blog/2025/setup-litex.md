@@ -196,9 +196,8 @@ subprocess.CalledProcessError: Command '"/mnt/e/repos/litex/.venv/bin/python3" -
 
 pip の install 先は global, user, virtualenv の 3 段階ある。
 `litex_setup.py` の `--user` option を外せばよいがこれは global になるので避けたい。
-今回のエラーは user install を virtualenv 上で実行しようとしているために起きている。
 
-従うなら `--user` を外し virtualenv 内で閉じた Package 管理をなすべきではある。
+今回のエラーは user install を virtualenv 上で実行しようとしているために起きている。
 
 ややこしいので表にまとめる。現在遭遇しているケースが 4 に該当する。
 
