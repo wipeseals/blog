@@ -50,6 +50,8 @@ $ sudo ./litex_setup.py --gcc=riscv
 
 ハマりポイントは特になし。verilator があれば動くはず。
 
+<!-- more -->
+
 ```bash
 # sim に必要なPackage導入
 $ sudo apt install libevent-dev libjson-c-dev verilator
