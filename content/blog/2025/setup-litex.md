@@ -1,7 +1,6 @@
 +++
 title = "LiteX を Ubuntu 24.04 on WSL2 で使用し、 Demo Applicationを動作させる"
 date = 2025-02-24
-draft = true
 [taxonomies]
 tags = ["tech", "litex", "fpga", "Linux", "Embedded"]
 +++
