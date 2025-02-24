@@ -6,7 +6,8 @@
             "type": "shell",
             "command": "zola",
             "args": [
-                "serve"
+                "serve",
+                "--drafts"
             ],
             "group": {
                 "kind": "build",
