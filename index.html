@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>blog.wipeseals.me</title>
+    
+    <meta http-equiv="content-type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+    <meta name="robots" content="noodp"/>
+
+    <link rel="stylesheet" href="https://blog.wipeseals.me/style.css">
+    <link rel="stylesheet" href="https://blog.wipeseals.me/color/blue-light.css">
+
+        <link rel="stylesheet" href="https://blog.wipeseals.me/color/background_light.css">
+    
+    <link rel="stylesheet" href="https://blog.wipeseals.me/font-hack.css">
+
+    <meta name="description" content="Miscellaneous logs...">
+
+    <meta property="og:description" content="Miscellaneous logs...">
+    <meta property="og:title" content="blog.wipeseals.me">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://blog.wipeseals.me/">
+
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:description" content="Miscellaneous logs...">
+    <meta name="twitter:title" content="blog.wipeseals.me">
+    <meta property="twitter:domain" content="blog.wipeseals.me">
+    <meta property="twitter:url" content="https://blog.wipeseals.me/">
+
+        <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico">
+    
+    </head>
+
+<body class="">
+<div class="container">
+    
+    <header class="header">
+        <div class="header__inner">
+            <div class="header__logo">
+                    
+                <a href="/" style="text-decoration: none;">
+                    <div class="logo">
+                      
+                            blog.wipeseals.me
+                        
+                    </div>
+                </a>
+            </div>
+        </div>
+
+        
+        
+                <nav class="menu">
+            <ul class="menu__inner">
+                <li class="active"><a href="https://blog.wipeseals.me">blog</a></li>
+            
+                <li><a href="https://blog.wipeseals.me/tags">tags</a></li>
+            
+                <li><a href="https://blog.wipeseals.me/archive">archive</a></li>
+            
+                <li><a href="https://wipeseals.me">about me</a></li>
+            
+                <li><a href="https://github.com/wipeseals" target="_blank" rel="noopener noreferrer">github</a></li>
+            </ul>
+        </nav>
+    
+    
+        
+    </header>
+    
+
+    <div class="content">
+        
+        <div class="posts">
+                <div class="post on-list">
+                    
+    <h1 class="post-title"><a href="https://blog.wipeseals.me/blog/2025/setup-litex/">LiteX を Ubuntu 24.04 on WSL2 で使用し、 Demo Applicationを動作させる</a></h1>
+    <div class="post-meta-inline">
+        
+    <span class="post-date">
+            2025-02-24
+        </span>
+
+    </div>
+
+    
+        <span class="post-tags-inline">
+                :: tags:&nbsp;
+                <a class="post-tag" href="https://blog.wipeseals.me/tags/embedded/">#Embedded</a>&nbsp;
+                <a class="post-tag" href="https://blog.wipeseals.me/tags/linux/">#Linux</a>&nbsp;
+                <a class="post-tag" href="https://blog.wipeseals.me/tags/fpga/">#fpga</a>&nbsp;
+                <a class="post-tag" href="https://blog.wipeseals.me/tags/litex/">#litex</a>&nbsp;
+                <a class="post-tag" href="https://blog.wipeseals.me/tags/tech/">#tech</a></span>
+    
+
+
+                    
+        <div class="post-content">
+            <p>LiteX を Windows 環境で使用したく、試していたときの備忘録。以下の通り無事 demo app の動作確認までたどり着けたので書き残す。</p>
+<p><img src="/2025/setup-litex/vexriscv-donut.mp4.gif" alt="movie gif" /></p>
+<hr />
+<h2 id="shou-shun-matome">手順まとめ</h2>
+<p>時系列順に実行した内容のまとめを先に記載する。細かいトラブルシューティングは後半に記載。</p>
+<h3 id="huan-jing-gou-zhu">環境構築</h3>
+<p>基本手順は<a href="https://github.com/enjoy-digital/litex?tab=readme-ov-file#quick-start-guide">公式ドキュメントの Quick Start Guide</a>に従い、WSL2 上にインストールした Ubuntu 24.04 で行う。
+要点は以下。</p>
+<ul>
+<li>virtualenv を作成し、Python 仮想環境中で実行する</li>
+<li>virtualenv 中で user install を実行するとエラーになるため、 <code>--user</code> オプションを使用しない</li>
+<li>litex の repo ごと取得した状態で <code>litex_setup.py</code> を実行しない</li>
+</ul>
+<pre data-lang="sh" style="background-color:#ffffff;color:#010101;" class="language-sh "><code class="language-sh" data-lang="sh"><span style="color:#898989;"># verilator導入
+</span><span style="color:#696989;">$</span><span> sudo apt install verilator
+</span><span>
+</span><span style="color:#898989;"># litexの取得
+</span><span style="color:#696989;">$</span><span> wget https://raw.githubusercontent.com/enjoy-digital/litex/master/litex_setup.py
+</span><span style="color:#696989;">$</span><span> chmod +x litex_setup.py
+</span><span>
+</span><span style="color:#898989;"># venv導入
+</span><span style="color:#696989;">$</span><span> sudo apt install python3-venv
+</span><span style="color:#898989;"># 仮想環境作成 + activate
+</span><span style="color:#696989;">$</span><span> python3</span><span style="color:#696989;"> -m</span><span> venv .venv
+</span><span style="color:#696989;">$</span><span> source .venv/bin/activate
+</span><span>
+</span><span style="color:#898989;"># litex_setup.py の実行
+</span><span style="color:#696989;">$</span><span> python3 ./litex_setup.py</span><span style="color:#696989;"> --init --install --config</span><span style="color:#016692;">=</span><span>full
+</span><span>
+</span><span style="color:#898989;"># RSC-V toolchain の導入 (binutils-riscv* 等が導入されるので管理者権限必要)
+</span><span style="color:#696989;">$</span><span> pip3 install meson ninja
+</span><span style="color:#696989;">$</span><span> sudo ./litex_setup.py</span><span style="color:#696989;"> --gcc</span><span style="color:#016692;">=</span><span>riscv
+</span></code></pre>
+<h3 id="shi-ji-wu-sidenotesuto">実機無しでのテスト</h3>
+<p>ハマりポイントは特になし。verilator があれば動くはず。</p>
+
+        </div>
+        <div>
+            <!-- &#xFE0E; -- force text style - some devices render this as emoji -->
+            <a class="read-more button" href="https://blog.wipeseals.me/blog/2025/setup-litex/">
+                <span class="button__text">Read more</span>&nbsp;
+                <span class="button__icon">&#8617;&#xFE0E;</span>
+            </a>
+        </div>
+    
+
+                </div>
+            
+                <div class="post on-list">
+                    
+    <h1 class="post-title"><a href="https://blog.wipeseals.me/blog/2024/create-vrchat-game/">VRChatで動くボードゲームを作る</a></h1>
+    <div class="post-meta-inline">
+        
+    <span class="post-date">
+            2024-11-14
+        </span>
+
+    </div>
+
+    
+        <span class="post-tags-inline">
+                :: tags:&nbsp;
+                <a class="post-tag" href="https://blog.wipeseals.me/tags/c/">#C#</a>&nbsp;
+                <a class="post-tag" href="https://blog.wipeseals.me/tags/game/">#Game</a>&nbsp;
+                <a class="post-tag" href="https://blog.wipeseals.me/tags/udon/">#Udon</a>&nbsp;
+                <a class="post-tag" href="https://blog.wipeseals.me/tags/udonsharp/">#UdonSharp</a>&nbsp;
+                <a class="post-tag" href="https://blog.wipeseals.me/tags/unity/">#Unity</a>&nbsp;
+                <a class="post-tag" href="https://blog.wipeseals.me/tags/vrchat/">#VRChat</a>&nbsp;
+                <a class="post-tag" href="https://blog.wipeseals.me/tags/tech/">#tech</a></span>
+    
+
+
+                    
+        <div class="post-content">
+            <p>掲題の通り、VRChat 上で動作するボードゲームを先日公開した。自分自身の備忘録また同様の制作を行いたく情報を探している人向けの制作記録として機能することを願って作業記録を残すことにする。</p>
+<ul>
+<li><a href="https://wipeseals.booth.pm/items/6278798">[無料] UdonKnucklebones [UdonChips 対応] - Booth</a></li>
+<li><a href="https://github.com/wipeseals/UdonKnucklebones">wipeseals/UdonKnucklebones - GitHub</a></li>
+</ul>
+<p><img src="/2024/create-vrchat-game/2024-11-10-170028.png" alt="ss" /></p>
+<hr />
+<h2 id="zuo-rumono">作るもの</h2>
+<p>Knucklebones（ナックルボーン）と呼ばれるボードゲームを作ることにした。本家は<a href="https://store.steampowered.com/app/1313140/Cult_of_the_Lamb/?l=japanese">Cult of the Lamb</a> 作中に登場するゲームであり、今回の制作は非公式ファンアートの位置づけである。</p>
+<p>サイコロを振って並べるという単純明快なルールでありながら、駆け引き要素がよくできたゲームである。（高得点を狙うほど、相手から一網打尽にされるリスクが上がっていく）
+もちろん、Knucklebones だけでなくゲーム自体の完成度もすばらしいのでぜひ遊んでみてほしい。</p>
+<h2 id="zhi-zuo-shou-shun">制作手順</h2>
+<p>おおよそ以下の手順で進めた。あくまでいち参考として見ていただけるとありがたい。</p>
+<ol>
+<li>ゲームシステム試作</li>
+<li>モデリング</li>
+<li>VCC 配布可能な Unity Project 作成</li>
+<li>モデルの Unity Setup</li>
+<li>ゲームロジック 実装</li>
+<li>動作確認</li>
+<li>サンプルワールド作成</li>
+<li>配布準備</li>
+</ol>
+
+        </div>
+        <div>
+            <!-- &#xFE0E; -- force text style - some devices render this as emoji -->
+            <a class="read-more button" href="https://blog.wipeseals.me/blog/2024/create-vrchat-game/">
+                <span class="button__text">Read more</span>&nbsp;
+                <span class="button__icon">&#8617;&#xFE0E;</span>
+            </a>
+        </div>
+    
+
+                </div>
+            
+                <div class="post on-list">
+                    
+    <h1 class="post-title"><a href="https://blog.wipeseals.me/blog/2024/create-blog/">Blog を作る</a></h1>
+    <div class="post-meta-inline">
+        
+    <span class="post-date">
+            2024-11-10
+        </span>
+
+    </div>
+
+    
+        <span class="post-tags-inline">
+                :: tags:&nbsp;
+                <a class="post-tag" href="https://blog.wipeseals.me/tags/diary/">#diary</a></span>
+    
+
+
+                    <div class="post-content">
+            <p>何度目かはわからないがまだ懲りずにテックブログを作った。
+今年に入ってネット隠居やめつつあることや、技術以外の微妙なものの書き置き場所としては自分の置き場が欲しい背景がある...と、
+新型コロナウイルス感染症になっている間にぐるぐる考えていて、ちょうどいま病み上がりの今机に座る練習がてら作ってみた。
+まだ結構倦怠感があるのとおそらく後遺症ぽいがやたら疲れる。弊はリモートではないのでもう一日大事で休んだほうが良いかもしれない。</p>
+<p>ここ数年はあまりアウトプットこそしていなかったが、技術私生活ともにまとめておきたい事柄はあるので、気を見てぼちぼち更新していきたい。</p>
+
+        </div>
+
+                </div>
+            
+                <div class="post on-list">
+                    
+    <h1 class="post-title"><a href="https://blog.wipeseals.me/blog/2024/rpi-pio-nand/">Raspberry PI PIO で NANDアクセスを高速化する</a></h1>
+    <div class="post-meta-inline">
+        
+    <span class="post-date">
+            2024-10-30
+        </span>
+
+    </div>
+
+    
+        <span class="post-tags-inline">
+                :: tags:&nbsp;
+                <a class="post-tag" href="https://blog.wipeseals.me/tags/driver/">#Driver</a>&nbsp;
+                <a class="post-tag" href="https://blog.wipeseals.me/tags/embedded/">#Embedded</a>&nbsp;
+                <a class="post-tag" href="https://blog.wipeseals.me/tags/nand/">#NAND</a>&nbsp;
+                <a class="post-tag" href="https://blog.wipeseals.me/tags/pio/">#pio</a>&nbsp;
+                <a class="post-tag" href="https://blog.wipeseals.me/tags/raspberrypi/">#raspberrypi</a>&nbsp;
+                <a class="post-tag" href="https://blog.wipeseals.me/tags/slide/">#slide</a>&nbsp;
+                <a class="post-tag" href="https://blog.wipeseals.me/tags/tech/">#tech</a></span>
+    
+
+
+                    
+        <div class="post-content">
+            <p>登壇する機会があったのでその際の資料。RP2040 に搭載されている Programmable IO を用いて、Parallel Command I/F である NAND IC へのアクセスを高速化検討した話。</p>
+<p><a href="/2024/rpi-pio-nand/rpi-pio-nand.pdf">rpi-pio-nand.pdf</a></p>
+<p>資料は marp を使用して作成したので、以後は元になった資料の markdown 移植版</p>
+<h2 id="bei-jing">背景</h2>
+<p>最近 SSD 自作キット JISC-SSD で <del>時折放置してますが</del> 遊んでいます。
+途中まで C++で書いていましたが、気まぐれで Rust 再実装中...</p>
+<p>RPi Pico: RP2040 Cortex-M0+ DualCore @133MHz
+NAND Flash: KIOXIA TC58NVG0S3HTA00 1Gbit SLC ECC なし</p>
+<table><thead><tr><th>外観</th><th>回路図抜粋</th><th>RP2040 Block Diagram</th></tr></thead><tbody>
+<tr><td><img src="/2024/rpi-pio-nand/sashie01-scaled.jpg" alt="width:400px" /></td><td><img src="/2024/rpi-pio-nand/jisc-ssd-schema.png" alt="width:700px" /></td><td><img src="/2024/rpi-pio-nand/rp2040-diagram.png" alt="width:600px" /></td></tr>
+<tr><td></td><td>GPIO で NAND と直結</td><td></td></tr>
+</tbody></table>
+
+        </div>
+        <div>
+            <!-- &#xFE0E; -- force text style - some devices render this as emoji -->
+            <a class="read-more button" href="https://blog.wipeseals.me/blog/2024/rpi-pio-nand/">
+                <span class="button__text">Read more</span>&nbsp;
+                <span class="button__icon">&#8617;&#xFE0E;</span>
+            </a>
+        </div>
+    
+
+                </div>
+            <div class="pagination">
+                <div class="pagination__buttons">
+                    <span class="button next">
+                        <a href="https://blog.wipeseals.me/page/2/">
+                            <span class="button__text">Older posts</span>&nbsp;
+                            <span class="button__icon">→</span>
+                        </a>
+                    </span>
+                </div>
+            </div>
+        </div>
+        
+    </div>
+
+    
+    <footer class="footer">
+        <div class="footer__inner">
+                <div class="copyright copyright--user">Copyright &copy; 2024 wipeseals</div>
+            </div>
+    </footer>
+    
+
+</div>
+</body>
+
+</html>
