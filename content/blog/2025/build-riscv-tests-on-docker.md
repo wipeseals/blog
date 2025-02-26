@@ -1,8 +1,8 @@
 +++
-title = "Docker で rscv-tests をビルドする"
+title = "Docker で riscv-tests をビルドする"
 date = 2025-02-26
 [taxonomies]
-topics = ["Docker", "riscv"]
+tags = ["tech", "Docker", "riscv"]
 +++
 
 (ビルドが長くて) 地味に時間がかかったので、今後時間を溶かさないように書き残す。
