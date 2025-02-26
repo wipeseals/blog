@@ -2,7 +2,7 @@
 title = "LiteX を Ubuntu 24.04 on WSL2 で使用し、 Demo Applicationを動作させる"
 date = 2025-02-24
 [taxonomies]
-tags = ["tech", "litex", "fpga", "Linux", "Embedded"]
+tags = ["tech", "litex", "fpga", "Linux", "Embedded", "riscv"]
 +++
 
 LiteX を Windows 環境で使用したく、試していたときの備忘録。以下の通り無事 demo app の動作確認までたどり着けたので書き残す。
