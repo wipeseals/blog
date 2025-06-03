@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom" xml:lang="en">
+    <title>blog.wipeseals.me - Unity</title>
+    <subtitle>Miscellaneous logs...</subtitle>
+    <link rel="self" type="application/atom+xml" href="https://blog.wipeseals.me/tags/unity/atom.xml"/>
+    <link rel="alternate" type="text/html" href="https://blog.wipeseals.me"/>
+    <generator uri="https://www.getzola.org/">Zola</generator>
+    <updated>2024-11-14T00:00:00+00:00</updated>
+    <id>https://blog.wipeseals.me/tags/unity/atom.xml</id>
+    <entry xml:lang="en">
+        <title>VRChatで動くボードゲームを作る</title>
+        <published>2024-11-14T00:00:00+00:00</published>
+        <updated>2024-11-14T00:00:00+00:00</updated>
+        
+        <author>
+          <name>
+            
+              Unknown
+            
+          </name>
+        </author>
+        
+        <link rel="alternate" type="text/html" href="https://blog.wipeseals.me/blog/2024/create-vrchat-game/"/>
+        <id>https://blog.wipeseals.me/blog/2024/create-vrchat-game/</id>
+        
+        <summary type="html">&lt;p&gt;掲題の通り、VRChat 上で動作するボードゲームを先日公開した。自分自身の備忘録また同様の制作を行いたく情報を探している人向けの制作記録として機能することを願って作業記録を残すことにする。&lt;&#x2F;p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;https:&#x2F;&#x2F;wipeseals.booth.pm&#x2F;items&#x2F;6278798&quot;&gt;[無料] UdonKnucklebones [UdonChips 対応] - Booth&lt;&#x2F;a&gt;&lt;&#x2F;li&gt;
+&lt;li&gt;&lt;a href=&quot;https:&#x2F;&#x2F;github.com&#x2F;wipeseals&#x2F;UdonKnucklebones&quot;&gt;wipeseals&#x2F;UdonKnucklebones - GitHub&lt;&#x2F;a&gt;&lt;&#x2F;li&gt;
+&lt;&#x2F;ul&gt;
+&lt;p&gt;&lt;img src=&quot;&#x2F;2024&#x2F;create-vrchat-game&#x2F;2024-11-10-170028.png&quot; alt=&quot;ss&quot; &#x2F;&gt;&lt;&#x2F;p&gt;
+&lt;hr &#x2F;&gt;
+&lt;h2 id=&quot;zuo-rumono&quot;&gt;作るもの&lt;&#x2F;h2&gt;
+&lt;p&gt;Knucklebones（ナックルボーン）と呼ばれるボードゲームを作ることにした。本家は&lt;a href=&quot;https:&#x2F;&#x2F;store.steampowered.com&#x2F;app&#x2F;1313140&#x2F;Cult_of_the_Lamb&#x2F;?l=japanese&quot;&gt;Cult of the Lamb&lt;&#x2F;a&gt; 作中に登場するゲームであり、今回の制作は非公式ファンアートの位置づけである。&lt;&#x2F;p&gt;
+&lt;p&gt;サイコロを振って並べるという単純明快なルールでありながら、駆け引き要素がよくできたゲームである。（高得点を狙うほど、相手から一網打尽にされるリスクが上がっていく）
+もちろん、Knucklebones だけでなくゲーム自体の完成度もすばらしいのでぜひ遊んでみてほしい。&lt;&#x2F;p&gt;
+&lt;h2 id=&quot;zhi-zuo-shou-shun&quot;&gt;制作手順&lt;&#x2F;h2&gt;
+&lt;p&gt;おおよそ以下の手順で進めた。あくまでいち参考として見ていただけるとありがたい。&lt;&#x2F;p&gt;
+&lt;ol&gt;
+&lt;li&gt;ゲームシステム試作&lt;&#x2F;li&gt;
+&lt;li&gt;モデリング&lt;&#x2F;li&gt;
+&lt;li&gt;VCC 配布可能な Unity Project 作成&lt;&#x2F;li&gt;
+&lt;li&gt;モデルの Unity Setup&lt;&#x2F;li&gt;
+&lt;li&gt;ゲームロジック 実装&lt;&#x2F;li&gt;
+&lt;li&gt;動作確認&lt;&#x2F;li&gt;
+&lt;li&gt;サンプルワールド作成&lt;&#x2F;li&gt;
+&lt;li&gt;配布準備&lt;&#x2F;li&gt;
+&lt;&#x2F;ol&gt;
+</summary>
+        
+    </entry>
+    <entry xml:lang="en">
+        <title>U# assembly definition が定義されていない旨のエラー対処</title>
+        <published>2024-10-01T00:00:00+00:00</published>
+        <updated>2024-10-01T00:00:00+00:00</updated>
+        
+        <author>
+          <name>
+            
+              Unknown
+            
+          </name>
+        </author>
+        
+        <link rel="alternate" type="text/html" href="https://blog.wipeseals.me/blog/2024/usharp-asmdef/"/>
+        <id>https://blog.wipeseals.me/blog/2024/usharp-asmdef/</id>
+        
+        <summary type="html">&lt;p&gt;公開用に &lt;code&gt;Packages&#x2F;&lt;&#x2F;code&gt; 側で U# のアプリケーションを作っているときに、以下でビルドエラーになったのでの備忘録。&lt;&#x2F;p&gt;
+&lt;pre data-lang=&quot;log&quot; style=&quot;background-color:#ffffff;color:#010101;&quot; class=&quot;language-log &quot;&gt;&lt;code class=&quot;language-log&quot; data-lang=&quot;log&quot;&gt;&lt;span&gt;&amp;#39;&#x2F;Packages&#x2F;XXX&#x2F;XXX.cs&amp;#39; does not belong to a U# assembly, have you made a U# assembly definition for the assembly the script is a part of?
+&lt;&#x2F;span&gt;&lt;&#x2F;code&gt;&lt;&#x2F;pre&gt;
+&lt;p&gt;&lt;del&gt;エラーメッセージの通りで書き残すほどでもない気はするが、U# Assembly Definition についてあまり情報がなかったので書き残す&lt;&#x2F;del&gt;&lt;&#x2F;p&gt;
+&lt;p&gt;&lt;em&gt;記事を書いている途中に公式ドキュメントを見つけました。 &lt;a href=&quot;https:&#x2F;&#x2F;udonsharp.docs.vrchat.com&#x2F;migration&#x2F;#does-not-belong-to-u-assembly&quot;&gt;https:&#x2F;&#x2F;udonsharp.docs.vrchat.com&#x2F;migration&#x2F;#does-not-belong-to-u-assembly&lt;&#x2F;a&gt;&lt;&#x2F;em&gt;&lt;&#x2F;p&gt;
+&lt;h2 id=&quot;assembly-definition-asmdef-nituite&quot;&gt;Assembly Definition (asmdef) について&lt;&#x2F;h2&gt;
+&lt;p&gt;asmdef は定義済アセンブリを明示するための設定ファイル。&lt;&#x2F;p&gt;
+&lt;p&gt;Unity C#で記述した Script がコンパイルされる際、 asmdef で定義を明示しない場合は &lt;code&gt;Assembly-CSharp*&lt;&#x2F;code&gt; にまとめられる。
+自分の書いた Script とその他無関係の Script が同一のアセンブリにビルドされるため、クラス名の衝突であったりコンパイルの時間増加等の問題につながるため、特別な理由がなければ定義しておくほうが無難。&lt;&#x2F;p&gt;
+&lt;p&gt;参考: &lt;a href=&quot;https:&#x2F;&#x2F;docs.unity3d.com&#x2F;ja&#x2F;2022.3&#x2F;Manual&#x2F;ScriptCompileOrderFolders.html&quot;&gt;特殊フォルダーとスクリプトのコンパイル順 - Unity Documentation 2022.3&lt;&#x2F;a&gt;&lt;&#x2F;p&gt;
+</summary>
+        
+    </entry>
+    <entry xml:lang="en">
+        <title>2024年5月時点 VRChat Avatar Upload環境memo</title>
+        <published>2024-05-04T00:00:00+00:00</published>
+        <updated>2024-05-04T00:00:00+00:00</updated>
+        
+        <author>
+          <name>
+            
+              Unknown
+            
+          </name>
+        </author>
+        
+        <link rel="alternate" type="text/html" href="https://blog.wipeseals.me/blog/2024/vrchat-upload/"/>
+        <id>https://blog.wipeseals.me/blog/2024/vrchat-upload/</id>
+        
+        <summary type="html">&lt;p&gt;Zenn 執筆環境構築のテスト記事も兼ねてアバター導入環境について言及。多分もっと丁寧な記事があると思うので備忘録程度。&lt;&#x2F;p&gt;
+&lt;h2 id=&quot;bi-yao-nahuan-jing-tosonoshou-shun&quot;&gt;必要な環境とその手順&lt;&#x2F;h2&gt;
+&lt;ul&gt;
+&lt;li&gt;VRChat アカウント
+&lt;ul&gt;
+&lt;li&gt;VRChat には &lt;a href=&quot;https:&#x2F;&#x2F;docs.vrchat.com&#x2F;docs&#x2F;vrchat-safety-and-trust-system&quot;&gt;Trust Rank&lt;&#x2F;a&gt; という概念があり、作りたてのアカウントでは Visitor となっている&lt;&#x2F;li&gt;
+&lt;li&gt;やり込んで Rank を上げるか、課金することで New User 以上の権限を持つアカウントになることで Upload 可能
+&lt;blockquote&gt;
+&lt;p&gt;The transition between “Visitor” and “New User” is a special one — when a Visitor becomes a New User, they gain the ability to upload content to VRChat as long as they’re using a VRChat account. Users receive a notification when they have passed this rank, and are directed to the VRChat documentation page to get started with creating content.&lt;&#x2F;p&gt;
+&lt;&#x2F;blockquote&gt;
+&lt;&#x2F;li&gt;
+&lt;&#x2F;ul&gt;
+&lt;&#x2F;li&gt;
+&lt;li&gt;Unity Hub
+&lt;ul&gt;
+&lt;li&gt;Unity は複数バージョンを共存させることがあり、これの管理に(?)Unity Hub を使用する&lt;&#x2F;li&gt;
+&lt;li&gt;&lt;a href=&quot;https:&#x2F;&#x2F;unity.com&#x2F;ja&#x2F;download&quot;&gt;Unity.com&lt;&#x2F;a&gt; から DL してセットアップしておく、また起動後アカウントやライセンス認証を求められる場合は Unity のアカウントも取得しておく&lt;&#x2F;li&gt;
+&lt;&#x2F;ul&gt;
+&lt;&#x2F;li&gt;
+&lt;li&gt;Unity 2022.3.6f1
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;https:&#x2F;&#x2F;creators.vrchat.com&#x2F;sdk&#x2F;upgrade&#x2F;current-unity-version&#x2F;&quot;&gt;VRChat 公式によるとこのバージョンが推奨のため&lt;&#x2F;a&gt;、 Unity Hub 導入後に VRChat の現時点での最新バージョンをいれる
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;unityhub:&#x2F;&#x2F;2022.3.6f1&#x2F;b9e6e7e9fa2d&quot;&gt;unityhub:&#x2F;&#x2F;2022.3.6f1&#x2F;b9e6e7e9fa2d&lt;&#x2F;a&gt;&lt;&#x2F;li&gt;
+&lt;&#x2F;ul&gt;
+&lt;&#x2F;li&gt;
+&lt;li&gt;(筆者は 2019 を使ったことあるが 2022 が初なのでせっかくなので本記事を書き残す) &amp;gt; The current Unity version used by VRChat is 2022.3.6f1.
+If you have Unity Hub installed, you can click this link to install the correct version of Unity. 2022.3.6f1 is also available in the Unity editor release archive.&lt;&#x2F;li&gt;
+&lt;&#x2F;ul&gt;
+&lt;&#x2F;li&gt;
+&lt;li&gt;VRChat Creator Companion (VCC)
+&lt;ul&gt;
+&lt;li&gt;VRChat が Unity 向けに提供している Avatar, World 向けの SDK などを手軽に導入・管理(?)するためのツール&lt;&#x2F;li&gt;
+&lt;li&gt;VRChat アカウント取得後なら &lt;a href=&quot;https:&#x2F;&#x2F;vrchat.com&#x2F;home&#x2F;download&quot;&gt;https:&#x2F;&#x2F;vrchat.com&#x2F;home&#x2F;download&lt;&#x2F;a&gt; から DL できる&lt;&#x2F;li&gt;
+&lt;&#x2F;ul&gt;
+&lt;&#x2F;li&gt;
+&lt;li&gt;(VCC 代替) ALCOM
+&lt;ul&gt;
+&lt;li&gt;anatawa12 さんが作成している VCC 互換ツール。 &lt;a href=&quot;https:&#x2F;&#x2F;github.com&#x2F;vrc-get&#x2F;vrc-get&quot;&gt;vrc-get&#x2F;vrc-get - GitHub&lt;&#x2F;a&gt; の GUI FrontEnd&lt;&#x2F;li&gt;
+&lt;li&gt;使ってみた感じ本家よりかなり高速で快適に使用できているので、オススメしたい。以後の説明で VCC を使い箇所は ALCOM で読み替え可&lt;&#x2F;li&gt;
+&lt;li&gt;&lt;a href=&quot;https:&#x2F;&#x2F;vrc-get.anatawa12.com&#x2F;alcom&#x2F;&quot;&gt;https:&#x2F;&#x2F;vrc-get.anatawa12.com&#x2F;alcom&#x2F;&lt;&#x2F;a&gt; から DL 可能&lt;&#x2F;li&gt;
+&lt;&#x2F;ul&gt;
+&lt;&#x2F;li&gt;
+&lt;li&gt;何らかの画像エディタ
+&lt;ul&gt;
+&lt;li&gt;アバターの改変用。筆者はクリスタ常用 (だが、どちらかといえば PSD 同梱してくださる方が多い印象)&lt;&#x2F;li&gt;
+&lt;&#x2F;ul&gt;
+&lt;&#x2F;li&gt;
+&lt;&#x2F;ul&gt;
+</summary>
+        
+    </entry>
+</feed>

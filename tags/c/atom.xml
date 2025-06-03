@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom" xml:lang="en">
+    <title>blog.wipeseals.me - C#</title>
+    <subtitle>Miscellaneous logs...</subtitle>
+    <link rel="self" type="application/atom+xml" href="https://blog.wipeseals.me/tags/c/atom.xml"/>
+    <link rel="alternate" type="text/html" href="https://blog.wipeseals.me"/>
+    <generator uri="https://www.getzola.org/">Zola</generator>
+    <updated>2024-11-14T00:00:00+00:00</updated>
+    <id>https://blog.wipeseals.me/tags/c/atom.xml</id>
+    <entry xml:lang="en">
+        <title>VRChatで動くボードゲームを作る</title>
+        <published>2024-11-14T00:00:00+00:00</published>
+        <updated>2024-11-14T00:00:00+00:00</updated>
+        
+        <author>
+          <name>
+            
+              Unknown
+            
+          </name>
+        </author>
+        
+        <link rel="alternate" type="text/html" href="https://blog.wipeseals.me/blog/2024/create-vrchat-game/"/>
+        <id>https://blog.wipeseals.me/blog/2024/create-vrchat-game/</id>
+        
+        <summary type="html">&lt;p&gt;掲題の通り、VRChat 上で動作するボードゲームを先日公開した。自分自身の備忘録また同様の制作を行いたく情報を探している人向けの制作記録として機能することを願って作業記録を残すことにする。&lt;&#x2F;p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;https:&#x2F;&#x2F;wipeseals.booth.pm&#x2F;items&#x2F;6278798&quot;&gt;[無料] UdonKnucklebones [UdonChips 対応] - Booth&lt;&#x2F;a&gt;&lt;&#x2F;li&gt;
+&lt;li&gt;&lt;a href=&quot;https:&#x2F;&#x2F;github.com&#x2F;wipeseals&#x2F;UdonKnucklebones&quot;&gt;wipeseals&#x2F;UdonKnucklebones - GitHub&lt;&#x2F;a&gt;&lt;&#x2F;li&gt;
+&lt;&#x2F;ul&gt;
+&lt;p&gt;&lt;img src=&quot;&#x2F;2024&#x2F;create-vrchat-game&#x2F;2024-11-10-170028.png&quot; alt=&quot;ss&quot; &#x2F;&gt;&lt;&#x2F;p&gt;
+&lt;hr &#x2F;&gt;
+&lt;h2 id=&quot;zuo-rumono&quot;&gt;作るもの&lt;&#x2F;h2&gt;
+&lt;p&gt;Knucklebones（ナックルボーン）と呼ばれるボードゲームを作ることにした。本家は&lt;a href=&quot;https:&#x2F;&#x2F;store.steampowered.com&#x2F;app&#x2F;1313140&#x2F;Cult_of_the_Lamb&#x2F;?l=japanese&quot;&gt;Cult of the Lamb&lt;&#x2F;a&gt; 作中に登場するゲームであり、今回の制作は非公式ファンアートの位置づけである。&lt;&#x2F;p&gt;
+&lt;p&gt;サイコロを振って並べるという単純明快なルールでありながら、駆け引き要素がよくできたゲームである。（高得点を狙うほど、相手から一網打尽にされるリスクが上がっていく）
+もちろん、Knucklebones だけでなくゲーム自体の完成度もすばらしいのでぜひ遊んでみてほしい。&lt;&#x2F;p&gt;
+&lt;h2 id=&quot;zhi-zuo-shou-shun&quot;&gt;制作手順&lt;&#x2F;h2&gt;
+&lt;p&gt;おおよそ以下の手順で進めた。あくまでいち参考として見ていただけるとありがたい。&lt;&#x2F;p&gt;
+&lt;ol&gt;
+&lt;li&gt;ゲームシステム試作&lt;&#x2F;li&gt;
+&lt;li&gt;モデリング&lt;&#x2F;li&gt;
+&lt;li&gt;VCC 配布可能な Unity Project 作成&lt;&#x2F;li&gt;
+&lt;li&gt;モデルの Unity Setup&lt;&#x2F;li&gt;
+&lt;li&gt;ゲームロジック 実装&lt;&#x2F;li&gt;
+&lt;li&gt;動作確認&lt;&#x2F;li&gt;
+&lt;li&gt;サンプルワールド作成&lt;&#x2F;li&gt;
+&lt;li&gt;配布準備&lt;&#x2F;li&gt;
+&lt;&#x2F;ol&gt;
+</summary>
+        
+    </entry>
+</feed>

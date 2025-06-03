@@ -1,0 +1,282 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom" xml:lang="en">
+    <title>blog.wipeseals.me - Docker</title>
+    <subtitle>Miscellaneous logs...</subtitle>
+    <link rel="self" type="application/atom+xml" href="https://blog.wipeseals.me/tags/docker/atom.xml"/>
+    <link rel="alternate" type="text/html" href="https://blog.wipeseals.me"/>
+    <generator uri="https://www.getzola.org/">Zola</generator>
+    <updated>2025-02-26T00:00:00+00:00</updated>
+    <id>https://blog.wipeseals.me/tags/docker/atom.xml</id>
+    <entry xml:lang="en">
+        <title>Docker で riscv-tests をビルドする</title>
+        <published>2025-02-26T00:00:00+00:00</published>
+        <updated>2025-02-26T00:00:00+00:00</updated>
+        
+        <author>
+          <name>
+            
+              Unknown
+            
+          </name>
+        </author>
+        
+        <link rel="alternate" type="text/html" href="https://blog.wipeseals.me/blog/2025/build-riscv-tests-on-docker/"/>
+        <id>https://blog.wipeseals.me/blog/2025/build-riscv-tests-on-docker/</id>
+        
+        <content type="html" xml:base="https://blog.wipeseals.me/blog/2025/build-riscv-tests-on-docker/">&lt;p&gt;(ビルドが長くて) 地味に時間がかかったので、今後時間を溶かさないように書き残す。&lt;&#x2F;p&gt;
+&lt;h2 id=&quot;shou-shun&quot;&gt;手順&lt;&#x2F;h2&gt;
+&lt;h3 id=&quot;dockerfile-de-riscv-gnu-toolchain-huan-jing-woyong-yi&quot;&gt;Dockerfile で riscv-gnu-toolchain 環境を用意&lt;&#x2F;h3&gt;
+&lt;p&gt;これはほぼ公式手順を Dockerfile に書き起こすだけで良い。&lt;code&gt;ARCH&lt;&#x2F;code&gt;, &lt;code&gt;ABI&lt;&#x2F;code&gt; などは好みのものに変更する。&lt;&#x2F;p&gt;
+&lt;pre data-lang=&quot;Dockerfile&quot; style=&quot;background-color:#ffffff;color:#010101;&quot; class=&quot;language-Dockerfile &quot;&gt;&lt;code class=&quot;language-Dockerfile&quot; data-lang=&quot;Dockerfile&quot;&gt;&lt;span style=&quot;color:#016692;&quot;&gt;FROM&lt;&#x2F;span&gt;&lt;span&gt; ubuntu:&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;24.04
+&lt;&#x2F;span&gt;&lt;span&gt;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#016692;&quot;&gt;WORKDIR &lt;&#x2F;span&gt;&lt;span&gt;&#x2F;app
+&lt;&#x2F;span&gt;&lt;span&gt;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#898989;&quot;&gt;# riscv-gnu-toolchainのリポジトリを取得
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#016692;&quot;&gt;RUN &lt;&#x2F;span&gt;&lt;span&gt;apt update &amp;amp;&amp;amp; apt install -y git
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#016692;&quot;&gt;RUN &lt;&#x2F;span&gt;&lt;span&gt;git clone --recursive https:&#x2F;&#x2F;github.com&#x2F;riscv&#x2F;riscv-gnu-toolchain
+&lt;&#x2F;span&gt;&lt;span&gt;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#016692;&quot;&gt;ENV &lt;&#x2F;span&gt;&lt;span&gt;RISCV=&#x2F;opt&#x2F;riscv
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#016692;&quot;&gt;ENV &lt;&#x2F;span&gt;&lt;span&gt;ARCH=rv32ima
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#016692;&quot;&gt;ENV &lt;&#x2F;span&gt;&lt;span&gt;ABI=ilp32
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#016692;&quot;&gt;ENV &lt;&#x2F;span&gt;&lt;span&gt;PATH=$RISCV&#x2F;bin:$PATH
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#016692;&quot;&gt;ENV &lt;&#x2F;span&gt;&lt;span&gt;TOOLCHAIN_CONFIGURE=&lt;&#x2F;span&gt;&lt;span style=&quot;color:#009f78;&quot;&gt;&amp;quot;--prefix=$RISCV --with-arch=$ARCH --with-abi=$ABI --enable-multilib --enable-qemu-system&amp;quot;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#016692;&quot;&gt;ENV &lt;&#x2F;span&gt;&lt;span&gt;DEBIAN_FRONTEND=noninteractive
+&lt;&#x2F;span&gt;&lt;span&gt;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#898989;&quot;&gt;# 必要なパッケージをインストール
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#016692;&quot;&gt;RUN &lt;&#x2F;span&gt;&lt;span&gt;apt install -y \
+&lt;&#x2F;span&gt;&lt;span&gt;    autoconf \
+&lt;&#x2F;span&gt;&lt;span&gt;    automake \
+&lt;&#x2F;span&gt;&lt;span&gt;    autotools-dev \
+&lt;&#x2F;span&gt;&lt;span&gt;    curl \
+&lt;&#x2F;span&gt;&lt;span&gt;    python3 \
+&lt;&#x2F;span&gt;&lt;span&gt;    python3-pip \
+&lt;&#x2F;span&gt;&lt;span&gt;    python3-tomli \
+&lt;&#x2F;span&gt;&lt;span&gt;    libmpc-dev \
+&lt;&#x2F;span&gt;&lt;span&gt;    libmpfr-dev \
+&lt;&#x2F;span&gt;&lt;span&gt;    libgmp-dev \
+&lt;&#x2F;span&gt;&lt;span&gt;    gawk \
+&lt;&#x2F;span&gt;&lt;span&gt;    build-essential \
+&lt;&#x2F;span&gt;&lt;span&gt;    bison \
+&lt;&#x2F;span&gt;&lt;span&gt;    flex \
+&lt;&#x2F;span&gt;&lt;span&gt;    texinfo \
+&lt;&#x2F;span&gt;&lt;span&gt;    gperf \
+&lt;&#x2F;span&gt;&lt;span&gt;    libtool \
+&lt;&#x2F;span&gt;&lt;span&gt;    patchutils \
+&lt;&#x2F;span&gt;&lt;span&gt;    bc \
+&lt;&#x2F;span&gt;&lt;span&gt;    zlib1g-dev \
+&lt;&#x2F;span&gt;&lt;span&gt;    libexpat-dev \
+&lt;&#x2F;span&gt;&lt;span&gt;    ninja-build \
+&lt;&#x2F;span&gt;&lt;span&gt;    git \
+&lt;&#x2F;span&gt;&lt;span&gt;    cmake \
+&lt;&#x2F;span&gt;&lt;span&gt;    libglib2.0-dev \
+&lt;&#x2F;span&gt;&lt;span&gt;    libslirp-dev
+&lt;&#x2F;span&gt;&lt;span&gt;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#898989;&quot;&gt;# riscv-gnu-toolchainのインストール
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#016692;&quot;&gt;RUN &lt;&#x2F;span&gt;&lt;span&gt;cd riscv-gnu-toolchain &amp;amp;&amp;amp; \
+&lt;&#x2F;span&gt;&lt;span&gt;    .&#x2F;configure $TOOLCHAIN_CONFIGURE &amp;amp;&amp;amp; \
+&lt;&#x2F;span&gt;&lt;span&gt;    make -j$(nproc)
+&lt;&#x2F;span&gt;&lt;span&gt;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#016692;&quot;&gt;CMD &lt;&#x2F;span&gt;&lt;span&gt;[&lt;&#x2F;span&gt;&lt;span style=&quot;color:#009f78;&quot;&gt;&amp;quot;bash&amp;quot;&lt;&#x2F;span&gt;&lt;span&gt;]
+&lt;&#x2F;span&gt;&lt;&#x2F;code&gt;&lt;&#x2F;pre&gt;
+&lt;h3 id=&quot;shang-ji-dockerfile-woshi-tute-riscv-tests-wobirudo&quot;&gt;上記 Dockerfile を使って riscv-tests をビルド&lt;&#x2F;h3&gt;
+&lt;p&gt;multi-stage build で riscv-tests を行っても良かったが、単にビルドするだけであること、自分が実装した別ソースをビルドすることなどを考え先の Image を利用するだけに留めることにした。&lt;&#x2F;p&gt;
+&lt;p&gt;docker compose を用意し、成果物 Volume のマウント並びにビルドのワンライナーを用意する。
+実装してある内容は riscv-tests の README 通りだが、今回は rv32 を対象にしているので XLEN を設定していること、ISA テスト用に make 対象を isa に絞っている。&lt;&#x2F;p&gt;
+&lt;pre data-lang=&quot;yaml&quot; style=&quot;background-color:#ffffff;color:#010101;&quot; class=&quot;language-yaml &quot;&gt;&lt;code class=&quot;language-yaml&quot; data-lang=&quot;yaml&quot;&gt;&lt;span style=&quot;color:#00528b;&quot;&gt;services&lt;&#x2F;span&gt;&lt;span&gt;:
+&lt;&#x2F;span&gt;&lt;span&gt;  &lt;&#x2F;span&gt;&lt;span style=&quot;color:#00528b;&quot;&gt;build-riscv-tests&lt;&#x2F;span&gt;&lt;span&gt;:
+&lt;&#x2F;span&gt;&lt;span&gt;    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#00528b;&quot;&gt;build&lt;&#x2F;span&gt;&lt;span&gt;:
+&lt;&#x2F;span&gt;&lt;span&gt;      &lt;&#x2F;span&gt;&lt;span style=&quot;color:#00528b;&quot;&gt;context&lt;&#x2F;span&gt;&lt;span&gt;: &lt;&#x2F;span&gt;&lt;span style=&quot;color:#8c008a;&quot;&gt;.
+&lt;&#x2F;span&gt;&lt;span&gt;    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#00528b;&quot;&gt;volumes&lt;&#x2F;span&gt;&lt;span&gt;:
+&lt;&#x2F;span&gt;&lt;span&gt;      - &lt;&#x2F;span&gt;&lt;span style=&quot;color:#009f78;&quot;&gt;.&#x2F;riscv-tests:&#x2F;app&#x2F;riscv-tests:rw
+&lt;&#x2F;span&gt;&lt;span&gt;    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#00528b;&quot;&gt;command&lt;&#x2F;span&gt;&lt;span&gt;: &lt;&#x2F;span&gt;&lt;span style=&quot;color:#016692;&quot;&gt;&amp;gt;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#009f78;&quot;&gt;      bash -c &amp;quot;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#009f78;&quot;&gt;      cd &#x2F;app&#x2F;riscv-tests &amp;amp;&amp;amp; 
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#009f78;&quot;&gt;      git clone --recursive https:&#x2F;&#x2F;github.com&#x2F;riscv&#x2F;riscv-tests &amp;amp;&amp;amp; 
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#009f78;&quot;&gt;      cd riscv-tests &amp;amp;&amp;amp; 
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#009f78;&quot;&gt;      autoconf &amp;amp;&amp;amp; 
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#009f78;&quot;&gt;      .&#x2F;configure --prefix=$RISCV&#x2F;target &amp;amp;&amp;amp; 
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#009f78;&quot;&gt;      make XLEN=32 isa
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#009f78;&quot;&gt;      &amp;quot;
+&lt;&#x2F;span&gt;&lt;&#x2F;code&gt;&lt;&#x2F;pre&gt;
+&lt;p&gt;使い方&lt;&#x2F;p&gt;
+&lt;pre data-lang=&quot;bash&quot; style=&quot;background-color:#ffffff;color:#010101;&quot; class=&quot;language-bash &quot;&gt;&lt;code class=&quot;language-bash&quot; data-lang=&quot;bash&quot;&gt;&lt;span style=&quot;color:#696989;&quot;&gt;docker&lt;&#x2F;span&gt;&lt;span&gt; compose run build-riscv-tests
+&lt;&#x2F;span&gt;&lt;&#x2F;code&gt;&lt;&#x2F;pre&gt;
+&lt;h2 id=&quot;sonota&quot;&gt;その他&lt;&#x2F;h2&gt;
+&lt;h3 id=&quot;riscv-gnu-toolchain-nosonota-noturuwoshi-itai&quot;&gt;riscv-gnu-toolchain のその他のツールを使いたい&lt;&#x2F;h3&gt;
+&lt;p&gt;&lt;code&gt;docker compose run build-riscv-tests bash&lt;&#x2F;code&gt; で入った環境であれば、他のツールも使える。&lt;&#x2F;p&gt;
+&lt;pre data-lang=&quot;bash&quot; style=&quot;background-color:#ffffff;color:#010101;&quot; class=&quot;language-bash &quot;&gt;&lt;code class=&quot;language-bash&quot; data-lang=&quot;bash&quot;&gt;&lt;span style=&quot;color:#696989;&quot;&gt;$&lt;&#x2F;span&gt;&lt;span&gt; docker compose run build-riscv-tests bash
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#696989;&quot;&gt;root@460560b02bb5:&#x2F;app#&lt;&#x2F;span&gt;&lt;span&gt; riscv32-unknown-elf-readelf&lt;&#x2F;span&gt;&lt;span style=&quot;color:#696989;&quot;&gt; -e -W&lt;&#x2F;span&gt;&lt;span&gt; riscv-tests&#x2F;isa&#x2F;rv32ui-p-addi
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#696989;&quot;&gt;ELF&lt;&#x2F;span&gt;&lt;span&gt; Header:
+&lt;&#x2F;span&gt;&lt;span&gt;  &lt;&#x2F;span&gt;&lt;span style=&quot;color:#696989;&quot;&gt;Magic:&lt;&#x2F;span&gt;&lt;span&gt;   7f 45 4c 46 01 01 01 00 00 00 00 00 00 00 00 00
+&lt;&#x2F;span&gt;&lt;span&gt;  &lt;&#x2F;span&gt;&lt;span style=&quot;color:#696989;&quot;&gt;Class:&lt;&#x2F;span&gt;&lt;span&gt;                             ELF32
+&lt;&#x2F;span&gt;&lt;span&gt;  &lt;&#x2F;span&gt;&lt;span style=&quot;color:#696989;&quot;&gt;Data:&lt;&#x2F;span&gt;&lt;span&gt;                              2&lt;&#x2F;span&gt;&lt;span style=&quot;color:#009f78;&quot;&gt;&amp;#39;s complement, little endian
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#009f78;&quot;&gt;  Version:                           1 (current)
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#009f78;&quot;&gt;  OS&#x2F;ABI:                            UNIX - System V
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#009f78;&quot;&gt;  ABI Version:                       0
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#009f78;&quot;&gt;  Type:                              EXEC (Executable file)
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#009f78;&quot;&gt;  Machine:                           RISC-V
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#009f78;&quot;&gt;  Version:                           0x1
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#009f78;&quot;&gt;  Entry point address:               0x80000000
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#009f78;&quot;&gt;  Start of program headers:          52 (bytes into file)
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#009f78;&quot;&gt;  Start of section headers:          9524 (bytes into file)
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#009f78;&quot;&gt;  Flags:                             0x0
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#009f78;&quot;&gt;  Size of this header:               52 (bytes)
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#009f78;&quot;&gt;  Size of program headers:           32 (bytes)
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#009f78;&quot;&gt;  Number of program headers:         3
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#009f78;&quot;&gt;  Size of section headers:           40 (bytes)
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#009f78;&quot;&gt;  Number of section headers:         7
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#009f78;&quot;&gt;  Section header string table index: 6
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#009f78;&quot;&gt;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#009f78;&quot;&gt;Section Headers:
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#009f78;&quot;&gt;  [Nr] Name              Type            Addr     Off    Size   ES Flg Lk Inf Al
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#009f78;&quot;&gt;  [ 0]                   NULL            00000000 000000 000000 00      0   0  0
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#009f78;&quot;&gt;  [ 1] .text.init        PROGBITS        80000000 001000 00047c 00  AX  0   0 64
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#009f78;&quot;&gt;  [ 2] .tohost           PROGBITS        80001000 002000 000048 00  WA  0   0 64
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#009f78;&quot;&gt;  [ 3] .riscv.attributes RISCV_ATTRIBUTES 00000000 002048 000063 00      0   0  1
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#009f78;&quot;&gt;  [ 4] .symtab           SYMTAB          00000000 0020ac 0002b0 10      5  37  4
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#009f78;&quot;&gt;  [ 5] .strtab           STRTAB          00000000 00235c 000198 00      0   0  1
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#009f78;&quot;&gt;  [ 6] .shstrtab         STRTAB          00000000 0024f4 000040 00      0   0  1
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#009f78;&quot;&gt;Key to Flags:
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#009f78;&quot;&gt;  W (write), A (alloc), X (execute), M (merge), S (strings), I (info),
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#009f78;&quot;&gt;  L (link order), O (extra OS processing required), G (group), T (TLS),
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#009f78;&quot;&gt;  C (compressed), x (unknown), o (OS specific), E (exclude),
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#009f78;&quot;&gt;  D (mbind), p (processor specific)
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#009f78;&quot;&gt;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#009f78;&quot;&gt;Program Headers:
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#009f78;&quot;&gt;  Type           Offset   VirtAddr   PhysAddr   FileSiz MemSiz  Flg Align
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#009f78;&quot;&gt;  RISCV_ATTRIBUT 0x002048 0x00000000 0x00000000 0x00063 0x00000 R   0x1
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#009f78;&quot;&gt;  LOAD           0x001000 0x80000000 0x80000000 0x0047c 0x0047c R E 0x1000
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#009f78;&quot;&gt;  LOAD           0x002000 0x80001000 0x80001000 0x00048 0x00048 RW  0x1000
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#009f78;&quot;&gt;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#009f78;&quot;&gt; Section to Segment mapping:
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#009f78;&quot;&gt;  Segment Sections...
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#009f78;&quot;&gt;   00     .riscv.attributes
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#009f78;&quot;&gt;   01     .text.init
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#009f78;&quot;&gt;   02     .tohost
+&lt;&#x2F;span&gt;&lt;&#x2F;code&gt;&lt;&#x2F;pre&gt;
+&lt;h3 id=&quot;rv64-32-noxuan-ze&quot;&gt;RV64&#x2F;32 の選択&lt;&#x2F;h3&gt;
+&lt;ul&gt;
+&lt;li&gt;Dockerfile の &lt;code&gt;ARCH&lt;&#x2F;code&gt; と &lt;code&gt;ABI&lt;&#x2F;code&gt; を変更する&lt;&#x2F;li&gt;
+&lt;li&gt;make 時の &lt;code&gt;XLEN&lt;&#x2F;code&gt; を変更する
+&lt;ul&gt;
+&lt;li&gt;riscv-tests のデフォルトは &lt;code&gt;XLEN=64&lt;&#x2F;code&gt; を使おうとしているので、rv32 向けの toolchain だと gcc などが見つからずエラーになる&lt;&#x2F;li&gt;
+&lt;&#x2F;ul&gt;
+&lt;&#x2F;li&gt;
+&lt;&#x2F;ul&gt;
+&lt;h3 id=&quot;linker-script-noxiu-zheng&quot;&gt;Linker script の修正&lt;&#x2F;h3&gt;
+&lt;p&gt;&lt;a href=&quot;https:&#x2F;&#x2F;github.com&#x2F;riscv&#x2F;riscv-test-env&quot;&gt;riscv-tests&#x2F;env が更に submodule になっており&lt;&#x2F;a&gt;、ここを修正することで対応できる。
+例えば &lt;code&gt;p&#x2F;link.ld&lt;&#x2F;code&gt; は以下の具合&lt;&#x2F;p&gt;
+&lt;pre data-lang=&quot;ld&quot; style=&quot;background-color:#ffffff;color:#010101;&quot; class=&quot;language-ld &quot;&gt;&lt;code class=&quot;language-ld&quot; data-lang=&quot;ld&quot;&gt;&lt;span style=&quot;color:#696989;&quot;&gt;OUTPUT_ARCH&lt;&#x2F;span&gt;&lt;span&gt;( &lt;&#x2F;span&gt;&lt;span style=&quot;color:#696989;&quot;&gt;&amp;quot;riscv&amp;quot;&lt;&#x2F;span&gt;&lt;span&gt; )
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#016692;&quot;&gt;ENTRY&lt;&#x2F;span&gt;&lt;span&gt;(&lt;&#x2F;span&gt;&lt;span style=&quot;color:#696989;&quot;&gt;_start&lt;&#x2F;span&gt;&lt;span&gt;)
+&lt;&#x2F;span&gt;&lt;span&gt;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#016692;&quot;&gt;SECTIONS
+&lt;&#x2F;span&gt;&lt;span&gt;{
+&lt;&#x2F;span&gt;&lt;span&gt;  &lt;&#x2F;span&gt;&lt;span style=&quot;color:#696989;&quot;&gt;.&lt;&#x2F;span&gt;&lt;span&gt; = &lt;&#x2F;span&gt;&lt;span style=&quot;color:#8c008a;&quot;&gt;0x80000000&lt;&#x2F;span&gt;&lt;span&gt;;
+&lt;&#x2F;span&gt;&lt;span&gt;  &lt;&#x2F;span&gt;&lt;span style=&quot;color:#696989;&quot;&gt;.text.init&lt;&#x2F;span&gt;&lt;span&gt; : { *(&lt;&#x2F;span&gt;&lt;span style=&quot;color:#696989;&quot;&gt;.text.init&lt;&#x2F;span&gt;&lt;span&gt;) }
+&lt;&#x2F;span&gt;&lt;span&gt;  &lt;&#x2F;span&gt;&lt;span style=&quot;color:#696989;&quot;&gt;.&lt;&#x2F;span&gt;&lt;span&gt; = &lt;&#x2F;span&gt;&lt;span style=&quot;color:#016692;&quot;&gt;ALIGN&lt;&#x2F;span&gt;&lt;span&gt;(&lt;&#x2F;span&gt;&lt;span style=&quot;color:#8c008a;&quot;&gt;0x1000&lt;&#x2F;span&gt;&lt;span&gt;);
+&lt;&#x2F;span&gt;&lt;span&gt;  &lt;&#x2F;span&gt;&lt;span style=&quot;color:#696989;&quot;&gt;.tohost&lt;&#x2F;span&gt;&lt;span&gt; : { *(&lt;&#x2F;span&gt;&lt;span style=&quot;color:#696989;&quot;&gt;.tohost&lt;&#x2F;span&gt;&lt;span&gt;) }
+&lt;&#x2F;span&gt;&lt;span&gt;  &lt;&#x2F;span&gt;&lt;span style=&quot;color:#696989;&quot;&gt;.&lt;&#x2F;span&gt;&lt;span&gt; = &lt;&#x2F;span&gt;&lt;span style=&quot;color:#016692;&quot;&gt;ALIGN&lt;&#x2F;span&gt;&lt;span&gt;(&lt;&#x2F;span&gt;&lt;span style=&quot;color:#8c008a;&quot;&gt;0x1000&lt;&#x2F;span&gt;&lt;span&gt;);
+&lt;&#x2F;span&gt;&lt;span&gt;  &lt;&#x2F;span&gt;&lt;span style=&quot;color:#696989;&quot;&gt;.text&lt;&#x2F;span&gt;&lt;span&gt; : { *(&lt;&#x2F;span&gt;&lt;span style=&quot;color:#696989;&quot;&gt;.text&lt;&#x2F;span&gt;&lt;span&gt;) }
+&lt;&#x2F;span&gt;&lt;span&gt;  &lt;&#x2F;span&gt;&lt;span style=&quot;color:#696989;&quot;&gt;.&lt;&#x2F;span&gt;&lt;span&gt; = &lt;&#x2F;span&gt;&lt;span style=&quot;color:#016692;&quot;&gt;ALIGN&lt;&#x2F;span&gt;&lt;span&gt;(&lt;&#x2F;span&gt;&lt;span style=&quot;color:#8c008a;&quot;&gt;0x1000&lt;&#x2F;span&gt;&lt;span&gt;);
+&lt;&#x2F;span&gt;&lt;span&gt;  &lt;&#x2F;span&gt;&lt;span style=&quot;color:#696989;&quot;&gt;.data&lt;&#x2F;span&gt;&lt;span&gt; : { *(&lt;&#x2F;span&gt;&lt;span style=&quot;color:#696989;&quot;&gt;.data&lt;&#x2F;span&gt;&lt;span&gt;) }
+&lt;&#x2F;span&gt;&lt;span&gt;  &lt;&#x2F;span&gt;&lt;span style=&quot;color:#696989;&quot;&gt;.bss&lt;&#x2F;span&gt;&lt;span&gt; : { *(&lt;&#x2F;span&gt;&lt;span style=&quot;color:#696989;&quot;&gt;.bss&lt;&#x2F;span&gt;&lt;span&gt;) }
+&lt;&#x2F;span&gt;&lt;span&gt;  &lt;&#x2F;span&gt;&lt;span style=&quot;color:#696989;&quot;&gt;_end&lt;&#x2F;span&gt;&lt;span&gt; = &lt;&#x2F;span&gt;&lt;span style=&quot;color:#696989;&quot;&gt;.&lt;&#x2F;span&gt;&lt;span&gt;;
+&lt;&#x2F;span&gt;&lt;span&gt;}
+&lt;&#x2F;span&gt;&lt;&#x2F;code&gt;&lt;&#x2F;pre&gt;
+&lt;p&gt;この他にも &lt;code&gt;riscv_test.h&lt;&#x2F;code&gt; にテストの各マクロの定義があるので、動作確認向けに変更することもできる。
+例えば Pass&#x2F;Fail は、Pass の場合&lt;&#x2F;p&gt;
+&lt;pre data-lang=&quot;c&quot; style=&quot;background-color:#ffffff;color:#010101;&quot; class=&quot;language-c &quot;&gt;&lt;code class=&quot;language-c&quot; data-lang=&quot;c&quot;&gt;&lt;span style=&quot;color:#898989;&quot;&gt;&#x2F;&#x2F;-----------------------------------------------------------------------
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#898989;&quot;&gt;&#x2F;&#x2F; Pass&#x2F;Fail Macro
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#898989;&quot;&gt;&#x2F;&#x2F;-----------------------------------------------------------------------
+&lt;&#x2F;span&gt;&lt;span&gt;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#016692;&quot;&gt;#define &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;RVTEST_PASS                                                     &lt;&#x2F;span&gt;&lt;span&gt;\
+&lt;&#x2F;span&gt;&lt;span&gt;        fence;                                                          \
+&lt;&#x2F;span&gt;&lt;span&gt;        li TESTNUM, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#8c008a;&quot;&gt;1&lt;&#x2F;span&gt;&lt;span&gt;;                                                  \
+&lt;&#x2F;span&gt;&lt;span&gt;        li a7, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#8c008a;&quot;&gt;93&lt;&#x2F;span&gt;&lt;span&gt;;                                                      \
+&lt;&#x2F;span&gt;&lt;span&gt;        li a0, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#8c008a;&quot;&gt;0&lt;&#x2F;span&gt;&lt;span&gt;;                                                       \
+&lt;&#x2F;span&gt;&lt;span&gt;        ecall
+&lt;&#x2F;span&gt;&lt;span&gt;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#016692;&quot;&gt;#define &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;TESTNUM&lt;&#x2F;span&gt;&lt;span&gt; gp
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#016692;&quot;&gt;#define &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;RVTEST_FAIL                                                     &lt;&#x2F;span&gt;&lt;span&gt;\
+&lt;&#x2F;span&gt;&lt;span&gt;        fence;                                                          \
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#8c008a;&quot;&gt;1&lt;&#x2F;span&gt;&lt;span style=&quot;color:#016692;&quot;&gt;:&lt;&#x2F;span&gt;&lt;span&gt;      beqz TESTNUM, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#8c008a;&quot;&gt;1&lt;&#x2F;span&gt;&lt;span style=&quot;background-color:#df68d9bf;color:#a00294;&quot;&gt;b&lt;&#x2F;span&gt;&lt;span&gt;;                                               \
+&lt;&#x2F;span&gt;&lt;span&gt;        sll TESTNUM, TESTNUM, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#8c008a;&quot;&gt;1&lt;&#x2F;span&gt;&lt;span&gt;;                                        \
+&lt;&#x2F;span&gt;&lt;span&gt;        or TESTNUM, TESTNUM, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#8c008a;&quot;&gt;1&lt;&#x2F;span&gt;&lt;span&gt;;                                         \
+&lt;&#x2F;span&gt;&lt;span&gt;        li a7, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#8c008a;&quot;&gt;93&lt;&#x2F;span&gt;&lt;span&gt;;                                                      \
+&lt;&#x2F;span&gt;&lt;span&gt;        addi a0, TESTNUM, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#8c008a;&quot;&gt;0&lt;&#x2F;span&gt;&lt;span&gt;;                                            \
+&lt;&#x2F;span&gt;&lt;span&gt;        ecall
+&lt;&#x2F;span&gt;&lt;&#x2F;code&gt;&lt;&#x2F;pre&gt;
+&lt;h3 id=&quot;disassemble-gajian-tai&quot;&gt;disassemble が見たい&lt;&#x2F;h3&gt;
+&lt;p&gt;付属ツールで disasm 出力しても良かったが、make 時に一緒に生成されていた。 &lt;code&gt;&amp;lt;elf binary&amp;gt;.dump&lt;&#x2F;code&gt; がそれにあたる。&lt;&#x2F;p&gt;
+&lt;p&gt;&lt;code&gt;rv32ui-p-addi.dump&lt;&#x2F;code&gt;&lt;&#x2F;p&gt;
+&lt;pre data-lang=&quot;asm&quot; style=&quot;background-color:#ffffff;color:#010101;&quot; class=&quot;language-asm &quot;&gt;&lt;code class=&quot;language-asm&quot; data-lang=&quot;asm&quot;&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;rv32ui&lt;&#x2F;span&gt;&lt;span&gt;-&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;p&lt;&#x2F;span&gt;&lt;span&gt;-&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;addi:     file form&lt;&#x2F;span&gt;&lt;span style=&quot;color:#7a7025;&quot;&gt;at &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;elf32&lt;&#x2F;span&gt;&lt;span&gt;-&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;littleriscv
+&lt;&#x2F;span&gt;&lt;span&gt;
+&lt;&#x2F;span&gt;&lt;span&gt;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;Disassembly of &lt;&#x2F;span&gt;&lt;span style=&quot;color:#7a7025;&quot;&gt;section &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;.text.init:
+&lt;&#x2F;span&gt;&lt;span&gt;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;80000000 &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;&amp;lt;_start&amp;gt;:
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;80000000&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;:	0500006f          	j	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;80000050 &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;&amp;lt;reset_vector&amp;gt;
+&lt;&#x2F;span&gt;&lt;span&gt;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;80000004 &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;&amp;lt;trap_vector&amp;gt;:
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;80000004&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;:	34202f73          	csrr	t5&lt;&#x2F;span&gt;&lt;span&gt;,&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;mcause
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;80000008&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;:	00800f93          	li	t6&lt;&#x2F;span&gt;&lt;span&gt;,&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;8
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;8000000c:	03ff0863          	beq	t5&lt;&#x2F;span&gt;&lt;span&gt;,&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;t6&lt;&#x2F;span&gt;&lt;span&gt;,&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;8000003c &amp;lt;write_tohost&amp;gt;
+&lt;&#x2F;span&gt;&lt;span&gt;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;...
+&lt;&#x2F;span&gt;&lt;span&gt;
+&lt;&#x2F;span&gt;&lt;span&gt;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;800003fc &amp;lt;test_25&amp;gt;:
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;800003fc:	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;01900193          	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;li	gp&lt;&#x2F;span&gt;&lt;span&gt;,&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;25
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;80000400&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;:	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;02100093          	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;li	ra&lt;&#x2F;span&gt;&lt;span&gt;,&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;33
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;80000404&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;:	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;03208013          	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;addi	zero&lt;&#x2F;span&gt;&lt;span&gt;,&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;ra&lt;&#x2F;span&gt;&lt;span&gt;,&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;50
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;80000408&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;:	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;00000393          	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;li	t2&lt;&#x2F;span&gt;&lt;span&gt;,&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;0
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;8000040c:	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;00701463          	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;bne	zero&lt;&#x2F;span&gt;&lt;span&gt;,&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;t2&lt;&#x2F;span&gt;&lt;span&gt;,&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;80000414 &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;&amp;lt;fail&amp;gt;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;80000410&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;:	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;02301063          	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;bne	zero&lt;&#x2F;span&gt;&lt;span&gt;,&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;gp&lt;&#x2F;span&gt;&lt;span&gt;,&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;80000430 &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;&amp;lt;pass&amp;gt;
+&lt;&#x2F;span&gt;&lt;span&gt;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;80000414 &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;&amp;lt;fail&amp;gt;:
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;80000414&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;:	0ff0000f          	fence
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;80000418&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;:	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;00018063          	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;beqz	gp&lt;&#x2F;span&gt;&lt;span&gt;,&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;80000418 &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;&amp;lt;fail&lt;&#x2F;span&gt;&lt;span&gt;+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;0x4&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;&amp;gt;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;8000041c:	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;00119193          	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;slli	gp&lt;&#x2F;span&gt;&lt;span&gt;,&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;gp&lt;&#x2F;span&gt;&lt;span&gt;,&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;0x1
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;80000420&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;:	0011e193          	ori	gp&lt;&#x2F;span&gt;&lt;span&gt;,&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;gp&lt;&#x2F;span&gt;&lt;span&gt;,&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;1
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;80000424&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;:	05d00893          	li	a7&lt;&#x2F;span&gt;&lt;span&gt;,&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;93
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;80000428&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;:	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;00018513          	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;mv	a0&lt;&#x2F;span&gt;&lt;span&gt;,&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;gp
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;8000042c:	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;00000073          	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;ecall
+&lt;&#x2F;span&gt;&lt;span&gt;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;80000430 &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;&amp;lt;pass&amp;gt;:
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;80000430&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;:	0ff0000f          	fence
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;80000434&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;:	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;00100193          	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;li	gp&lt;&#x2F;span&gt;&lt;span&gt;,&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;1
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;80000438&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;:	05d00893          	li	a7&lt;&#x2F;span&gt;&lt;span&gt;,&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;93
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;8000043c:	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;00000513          	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;li	a0&lt;&#x2F;span&gt;&lt;span&gt;,&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;0
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;80000440&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;:	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;00000073          	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;ecall
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;80000444&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;:	c0001073          	unimp
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;80000448&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;:	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;0000                	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;.insn	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;2&lt;&#x2F;span&gt;&lt;span&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;0x
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;8000044a:	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;0000                	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;.insn	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;2&lt;&#x2F;span&gt;&lt;span&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;0x
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;8000044c:	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;0000                	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;.insn	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;2&lt;&#x2F;span&gt;&lt;span&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;0x
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;8000044e:	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;0000                	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;.insn	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;2&lt;&#x2F;span&gt;&lt;span&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;0x
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;80000450&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;:	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;0000                	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;.insn	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;2&lt;&#x2F;span&gt;&lt;span&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;0x
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;80000452&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;:	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;0000                	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;.insn	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;2&lt;&#x2F;span&gt;&lt;span&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;0x
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;80000454&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;:	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;0000                	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;.insn	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;2&lt;&#x2F;span&gt;&lt;span&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;0x
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;80000456&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;:	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;0000                	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;.insn	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;2&lt;&#x2F;span&gt;&lt;span&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;0x
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;80000458&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;:	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;0000                	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;.insn	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;2&lt;&#x2F;span&gt;&lt;span&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;0x
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;8000045a:	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;0000                	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;.insn	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;2&lt;&#x2F;span&gt;&lt;span&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;0x
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;8000045c:	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;0000                	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;.insn	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;2&lt;&#x2F;span&gt;&lt;span&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;0x
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;8000045e:	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;0000                	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;.insn	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;2&lt;&#x2F;span&gt;&lt;span&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;0x
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;80000460&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;:	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;0000                	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;.insn	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;2&lt;&#x2F;span&gt;&lt;span&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;0x
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;80000462&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;:	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;0000                	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;.insn	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;2&lt;&#x2F;span&gt;&lt;span&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;0x
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;80000464&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;:	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;0000                	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;.insn	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;2&lt;&#x2F;span&gt;&lt;span&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;0x
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;80000466&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;:	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;0000                	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;.insn	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;2&lt;&#x2F;span&gt;&lt;span&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;0x
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;80000468&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;:	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;0000                	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;.insn	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;2&lt;&#x2F;span&gt;&lt;span&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;0x
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;8000046a:	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;0000                	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;.insn	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;2&lt;&#x2F;span&gt;&lt;span&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;0x
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;8000046c:	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;0000                	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;.insn	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;2&lt;&#x2F;span&gt;&lt;span&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;0x
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;8000046e:	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;0000                	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;.insn	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;2&lt;&#x2F;span&gt;&lt;span&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;0x
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;80000470&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;:	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;0000                	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;.insn	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;2&lt;&#x2F;span&gt;&lt;span&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;0x
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;80000472&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;:	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;0000                	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;.insn	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;2&lt;&#x2F;span&gt;&lt;span&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;0x
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;80000474&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;:	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;0000                	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;.insn	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;2&lt;&#x2F;span&gt;&lt;span&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;0x
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;80000476&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;:	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;0000                	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;.insn	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;2&lt;&#x2F;span&gt;&lt;span&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;0x
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;80000478&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;:	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;0000                	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;.insn	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;2&lt;&#x2F;span&gt;&lt;span&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;0x
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;8000047a:	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;0000                	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;.insn	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;2&lt;&#x2F;span&gt;&lt;span&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;0x
+&lt;&#x2F;span&gt;&lt;&#x2F;code&gt;&lt;&#x2F;pre&gt;
+</content>
+        
+    </entry>
+</feed>
