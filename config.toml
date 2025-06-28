@@ -23,7 +23,8 @@ menu_items = [
 
     { name = "tags", url = "$BASE_URL/tags" },
     { name = "archive", url = "$BASE_URL/archive" },
-    { name = "about me", url = "https://wipeseals.me" },
+    { name = "work", url = "$BASE_URL/work" },
+    { name = "about", url = "https://wipeseals.me" },
     { name = "github", url = "https://github.com/wipeseals", newtab = true },
 ]
 enable_post_view_navigation = true
