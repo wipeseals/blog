@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>blog.wipeseals.me</title>
+    
+    <meta http-equiv="content-type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+    <meta name="robots" content="noodp"/>
+
+    <link rel="stylesheet" href="https://blog.wipeseals.me/style.css">
+    <link rel="stylesheet" href="https://blog.wipeseals.me/color/blue-light.css">
+
+        <link rel="stylesheet" href="https://blog.wipeseals.me/color/background_light.css">
+    
+    <link rel="stylesheet" href="https://blog.wipeseals.me/font-hack.css">
+
+    <meta name="description" content="Miscellaneous logs...">
+
+    <meta property="og:description" content="Miscellaneous logs...">
+    <meta property="og:title" content="blog.wipeseals.me">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://blog.wipeseals.me/">
+
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:description" content="Miscellaneous logs...">
+    <meta name="twitter:title" content="blog.wipeseals.me">
+    <meta property="twitter:domain" content="blog.wipeseals.me">
+    <meta property="twitter:url" content="https://blog.wipeseals.me/">
+
+        <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico">
+    
+    </head>
+
+<body class="">
+<div class="container">
+    
+    <header class="header">
+        <div class="header__inner">
+            <div class="header__logo">
+                    
+                <a href="/" style="text-decoration: none;">
+                    <div class="logo">
+                      
+                            blog.wipeseals.me
+                        
+                    </div>
+                </a>
+            </div>
+        </div>
+
+        
+        
+                <nav class="menu">
+            <ul class="menu__inner">
+                <li class="active"><a href="https://blog.wipeseals.me">blog</a></li>
+            
+                <li><a href="https://blog.wipeseals.me/tags">tags</a></li>
+            
+                <li><a href="https://blog.wipeseals.me/archive">archive</a></li>
+            
+                <li><a href="https://blog.wipeseals.me/work">work</a></li>
+            
+                <li><a href="https://wipeseals.me">about</a></li>
+            
+                <li><a href="https://github.com/wipeseals" target="_blank" rel="noopener noreferrer">github</a></li>
+            </ul>
+        </nav>
+    
+    
+        
+    </header>
+    
+
+    <div class="content">
+        
+        <div class="posts">
+                <div class="post on-list">
+                    
+    <h1 class="post-title"><a href="https://blog.wipeseals.me/blog/2024/vrchat-upload/">2024年5月時点 VRChat Avatar Upload環境memo</a></h1>
+    <div class="post-meta-inline">
+        
+    <span class="post-date">
+            2024-05-04
+        </span>
+
+    </div>
+
+    
+        <span class="post-tags-inline">
+                :: tags:&nbsp;
+                <a class="post-tag" href="https://blog.wipeseals.me/tags/memo/">#memo</a>&nbsp;
+                <a class="post-tag" href="https://blog.wipeseals.me/tags/tech/">#tech</a>&nbsp;
+                <a class="post-tag" href="https://blog.wipeseals.me/tags/unity/">#unity</a>&nbsp;
+                <a class="post-tag" href="https://blog.wipeseals.me/tags/vrchat/">#vrchat</a></span>
+    
+
+
+                    
+        <div class="post-content">
+            <p>Zenn 執筆環境構築のテスト記事も兼ねてアバター導入環境について言及。多分もっと丁寧な記事があると思うので備忘録程度。</p>
+<h2 id="bi-yao-nahuan-jing-tosonoshou-shun">必要な環境とその手順</h2>
+<ul>
+<li>VRChat アカウント
+<ul>
+<li>VRChat には <a href="https://docs.vrchat.com/docs/vrchat-safety-and-trust-system">Trust Rank</a> という概念があり、作りたてのアカウントでは Visitor となっている</li>
+<li>やり込んで Rank を上げるか、課金することで New User 以上の権限を持つアカウントになることで Upload 可能
+<blockquote>
+<p>The transition between “Visitor” and “New User” is a special one — when a Visitor becomes a New User, they gain the ability to upload content to VRChat as long as they’re using a VRChat account. Users receive a notification when they have passed this rank, and are directed to the VRChat documentation page to get started with creating content.</p>
+</blockquote>
+</li>
+</ul>
+</li>
+<li>Unity Hub
+<ul>
+<li>Unity は複数バージョンを共存させることがあり、これの管理に(?)Unity Hub を使用する</li>
+<li><a href="https://unity.com/ja/download">Unity.com</a> から DL してセットアップしておく、また起動後アカウントやライセンス認証を求められる場合は Unity のアカウントも取得しておく</li>
+</ul>
+</li>
+<li>Unity 2022.3.6f1
+<ul>
+<li><a href="https://creators.vrchat.com/sdk/upgrade/current-unity-version/">VRChat 公式によるとこのバージョンが推奨のため</a>、 Unity Hub 導入後に VRChat の現時点での最新バージョンをいれる
+<ul>
+<li><a href="unityhub://2022.3.6f1/b9e6e7e9fa2d">unityhub://2022.3.6f1/b9e6e7e9fa2d</a></li>
+</ul>
+</li>
+<li>(筆者は 2019 を使ったことあるが 2022 が初なのでせっかくなので本記事を書き残す) &gt; The current Unity version used by VRChat is 2022.3.6f1.
+If you have Unity Hub installed, you can click this link to install the correct version of Unity. 2022.3.6f1 is also available in the Unity editor release archive.</li>
+</ul>
+</li>
+<li>VRChat Creator Companion (VCC)
+<ul>
+<li>VRChat が Unity 向けに提供している Avatar, World 向けの SDK などを手軽に導入・管理(?)するためのツール</li>
+<li>VRChat アカウント取得後なら <a href="https://vrchat.com/home/download">https://vrchat.com/home/download</a> から DL できる</li>
+</ul>
+</li>
+<li>(VCC 代替) ALCOM
+<ul>
+<li>anatawa12 さんが作成している VCC 互換ツール。 <a href="https://github.com/vrc-get/vrc-get">vrc-get/vrc-get - GitHub</a> の GUI FrontEnd</li>
+<li>使ってみた感じ本家よりかなり高速で快適に使用できているので、オススメしたい。以後の説明で VCC を使い箇所は ALCOM で読み替え可</li>
+<li><a href="https://vrc-get.anatawa12.com/alcom/">https://vrc-get.anatawa12.com/alcom/</a> から DL 可能</li>
+</ul>
+</li>
+<li>何らかの画像エディタ
+<ul>
+<li>アバターの改変用。筆者はクリスタ常用 (だが、どちらかといえば PSD 同梱してくださる方が多い印象)</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+        <div>
+            <!-- &#xFE0E; -- force text style - some devices render this as emoji -->
+            <a class="read-more button" href="https://blog.wipeseals.me/blog/2024/vrchat-upload/">
+                <span class="button__text">Read more</span>&nbsp;
+                <span class="button__icon">&#8617;&#xFE0E;</span>
+            </a>
+        </div>
+    
+
+                </div>
+            <div class="pagination">
+                <div class="pagination__buttons">
+                    <span class="button previous">
+                        <a href="https://blog.wipeseals.me/page/2/">
+                            <span class="button__icon">←</span>&nbsp;
+                            <span class="button__text">Newer posts</span>
+                        </a>
+                    </span>
+                </div>
+            </div>
+        </div>
+        
+    </div>
+
+    
+    <footer class="footer">
+        <div class="footer__inner">
+                <div class="copyright copyright--user">Copyright &copy; 2025 wipeseals</div>
+            </div>
+    </footer>
+    
+
+</div>
+</body>
+
+</html>

@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>U# assembly definition が定義されていない旨のエラー対処 | blog.wipeseals.me</title>
+    
+    <meta http-equiv="content-type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+    <meta name="robots" content="noodp"/>
+
+    <link rel="stylesheet" href="https://blog.wipeseals.me/style.css">
+    <link rel="stylesheet" href="https://blog.wipeseals.me/color/blue-light.css">
+
+        <link rel="stylesheet" href="https://blog.wipeseals.me/color/background_light.css">
+    
+    <link rel="stylesheet" href="https://blog.wipeseals.me/font-hack.css">
+
+    <meta name="description" content="">
+
+    <meta property="og:description" content="">
+    <meta property="og:title" content="U# assembly definition が定義されていない旨のエラー対処 | blog.wipeseals.me">
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="https://blog.wipeseals.me/blog/2024/usharp-asmdef/">
+
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:description" content="">
+    <meta name="twitter:title" content="U# assembly definition が定義されていない旨のエラー対処 | blog.wipeseals.me">
+    <meta property="twitter:domain" content="blog.wipeseals.me">
+    <meta property="twitter:url" content="https://blog.wipeseals.me/blog/2024/usharp-asmdef/">
+
+        <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico">
+    
+    </head>
+
+<body class="">
+<div class="container">
+    
+    <header class="header">
+        <div class="header__inner">
+            <div class="header__logo">
+                    
+                <a href="/" style="text-decoration: none;">
+                    <div class="logo">
+                      
+                            blog.wipeseals.me
+                        
+                    </div>
+                </a>
+            </div>
+        </div>
+
+        
+        
+                <nav class="menu">
+            <ul class="menu__inner">
+                <li class="active"><a href="https://blog.wipeseals.me">blog</a></li>
+            
+                <li><a href="https://blog.wipeseals.me/tags">tags</a></li>
+            
+                <li><a href="https://blog.wipeseals.me/archive">archive</a></li>
+            
+                <li><a href="https://blog.wipeseals.me/work">work</a></li>
+            
+                <li><a href="https://wipeseals.me">about</a></li>
+            
+                <li><a href="https://github.com/wipeseals" target="_blank" rel="noopener noreferrer">github</a></li>
+            </ul>
+        </nav>
+    
+    
+        
+    </header>
+    
+
+    <div class="content">
+        
+    <div class="post">
+        
+    <h1 class="post-title"><a href="https://blog.wipeseals.me/blog/2024/usharp-asmdef/">U# assembly definition が定義されていない旨のエラー対処</a></h1>
+    <div class="post-meta-inline">
+        
+    <span class="post-date">
+            2024-10-01
+        </span>
+
+    </div>
+
+    
+        <span class="post-tags-inline">
+                :: tags:&nbsp;
+                <a class="post-tag" href="https://blog.wipeseals.me/tags/udonsharp/">#UdonSharp</a>&nbsp;
+                <a class="post-tag" href="https://blog.wipeseals.me/tags/unity/">#Unity</a>&nbsp;
+                <a class="post-tag" href="https://blog.wipeseals.me/tags/vrchat/">#VRChat</a>&nbsp;
+                <a class="post-tag" href="https://blog.wipeseals.me/tags/memo/">#memo</a>&nbsp;
+                <a class="post-tag" href="https://blog.wipeseals.me/tags/tech/">#tech</a></span>
+    
+
+        <div class="post-content">
+            <p>公開用に <code>Packages/</code> 側で U# のアプリケーションを作っているときに、以下でビルドエラーになったのでの備忘録。</p>
+<pre data-lang="log" style="background-color:#ffffff;color:#010101;" class="language-log "><code class="language-log" data-lang="log"><span>&#39;/Packages/XXX/XXX.cs&#39; does not belong to a U# assembly, have you made a U# assembly definition for the assembly the script is a part of?
+</span></code></pre>
+<p><del>エラーメッセージの通りで書き残すほどでもない気はするが、U# Assembly Definition についてあまり情報がなかったので書き残す</del></p>
+<p><em>記事を書いている途中に公式ドキュメントを見つけました。 <a href="https://udonsharp.docs.vrchat.com/migration/#does-not-belong-to-u-assembly">https://udonsharp.docs.vrchat.com/migration/#does-not-belong-to-u-assembly</a></em></p>
+<h2 id="assembly-definition-asmdef-nituite">Assembly Definition (asmdef) について</h2>
+<p>asmdef は定義済アセンブリを明示するための設定ファイル。</p>
+<p>Unity C#で記述した Script がコンパイルされる際、 asmdef で定義を明示しない場合は <code>Assembly-CSharp*</code> にまとめられる。
+自分の書いた Script とその他無関係の Script が同一のアセンブリにビルドされるため、クラス名の衝突であったりコンパイルの時間増加等の問題につながるため、特別な理由がなければ定義しておくほうが無難。</p>
+<p>参考: <a href="https://docs.unity3d.com/ja/2022.3/Manual/ScriptCompileOrderFolders.html">特殊フォルダーとスクリプトのコンパイル順 - Unity Documentation 2022.3</a></p>
+<span id="continue-reading"></span><h2 id="jin-hui-noeranituite">今回のエラーについて</h2>
+<p><img src="/2024/usharp-asmdef/error.png" alt="error.png" /></p>
+<p>今回の話は Unity C#ではなく、UdonSharp (U#) で発生した内容。同様に asmdef を配置していたが、掲題のエラーが発生した。
+エラーメッセージにある通り、 U# の asmdef を作成しましたか？ というもの。asmdef だけでは U# 向けのアセンブリなのか判断できなかったと思われる。</p>
+<p>asmdef は以下</p>
+<p><img src="/2024/usharp-asmdef/asmdef.png" alt="asmdef.png" /></p>
+<h2 id="dui-chu">対処</h2>
+<p>U# Assembly Definition を追加する。右クリックで asmdef の下辺りにある。</p>
+<p><img src="/2024/usharp-asmdef/contextmenu.png" alt="contextmenu.png" /></p>
+<p>このファイルの設定には asmdef を指定する項目があるが、もともと定義してある asmdef を設定する。</p>
+<p><img src="/2024/usharp-asmdef/usharp-asmdef.png" alt="usharp-asmdef.png" /></p>
+<p>もし asmdef がなければ作成する。定義名や配置については公式ドキュメントに規則がある。U# Script そのものであれば Runtime 下になると思われる。</p>
+<p>参考: <a href="https://docs.unity3d.com/ja/2022.2/Manual/cus-asmdef.html">アセンブリ定義とパッケージ - Unity Documentation 2022.3</a></p>
+<p>これで無事にビルドできた。</p>
+<p><img src="/2024/usharp-asmdef/buildpass.png" alt="buildpass.png" /></p>
+<p>推測だが、これまで<code>/Package</code> 側で U# Script を書いたことがなかったので引っかからなかったと思われる。</p>
+
+        </div>
+
+        
+            <div class="pagination">
+                <div class="pagination__title">
+                    <span class="pagination__title-h">Read more</span>
+                    <hr />
+                </div>
+                <div class="pagination__buttons">
+                        <span class="button previous">
+                            <a href="https://blog.wipeseals.me/blog/2024/usbmsc/">
+                                <span class="button__icon">←</span>&nbsp;
+                                <span class="button__text">RustでUSB Mass Storage Class Bulk-Only Transportを実装する</span>
+                            </a>
+                        </span>
+                    
+                    
+                        <span class="button next">
+                            <a href="https://blog.wipeseals.me/blog/2024/rpi-pio-nand/">
+                                <span class="button__text">Raspberry PI PIO で NANDアクセスを高速化する</span>&nbsp;
+                                <span class="button__icon">→</span>
+                            </a>
+                        </span>
+                    </div>
+            </div>
+        
+    </div>
+
+    </div>
+
+    
+    <footer class="footer">
+        <div class="footer__inner">
+                <div class="copyright copyright--user">Copyright &copy; 2025 wipeseals</div>
+            </div>
+    </footer>
+    
+
+</div>
+</body>
+
+</html>

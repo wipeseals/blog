@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>Raspberry PI PIO で NANDアクセスを高速化する | blog.wipeseals.me</title>
+    
+    <meta http-equiv="content-type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+    <meta name="robots" content="noodp"/>
+
+    <link rel="stylesheet" href="https://blog.wipeseals.me/style.css">
+    <link rel="stylesheet" href="https://blog.wipeseals.me/color/blue-light.css">
+
+        <link rel="stylesheet" href="https://blog.wipeseals.me/color/background_light.css">
+    
+    <link rel="stylesheet" href="https://blog.wipeseals.me/font-hack.css">
+
+    <meta name="description" content="">
+
+    <meta property="og:description" content="">
+    <meta property="og:title" content="Raspberry PI PIO で NANDアクセスを高速化する | blog.wipeseals.me">
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="https://blog.wipeseals.me/blog/2024/rpi-pio-nand/">
+
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:description" content="">
+    <meta name="twitter:title" content="Raspberry PI PIO で NANDアクセスを高速化する | blog.wipeseals.me">
+    <meta property="twitter:domain" content="blog.wipeseals.me">
+    <meta property="twitter:url" content="https://blog.wipeseals.me/blog/2024/rpi-pio-nand/">
+
+        <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico">
+    
+    </head>
+
+<body class="">
+<div class="container">
+    
+    <header class="header">
+        <div class="header__inner">
+            <div class="header__logo">
+                    
+                <a href="/" style="text-decoration: none;">
+                    <div class="logo">
+                      
+                            blog.wipeseals.me
+                        
+                    </div>
+                </a>
+            </div>
+        </div>
+
+        
+        
+                <nav class="menu">
+            <ul class="menu__inner">
+                <li class="active"><a href="https://blog.wipeseals.me">blog</a></li>
+            
+                <li><a href="https://blog.wipeseals.me/tags">tags</a></li>
+            
+                <li><a href="https://blog.wipeseals.me/archive">archive</a></li>
+            
+                <li><a href="https://blog.wipeseals.me/work">work</a></li>
+            
+                <li><a href="https://wipeseals.me">about</a></li>
+            
+                <li><a href="https://github.com/wipeseals" target="_blank" rel="noopener noreferrer">github</a></li>
+            </ul>
+        </nav>
+    
+    
+        
+    </header>
+    
+
+    <div class="content">
+        
+    <div class="post">
+        
+    <h1 class="post-title"><a href="https://blog.wipeseals.me/blog/2024/rpi-pio-nand/">Raspberry PI PIO で NANDアクセスを高速化する</a></h1>
+    <div class="post-meta-inline">
+        
+    <span class="post-date">
+            2024-10-30
+        </span>
+
+    </div>
+
+    
+        <span class="post-tags-inline">
+                :: tags:&nbsp;
+                <a class="post-tag" href="https://blog.wipeseals.me/tags/driver/">#Driver</a>&nbsp;
+                <a class="post-tag" href="https://blog.wipeseals.me/tags/embedded/">#Embedded</a>&nbsp;
+                <a class="post-tag" href="https://blog.wipeseals.me/tags/nand/">#NAND</a>&nbsp;
+                <a class="post-tag" href="https://blog.wipeseals.me/tags/pio/">#pio</a>&nbsp;
+                <a class="post-tag" href="https://blog.wipeseals.me/tags/raspberrypi/">#raspberrypi</a>&nbsp;
+                <a class="post-tag" href="https://blog.wipeseals.me/tags/slide/">#slide</a>&nbsp;
+                <a class="post-tag" href="https://blog.wipeseals.me/tags/tech/">#tech</a></span>
+    
+
+        <div class="post-content">
+            <p>登壇する機会があったのでその際の資料。RP2040 に搭載されている Programmable IO を用いて、Parallel Command I/F である NAND IC へのアクセスを高速化検討した話。</p>
+<p><a href="/2024/rpi-pio-nand/rpi-pio-nand.pdf">rpi-pio-nand.pdf</a></p>
+<p>資料は marp を使用して作成したので、以後は元になった資料の markdown 移植版</p>
+<h2 id="bei-jing">背景</h2>
+<p>最近 SSD 自作キット JISC-SSD で <del>時折放置してますが</del> 遊んでいます。
+途中まで C++で書いていましたが、気まぐれで Rust 再実装中...</p>
+<p>RPi Pico: RP2040 Cortex-M0+ DualCore @133MHz
+NAND Flash: KIOXIA TC58NVG0S3HTA00 1Gbit SLC ECC なし</p>
+<table><thead><tr><th>外観</th><th>回路図抜粋</th><th>RP2040 Block Diagram</th></tr></thead><tbody>
+<tr><td><img src="/2024/rpi-pio-nand/sashie01-scaled.jpg" alt="width:400px" /></td><td><img src="/2024/rpi-pio-nand/jisc-ssd-schema.png" alt="width:700px" /></td><td><img src="/2024/rpi-pio-nand/rp2040-diagram.png" alt="width:600px" /></td></tr>
+<tr><td></td><td>GPIO で NAND と直結</td><td></td></tr>
+</tbody></table>
+<span id="continue-reading"></span>
+<hr />
+<h2 id="ke-ti">課題</h2>
+<p>NAND IC へのアクセスをもう少しいい感じにしたい</p>
+<p>GPIO 直叩きでの通信は遅い (当然と言えばそう)
+SIO (Single Cycle IO) もあるが、転送中 CPU Resouce 占有してしまう
+<strong>PIO (Programmable IO) という小規模なシーケンサのような HW が乗っている</strong></p>
+<table><thead><tr><th>SIO</th><th>PIO Overview</th></tr></thead><tbody>
+<tr><td><img src="/2024/rpi-pio-nand/rp2040-sio.png" alt="width:1000px" /></td><td><img src="/2024/rpi-pio-nand/rp2040-pio.png" alt="width:600px" /></td></tr>
+<tr><td>bus fabric 経由せず GPIO 叩ける</td><td>State Machine 4 機</td></tr>
+</tbody></table>
+<hr />
+<h2 id="pio-gai-yao">PIO 概要</h2>
+<ul>
+<li>動作周波数はデフォルトで 125MHz, uCode は 32 命令まで</li>
+<li>命令セットはデータ入出力+入出力時の bitshift、分岐命令 あたり</li>
+<li>GPIO の Read/Write/PinDir 変更、FIFO 経由で CPU/DMA とやりとりできる</li>
+<li>命令実行と同時に固定サイクル遅延 (Delay)、もしくは特定ピンの H/L を変更できる (Sideset)
+<ul>
+<li>この 2 機能に割り当てられる bit は合わせて 5bit まで</li>
+</ul>
+</li>
+</ul>
+<table><thead><tr><th>命令セット</th><th>Shift Register</th></tr></thead><tbody>
+<tr><td><img src="/2024/rpi-pio-nand/rp2040-pio-opcodes.png" alt="height:400px" /></td><td>TX FIFO -&gt; Output Shift Reg <img src="/2024/rpi-pio-nand/rp2040-pio-osr.png" alt="height:200px" /> Input Shift Reg -&gt; RX FIFO <img src="/2024/rpi-pio-nand/rp2040-pio-isr.png" alt="height:120px" /></td></tr>
+<tr><td>Delay/sideset の bit 割り振りは起動前に設定</td><td></td></tr>
+</tbody></table>
+<hr />
+<h2 id="nand-ic-tonotong-xin">NAND IC との通信</h2>
+<p>GPIO 複数ピンによるコマンド入力 + 双方向データ転送が必要</p>
+<table><thead><tr><th>Pin</th><th>Function</th></tr></thead><tbody>
+<tr><td>/CS</td><td>Chip Enable</td></tr>
+<tr><td>/WE, /RE</td><td>Write/Read Enable。転送クロック相当</td></tr>
+<tr><td>ALE, CLE</td><td>Address/Command Latch Enable。入力データ区別</td></tr>
+<tr><td>RY//BY</td><td>Ready/Busy: Busy なら Low</td></tr>
+<tr><td>IO[7:0]</td><td>データ線。双方向</td></tr>
+</tbody></table>
+<table><thead><tr><th>Logic &amp; Command Table</th><th>Read Operation</th></tr></thead><tbody>
+<tr><td><img src="/2024/rpi-pio-nand/nand-cmdtable.png" alt="width:750px" /></td><td><img src="/2024/rpi-pio-nand/nand-read.png" alt="width:1000px" /></td></tr>
+<tr><td></td><td>Cmd In (0x00)-&gt; Addr In -&gt; Cmd In (0x30) -&gt; Wait RY/BY -&gt; Data Out...</td></tr>
+</tbody></table>
+<hr />
+<h2 id="simulation-debug-huan-jing">Simulation/Debug 環境</h2>
+<p>デバッガがないため、 Jupyter 上に論理検証環境構築
+adafruit_pioasm + pioemu + pandas + wavedrom</p>
+<p><img src="/2024/rpi-pio-nand/pio-readid-debug-manual.png" alt="width:1800px" /></p>
+<hr />
+<h2 id="she-ji">設計</h2>
+<h3 id="dma-deliu-sudetashang-nidu-zi-komandosetutowoding-yi">DMA で流すデータ上に独自コマンドセットを定義</h3>
+<p>CmdId を指定し、各シーケンスごとのルーチンを実装。CPU は Buffer 上にシーケンスを組む
+(流すデータの順番があっていればよいので、連続領域に確保しなくても DMA を Chain で良い)</p>
+<table><thead><tr><th>Data[0] assign</th><th>Field</th><th>Description</th></tr></thead><tbody>
+<tr><td>[31:28]</td><td>CmdId</td><td>コマンド指定</td></tr>
+<tr><td>[27:16]</td><td>TransferCount</td><td>(AddrLatch/DataIn/DataOut のみ) 転送 byte 数指定</td></tr>
+<tr><td>[15:0]</td><td>PinDirection</td><td>GPIO の入出力設定</td></tr>
+</tbody></table>
+<table><thead><tr><th>CmdId</th><th>Data[1, ...]</th><th>Description</th></tr></thead><tbody>
+<tr><td>Bitbang</td><td>PinData</td><td>そのまま GPIO に流す</td></tr>
+<tr><td>CmdLatch</td><td>NandCmdId</td><td>CLE 有効で Data 入力</td></tr>
+<tr><td>AddrLatch</td><td>NandAddr</td><td>ALE 有効で Data 入力</td></tr>
+<tr><td>DataOutput</td><td>-</td><td>指定回数 Data 出力 + GPIO Read</td></tr>
+<tr><td>DataInput</td><td>TransferDatas</td><td>指定回数 Data 入力</td></tr>
+<tr><td>WaitRbb</td><td>-</td><td>RB/BY pin が Ready になるまでループ</td></tr>
+<tr><td>SetIrq</td><td>-</td><td>割り込み通知（転送完了を CPU に知らせる用）</td></tr>
+</tbody></table>
+<hr />
+<table><thead><tr><th>PIO Process Diagram</th><th>Sequence</th></tr></thead><tbody>
+<tr><td><img src="/2024/rpi-pio-nand/pio-cmd-overview.svg" alt="height:900px" /></td><td><img src="/2024/rpi-pio-nand/pio-read-operation.png" alt="width:1100px" /></td></tr>
+</tbody></table>
+<hr />
+<h2 id="xing-neng-data-input-noli">性能 (Data Input の例)</h2>
+<p>$f_{Max}$ で動かすと Data の Setup 満たさないので 83MHz (12ns) より下げて動かす必要あり。
+GPIO Toggle よりはだいぶ速くなったが、AC 特性 Spec と比べるともうひと声。</p>
+<p><img src="/2024/rpi-pio-nand/pio-write-operation-timing.png" alt="height:740px" /></p>
+<hr />
+<h2 id="matome">まとめ</h2>
+<h3 id="suo-gan">所感</h3>
+<p>PIO は小規模ながら色々できて面白い
+System Clock (Max 133MHz) で動くのでホビー用途なら十分速い
+実機デバッグはしんどいので Sim 環境作っておいてよかった
+FTL としての続きもぼちぼち実装します</p>
+<h3 id="chu-dian">出典</h3>
+<p>JISC-SSD(Jisaku In-Storage Computation SSD 学習ボード) - 株式会社クレイン電子
+RP2040 Datasheet - Raspberry Pi Ltd
+TC58NVG0S3HTA00 Datasheet - KIOXIA</p>
+<hr />
+<p>Fin.</p>
+
+        </div>
+
+        
+            <div class="pagination">
+                <div class="pagination__title">
+                    <span class="pagination__title-h">Read more</span>
+                    <hr />
+                </div>
+                <div class="pagination__buttons">
+                        <span class="button previous">
+                            <a href="https://blog.wipeseals.me/blog/2024/usharp-asmdef/">
+                                <span class="button__icon">←</span>&nbsp;
+                                <span class="button__text">U# assembly definition が定義されていない旨のエラー対処</span>
+                            </a>
+                        </span>
+                    
+                    
+                        <span class="button next">
+                            <a href="https://blog.wipeseals.me/blog/2024/create-blog/">
+                                <span class="button__text">Blog を作る</span>&nbsp;
+                                <span class="button__icon">→</span>
+                            </a>
+                        </span>
+                    </div>
+            </div>
+        
+    </div>
+
+    </div>
+
+    
+    <footer class="footer">
+        <div class="footer__inner">
+                <div class="copyright copyright--user">Copyright &copy; 2025 wipeseals</div>
+            </div>
+    </footer>
+    
+
+</div>
+</body>
+
+</html>

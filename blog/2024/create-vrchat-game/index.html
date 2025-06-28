@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>VRChatで動くボードゲームを作る | blog.wipeseals.me</title>
+    
+    <meta http-equiv="content-type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+    <meta name="robots" content="noodp"/>
+
+    <link rel="stylesheet" href="https://blog.wipeseals.me/style.css">
+    <link rel="stylesheet" href="https://blog.wipeseals.me/color/blue-light.css">
+
+        <link rel="stylesheet" href="https://blog.wipeseals.me/color/background_light.css">
+    
+    <link rel="stylesheet" href="https://blog.wipeseals.me/font-hack.css">
+
+    <meta name="description" content="">
+
+    <meta property="og:description" content="">
+    <meta property="og:title" content="VRChatで動くボードゲームを作る | blog.wipeseals.me">
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="https://blog.wipeseals.me/blog/2024/create-vrchat-game/">
+
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:description" content="">
+    <meta name="twitter:title" content="VRChatで動くボードゲームを作る | blog.wipeseals.me">
+    <meta property="twitter:domain" content="blog.wipeseals.me">
+    <meta property="twitter:url" content="https://blog.wipeseals.me/blog/2024/create-vrchat-game/">
+
+        <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico">
+    
+    </head>
+
+<body class="">
+<div class="container">
+    
+    <header class="header">
+        <div class="header__inner">
+            <div class="header__logo">
+                    
+                <a href="/" style="text-decoration: none;">
+                    <div class="logo">
+                      
+                            blog.wipeseals.me
+                        
+                    </div>
+                </a>
+            </div>
+        </div>
+
+        
+        
+                <nav class="menu">
+            <ul class="menu__inner">
+                <li class="active"><a href="https://blog.wipeseals.me">blog</a></li>
+            
+                <li><a href="https://blog.wipeseals.me/tags">tags</a></li>
+            
+                <li><a href="https://blog.wipeseals.me/archive">archive</a></li>
+            
+                <li><a href="https://blog.wipeseals.me/work">work</a></li>
+            
+                <li><a href="https://wipeseals.me">about</a></li>
+            
+                <li><a href="https://github.com/wipeseals" target="_blank" rel="noopener noreferrer">github</a></li>
+            </ul>
+        </nav>
+    
+    
+        
+    </header>
+    
+
+    <div class="content">
+        
+    <div class="post">
+        
+    <h1 class="post-title"><a href="https://blog.wipeseals.me/blog/2024/create-vrchat-game/">VRChatで動くボードゲームを作る</a></h1>
+    <div class="post-meta-inline">
+        
+    <span class="post-date">
+            2024-11-14
+        </span>
+
+    </div>
+
+    
+        <span class="post-tags-inline">
+                :: tags:&nbsp;
+                <a class="post-tag" href="https://blog.wipeseals.me/tags/c/">#C#</a>&nbsp;
+                <a class="post-tag" href="https://blog.wipeseals.me/tags/game/">#Game</a>&nbsp;
+                <a class="post-tag" href="https://blog.wipeseals.me/tags/udon/">#Udon</a>&nbsp;
+                <a class="post-tag" href="https://blog.wipeseals.me/tags/udonsharp/">#UdonSharp</a>&nbsp;
+                <a class="post-tag" href="https://blog.wipeseals.me/tags/unity/">#Unity</a>&nbsp;
+                <a class="post-tag" href="https://blog.wipeseals.me/tags/vrchat/">#VRChat</a>&nbsp;
+                <a class="post-tag" href="https://blog.wipeseals.me/tags/tech/">#tech</a></span>
+    
+
+        <div class="post-content">
+            <p>掲題の通り、VRChat 上で動作するボードゲームを先日公開した。自分自身の備忘録また同様の制作を行いたく情報を探している人向けの制作記録として機能することを願って作業記録を残すことにする。</p>
+<ul>
+<li><a href="https://wipeseals.booth.pm/items/6278798">[無料] UdonKnucklebones [UdonChips 対応] - Booth</a></li>
+<li><a href="https://github.com/wipeseals/UdonKnucklebones">wipeseals/UdonKnucklebones - GitHub</a></li>
+</ul>
+<p><img src="/2024/create-vrchat-game/2024-11-10-170028.png" alt="ss" /></p>
+<hr />
+<h2 id="zuo-rumono">作るもの</h2>
+<p>Knucklebones（ナックルボーン）と呼ばれるボードゲームを作ることにした。本家は<a href="https://store.steampowered.com/app/1313140/Cult_of_the_Lamb/?l=japanese">Cult of the Lamb</a> 作中に登場するゲームであり、今回の制作は非公式ファンアートの位置づけである。</p>
+<p>サイコロを振って並べるという単純明快なルールでありながら、駆け引き要素がよくできたゲームである。（高得点を狙うほど、相手から一網打尽にされるリスクが上がっていく）
+もちろん、Knucklebones だけでなくゲーム自体の完成度もすばらしいのでぜひ遊んでみてほしい。</p>
+<h2 id="zhi-zuo-shou-shun">制作手順</h2>
+<p>おおよそ以下の手順で進めた。あくまでいち参考として見ていただけるとありがたい。</p>
+<ol>
+<li>ゲームシステム試作</li>
+<li>モデリング</li>
+<li>VCC 配布可能な Unity Project 作成</li>
+<li>モデルの Unity Setup</li>
+<li>ゲームロジック 実装</li>
+<li>動作確認</li>
+<li>サンプルワールド作成</li>
+<li>配布準備</li>
+</ol>
+<span id="continue-reading"></span><h2 id="gemusisutemushi-zuo">ゲームシステム試作</h2>
+<p>まずは Unity 等々は抜きにして、ただのコンソールアプリケーションとして Knucklebones を実装した。 必須の手順ではないが、特に実装に慣れていない・対象のゲームを作ったことがない人に関しては特におすすめしたい。
+User が操作する部分を標準入力、User に見せるべき情報を標準出力で出す程度のものでも以下の収穫がある。</p>
+<ul>
+<li>Unity や同期特有の話を抜きにした実現可能性の確認</li>
+<li>ゲームロジックの理解が深まる</li>
+<li>表示機として必要な要素の洗い出し</li>
+<li>ユーザー操作が必要な要素の洗い出し</li>
+</ul>
+<p>自分が作ったものも相当簡素なものだが、ターン制であること、得点計算のロジック確認、プレイヤーがサイコロを振るフェーズと置くフェーズに分かれていること、などが確認できた。</p>
+<p><a href="https://github.com/wipeseals/knucklebones_dice_game">wipeseals/knucklebones_dice_game - GitHub</a></p>
+<pre data-lang="log" style="background-color:#ffffff;color:#010101;" class="language-log "><code class="language-log" data-lang="log"><span>$ dotnet run
+</span><span>Welcome to KnuckleBones!
+</span><span>Turn: 1 Player: 0
+</span><span>=========================================
+</span><span>Player1 Score: 0
+</span><span>Player2 Score: 0
+</span><span>=========================================
+</span><span> Player 1  | Player 2
+</span><span>===========|===========
+</span><span> 0 | 1 | 2 | 0 | 1 | 2
+</span><span>===========|===========
+</span><span>   |   |   |   |   |   |
+</span><span>   |   |   |   |   |   |
+</span><span>   |   |   |   |   |   |
+</span><span>Player 1 rolled a 5.
+</span><span>Enter the column number to place your piece:
+</span><span>
+</span><span>...
+</span><span>
+</span><span>Player 1 rolled a 2.
+</span><span>Enter the column number to place your piece:
+</span><span>2
+</span><span>Turn: 20 Player: 1
+</span><span>=========================================
+</span><span>Player1 Score: 25
+</span><span>Player2 Score: 38
+</span><span>=========================================
+</span><span> Player 1  | Player 2
+</span><span>===========|===========
+</span><span> 0 | 1 | 2 | 0 | 1 | 2
+</span><span>===========|===========
+</span><span> 2 | 4 | 2 | 4 | 6 | 4 |
+</span><span> 1 | 1 | 3 | 5 | 2 | 6 |
+</span><span> 1 | 1 | 2 | 6 |   | 5 |
+</span><span>
+</span><span>Player 2 wins!
+</span></code></pre>
+<p>手慣れている好きな言語で実装するとよいが、C#で書いておくと Udon#に持ち込んだときに多少流用できるのでお得かもしれない。</p>
+<h2 id="moderingu">モデリング</h2>
+<p>ゲームシステムを試作すればおおよそどのような UI/UX にするかはイメージが付いている...がデザインについてはそうでもない。
+サイコロを転がすこと、並べることができるコンパクトなデザインを目指した。サイコロは Unity 中で複製すればよいので 1 個だけ作成。</p>
+<p>最初にサイコロを並べて、後から外形を作った感じで仕上げた。</p>
+<p><img src="/2024/create-vrchat-game/2024-09-28-225833.png" alt="ss" /></p>
+<p>デザインについては小綺麗にしたかったこともあり、大理石でホテルの受付においてあっても違和感のなさそうなものを目指した。
+UV 展開を済ませてからのテクスチャ調整を行っている。</p>
+<p><img src="/2024/create-vrchat-game/2024-09-29-150954.png" alt="ss" /></p>
+<p>ここまでできたらテクスチャとモデルを Export して Unity に持ち込む準備を済ませておく。
+また、表示上シェイプキーを使用する場合はこの際に入れておくと後が楽かもしれない（今回は使わなかった）</p>
+<h2 id="vcc-pei-bu-ke-neng-na-unity-project-zuo-cheng">VCC 配布可能な Unity Project 作成</h2>
+<p>最近の VRChat のライブラリ等々の配布には VCC (VRChat Creator Companion) を使用することができる。
+もちろん従来通り必要なファイルを.unitypackage にまとめてもよいのだが、今回は無料公開配布することや修正のたびに.unitypackage を再生成するのが面倒くさかった、などの理由から VCC での配布前提でプロジェクトを作成した。</p>
+<p>以下テンプレートパッケージを派生させ、Package/Unity version の更新と自分のプロジェクト向けに名称の変更などを施した。
+GitHub Actions を使っての VCC 配布用データのビルド・配布用ページの作成を自動で行ってくれる便利テンプレートとなっている。</p>
+<p><a href="https://github.com/vrchat-community/template-package">vrchat-community/template-package - GitHub</a></p>
+<p>以下ページが自動生成されている、ありがたい。</p>
+<p><a href="https://wipeseals.github.io/UdonKnucklebones/">https://wipeseals.github.io/UdonKnucklebones/</a></p>
+<p><img src="/2024/create-vrchat-game/2024-11-11-004009.png" alt="ss" /></p>
+<h2 id="moderuno-unity-setup">モデルの Unity Setup</h2>
+<p>Blender でモデリング・テクスチャリングしたものを取り込んだだけでは、まだゲームとして使うためには不十分である。
+主に見た目や挙動の話だが、見た目の質感を整え、プログラムから制御される動き（アニメーション）はアニメーションクリップ+コントローラで制御できるようにしておく必要がある。</p>
+<h3 id="materiaru">マテリアル</h3>
+<p>インポートしたモデルに割り当てる質感を設定する。今回は殆ど一緒にエクスポートしてきたテクスチャを設定していくだけで済んだ。以下は Unity 上での見た目である。</p>
+<p><img src="/2024/create-vrchat-game/2024-09-29-155212.png" alt="ss" /></p>
+<p>今回は使わなかったが、プログラム中からマテリアルもといシェーダーのパラメータを弄って表示をいじるのであれば、それ用の Shader とマテリアルも準備しておく。</p>
+<h3 id="animesiyon">アニメーション</h3>
+<p>今回はサイコロを振る動作は物理演算ベースで行いたかったため、アニメーションクリップはサイコロの配列を表示機として使う部分と、後述するがサイコロを転がす前の回転表示だけとなった。
+サイコロの各面を上に向けるアニメーション、表示・非表示と同じ目が複数あったときのマーカー表示などのアニメーションクリップを作成した。</p>
+<p>そして、プログラムから変数をいじったときに所定の状態遷移によって表示を切り替えられるようにアニメーションコントローラを作成した。
+Play mode であれば値を弄くって挙動確認できるので、案外触りながら覚えたほうが良いかもしれない。以下図はサイコロの面を決めるレイヤだが、見た目がエモい。</p>
+<p><img src="/2024/create-vrchat-game/2024-09-29-215021.png" alt="ss" /></p>
+<h3 id="koraidadeng-sonota-ui">コライダー等その他 UI</h3>
+<p>サイコロ自体に Box Collider を当てたほか、サイコロを振る際に吹き飛ばないようにするため等透明な壁としてのコライダーと、ユーザーが置き場所を決めたりサイコロを振るときの UI としてのコライダーを設置した。
+以下 gizmo 表示の緑線がそれに当たる。
+この他にも表示機としての Canvas, text や転がしたときの音の再生ソースなどもこのあたりで設置しておく。</p>
+<p><img src="/2024/create-vrchat-game/2024-10-15-220924.png" alt="ss" /></p>
+<h2 id="gemurozituku-shi-zhuang">ゲームロジック 実装</h2>
+<p>いよいよ本命のゲームロジック実装に移る。ここまでの手順でプログラムから見た目をいじったりユーザー入力を受け取る部分は大方完成しておくとよいが、後から変えたくなった場合も適宜更新していけば良い。</p>
+<h3 id="tong-qi-nituite">同期について</h3>
+<p>既に公式情報や有志によるまとめが多数存在していて非常にありがたい環境になっている（感謝）。細かい部分は紹介しないが、ざっくりいうと各ユーザーがワールド中で見えている情報はあくまで現在の変数を下に描画した結果に過ぎず、ゲームの進捗等に当たる変数を明示的に同期（値をワールドにいるメンバに共有）してあげないと、同じ景色は見えない設計になっている。</p>
+<p>VRChat ユーザであれば、ローカルのミラーをイメージしてもらうと良いかも。ミラーのオンオフや座標を他プレイヤーに共有していないので自分にしか見えていないオブジェクトになっている。</p>
+<h3 id="tong-qi-nozhan-lue-nituite">同期の戦略について</h3>
+<p>Udon を用いた変数同期には、None（同期なし）、Continuous（連続同期）、Manual（マニュアル同期）あたりがある。
+難しいことを考えないのであれば Continuous にしておけば、UdonSynced を設定した変数は不定期に同期してくれる。後は変数を書き換えるユーザーが Owner （変数の所有者） を取得しておけば良い。</p>
+<p>ただ、今回はターン制で値書き換えのタイミングがはっきりしていたこと、同期するタイミングがわからないのが気持ち悪かったことから Manual を採用した。</p>
+<p><a href="https://udonsharp.docs.vrchat.com/udonsharp/#udonsynced">UdonSharp#UdonSynced - docs.vrchat.com</a></p>
+<h3 id="late-joiner-dui-ying-nituite">Late-Joiner 対応について</h3>
+<p>後からワールドに入ってきた人に進捗を同期する対応のこと。Continuous を採用していれば自然に変数の同期が終わり <code>FieldChangeCallback</code> 呼び出しで見た目が更新されていけば特別困ることはないはず。</p>
+<p>今回は Manual 同期であることとあとから来た人が明示的に同期するトリガが欲しかったので、 Owner 宛に同期イベント発行の要求を飛ばし明示的に変数同期と UI 更新イベント発行するようにしている。</p>
+<pre data-lang="log" style="background-color:#ffffff;color:#010101;" class="language-log "><code class="language-log" data-lang="log"><span>[Owner]                 [Late-Joiner]
+</span><span>  |
+</span><span>  |
+</span><span>  |                     (OnPlayerJoined)
+</span><span>  |                            |
+</span><span>  |&lt;------Request Sync---------|         *NetworkCustomEvent
+</span><span>  |
+</span><span>  |------Sync Vars------------&gt;|         *RequestSerialization
+</span><span>  |------Update UI------------&gt;|         *NetworkCustomEvent
+</span><span>                               |
+</span><span>                          (Sync Done)
+</span></code></pre>
+<h3 id="knucklebones-gemurozituku">Knucklebones ゲームロジック</h3>
+<p>まずゲームの進行については、Player 参加待ち → サイコロを振る → サイコロを置く → 得点計算を行う → （サイコロを振るに戻る or ゲーム終了） だったので、これに対応する enum を定義し、enum に応じたゲーム進行を実装した。</p>
+<pre data-lang="cs" style="background-color:#ffffff;color:#010101;" class="language-cs "><code class="language-cs" data-lang="cs"><span>    </span><span style="color:#014a69;">public </span><span style="color:#877611;">enum </span><span style="color:#a15001;">GameProgress </span><span>: </span><span style="color:#877611;">int
+</span><span>    {
+</span><span>        </span><span style="color:#898989;">/// &lt;</span><span style="color:#00528b;">summary</span><span style="color:#898989;">&gt;
+</span><span style="color:#898989;">        /// 初期状態。IsActive=falseで開始されたケースでOnEnable/OnDisable/Startが呼ばれない
+</span><span style="color:#898989;">        /// OnPlayerJoinedで初期化する
+</span><span style="color:#898989;">        /// &lt;/</span><span style="color:#00528b;">summary</span><span style="color:#898989;">&gt;
+</span><span>        </span><span style="color:#333366;">Initial </span><span style="color:#016692;">= </span><span style="color:#8c008a;">0</span><span>,
+</span><span>        </span><span style="color:#898989;">/// &lt;</span><span style="color:#00528b;">summary</span><span style="color:#898989;">&gt;
+</span><span style="color:#898989;">        /// Player1/2の参加待ち
+</span><span style="color:#898989;">        /// &lt;/</span><span style="color:#00528b;">summary</span><span style="color:#898989;">&gt;
+</span><span>        </span><span style="color:#333366;">WaitEnterPlayers</span><span>,
+</span><span>        </span><span style="color:#898989;">/// &lt;</span><span style="color:#00528b;">summary</span><span style="color:#898989;">&gt;
+</span><span style="color:#898989;">        /// ゲーム開始。再戦用に設けた状態
+</span><span style="color:#898989;">        /// &lt;/</span><span style="color:#00528b;">summary</span><span style="color:#898989;">&gt;
+</span><span>        </span><span style="color:#333366;">GameStart</span><span>,
+</span><span>
+</span><span>        </span><span style="color:#898989;">/// &lt;</span><span style="color:#00528b;">summary</span><span style="color:#898989;">&gt;
+</span><span style="color:#898989;">        /// Player1のサイコロ転がし待ち
+</span><span style="color:#898989;">        /// &lt;/</span><span style="color:#00528b;">summary</span><span style="color:#898989;">&gt;
+</span><span>        </span><span style="color:#333366;">WaitPlayer1Roll</span><span>,
+</span><span>        </span><span style="color:#898989;">/// &lt;</span><span style="color:#00528b;">summary</span><span style="color:#898989;">&gt;
+</span><span style="color:#898989;">        /// Player1のサイコロ転がし中
+</span><span style="color:#898989;">        /// &lt;/</span><span style="color:#00528b;">summary</span><span style="color:#898989;">&gt;
+</span><span>        </span><span style="color:#333366;">Player1Rolling</span><span>,
+</span><span>        </span><span style="color:#898989;">/// &lt;</span><span style="color:#00528b;">summary</span><span style="color:#898989;">&gt;
+</span><span style="color:#898989;">        /// Player1のサイコロ配置待ち
+</span><span style="color:#898989;">        /// &lt;/</span><span style="color:#00528b;">summary</span><span style="color:#898989;">&gt;
+</span><span>        </span><span style="color:#333366;">WaitPlayer1Put</span><span>,
+</span><span>        </span><span style="color:#898989;">/// &lt;</span><span style="color:#00528b;">summary</span><span style="color:#898989;">&gt;
+</span><span style="color:#898989;">        /// Player2のサイコロ計算待ち。ついでにサイコロの前詰めアニメーションも行う
+</span><span style="color:#898989;">        /// &lt;/</span><span style="color:#00528b;">summary</span><span style="color:#898989;">&gt;
+</span><span>        </span><span style="color:#333366;">WaitPlayer1Calc</span><span>,
+</span><span>
+</span><span>        </span><span style="color:#898989;">/// &lt;</span><span style="color:#00528b;">summary</span><span style="color:#898989;">&gt;
+</span><span style="color:#898989;">        /// Player2のサイコロ転がし待ち
+</span><span style="color:#898989;">        /// &lt;/</span><span style="color:#00528b;">summary</span><span style="color:#898989;">&gt;
+</span><span>        </span><span style="color:#333366;">WaitPlayer2Roll</span><span>,
+</span><span>        </span><span style="color:#898989;">/// &lt;</span><span style="color:#00528b;">summary</span><span style="color:#898989;">&gt;
+</span><span style="color:#898989;">        /// Player1のサイコロ転がし中
+</span><span style="color:#898989;">        /// &lt;/</span><span style="color:#00528b;">summary</span><span style="color:#898989;">&gt;
+</span><span>        </span><span style="color:#333366;">Player2Rolling</span><span>,
+</span><span>        </span><span style="color:#898989;">/// &lt;</span><span style="color:#00528b;">summary</span><span style="color:#898989;">&gt;
+</span><span style="color:#898989;">        /// Player2のサイコロ配置待ち
+</span><span style="color:#898989;">        /// &lt;/</span><span style="color:#00528b;">summary</span><span style="color:#898989;">&gt;
+</span><span>        </span><span style="color:#333366;">WaitPlayer2Put</span><span>,
+</span><span>        </span><span style="color:#898989;">/// &lt;</span><span style="color:#00528b;">summary</span><span style="color:#898989;">&gt;
+</span><span style="color:#898989;">        /// Player2のサイコロ計算待ち。ついでにサイコロの前詰めアニメーションも行う
+</span><span style="color:#898989;">        /// 次の遷移先はWaitPlayer1Roll or GameEnd
+</span><span style="color:#898989;">        /// &lt;/</span><span style="color:#00528b;">summary</span><span style="color:#898989;">&gt;
+</span><span>        </span><span style="color:#333366;">WaitPlayer2Calc</span><span>,
+</span><span>
+</span><span>        </span><span style="color:#898989;">/// &lt;</span><span style="color:#00528b;">summary</span><span style="color:#898989;">&gt;
+</span><span style="color:#898989;">        /// ゲーム終了
+</span><span style="color:#898989;">        /// &lt;/</span><span style="color:#00528b;">summary</span><span style="color:#898989;">&gt;
+</span><span>        </span><span style="color:#333366;">GameEnd</span><span>,
+</span><span>        </span><span style="color:#898989;">/// &lt;</span><span style="color:#00528b;">summary</span><span style="color:#898989;">&gt;
+</span><span style="color:#898989;">        /// ゲーム中断
+</span><span style="color:#898989;">        /// &lt;/</span><span style="color:#00528b;">summary</span><span style="color:#898989;">&gt;
+</span><span>        </span><span style="color:#333366;">Aborted</span><span>,
+</span><span>        </span><span style="color:#898989;">/// &lt;</span><span style="color:#00528b;">summary</span><span style="color:#898989;">&gt;
+</span><span style="color:#898989;">        /// 設定エラー
+</span><span style="color:#898989;">        /// &lt;/</span><span style="color:#00528b;">summary</span><span style="color:#898989;">&gt;
+</span><span>        </span><span style="color:#333366;">ConfigurationError</span><span>,
+</span><span>    }
+</span></code></pre>
+<p>また、Udon での多次元配列のサポートが怪しかった（今は平気？）ことが頭をよぎったので、u64 (C# の ulong) の数値を bitfied 単位で扱い、4bit ごとにサイコロ値を格納するラッパー実装を行った。
+そのため、UdonSynced で同期する盤面は ulong の変数となっていて、盤面自体は DiceArrayBits class で取得・更新する方式となった。</p>
+<p>同期変数</p>
+<pre data-lang="cs" style="background-color:#ffffff;color:#010101;" class="language-cs "><code class="language-cs" data-lang="cs"><span>        </span><span style="color:#898989;">/// &lt;</span><span style="color:#00528b;">summary</span><span style="color:#898989;">&gt;
+</span><span style="color:#898989;">        /// Player1のサイコロ配置(生データ)
+</span><span style="color:#898989;">        /// &lt;/</span><span style="color:#00528b;">summary</span><span style="color:#898989;">&gt;
+</span><span>        [</span><span style="color:#696989;">UdonSynced</span><span>(</span><span style="color:#696989;">UdonSyncMode</span><span>.</span><span style="color:#696989;">None</span><span>), </span><span style="color:#696989;">FieldChangeCallback</span><span>(</span><span style="color:#016692;">nameof</span><span>(</span><span style="color:#646409;">Player1DiceArrayBits</span><span>))]
+</span><span>        </span><span style="color:#014a69;">public </span><span style="color:#877611;">ulong </span><span style="color:#696989;">_player1DiceArrayBits </span><span style="color:#016692;">= </span><span style="color:#8c008a;">0</span><span>;
+</span><span>
+</span><span>        </span><span style="color:#898989;">/// &lt;</span><span style="color:#00528b;">summary</span><span style="color:#898989;">&gt;
+</span><span style="color:#898989;">        /// Player1のサイコロ配置(生データ)
+</span><span style="color:#898989;">        /// &lt;/</span><span style="color:#00528b;">summary</span><span style="color:#898989;">&gt;
+</span><span>        </span><span style="color:#014a69;">public </span><span style="color:#877611;">ulong </span><span style="color:#696989;">Player1DiceArrayBits
+</span><span>        {
+</span><span>            </span><span style="color:#696989;">get </span><span style="color:#877611;">=&gt; </span><span style="color:#696989;">_player1DiceArrayBits</span><span>;
+</span><span>            </span><span style="color:#696989;">set
+</span><span>            {
+</span><span>                </span><span style="color:#696989;">_player1DiceArrayBits </span><span style="color:#016692;">= </span><span style="color:#696989;">value</span><span>;
+</span><span>            }
+</span><span>        }
+</span><span>
+</span><span>        </span><span style="color:#898989;">/// &lt;</span><span style="color:#00528b;">summary</span><span style="color:#898989;">&gt;
+</span><span style="color:#898989;">        /// Player2のサイコロ配置(生データ)
+</span><span style="color:#898989;">        /// &lt;/</span><span style="color:#00528b;">summary</span><span style="color:#898989;">&gt;
+</span><span>        [</span><span style="color:#696989;">UdonSynced</span><span>(</span><span style="color:#696989;">UdonSyncMode</span><span>.</span><span style="color:#696989;">None</span><span>), </span><span style="color:#696989;">FieldChangeCallback</span><span>(</span><span style="color:#016692;">nameof</span><span>(</span><span style="color:#646409;">Player2DiceArrayBits</span><span>))]
+</span><span>        </span><span style="color:#014a69;">public </span><span style="color:#877611;">ulong </span><span style="color:#696989;">_player2DiceArrayBits </span><span style="color:#016692;">= </span><span style="color:#8c008a;">0</span><span>;
+</span><span>
+</span><span>        </span><span style="color:#898989;">/// &lt;</span><span style="color:#00528b;">summary</span><span style="color:#898989;">&gt;
+</span><span style="color:#898989;">        /// Player2のサイコロ配置(生データ)
+</span><span style="color:#898989;">        /// &lt;/</span><span style="color:#00528b;">summary</span><span style="color:#898989;">&gt;
+</span><span>        </span><span style="color:#014a69;">public </span><span style="color:#877611;">ulong </span><span style="color:#696989;">Player2DiceArrayBits
+</span><span>        {
+</span><span>            </span><span style="color:#696989;">get </span><span style="color:#877611;">=&gt; </span><span style="color:#696989;">_player2DiceArrayBits</span><span>;
+</span><span>            </span><span style="color:#696989;">set
+</span><span>            {
+</span><span>                </span><span style="color:#696989;">_player2DiceArrayBits </span><span style="color:#016692;">= </span><span style="color:#696989;">value</span><span>;
+</span><span>            }
+</span><span>        }
+</span></code></pre>
+<p>サイコロの値取得・更新関連</p>
+<p>この他にも配置したときの同じ目を消す処理や得点計算なども実装してある。</p>
+<pre data-lang="cs" style="background-color:#ffffff;color:#010101;" class="language-cs "><code class="language-cs" data-lang="cs"><span>        </span><span style="color:#898989;">/// &lt;</span><span style="color:#00528b;">summary</span><span style="color:#898989;">&gt;
+</span><span style="color:#898989;">        /// サイコロの配置から通し番号を取得する。LSBから列0行0, 列0行1, 列0行2, 列1行0, ... となる
+</span><span>        </span><span style="color:#014a69;">public static </span><span style="color:#877611;">int </span><span style="color:#a15001;">GetDiceIndex</span><span>(</span><span style="color:#877611;">int </span><span style="color:#696989;">col</span><span>, </span><span style="color:#877611;">int </span><span style="color:#696989;">row</span><span>) </span><span style="color:#877611;">=&gt; </span><span style="color:#696989;">col </span><span style="color:#016692;">* </span><span style="color:#696989;">NUM_ROWS </span><span style="color:#016692;">+ </span><span style="color:#696989;">row</span><span>;
+</span><span>
+</span><span>        </span><span style="color:#898989;">/// &lt;</span><span style="color:#00528b;">summary</span><span style="color:#898989;">&gt;
+</span><span style="color:#898989;">        /// サイコロの配置からサイコロの値を取得する
+</span><span style="color:#898989;">        /// &lt;/</span><span style="color:#00528b;">summary</span><span style="color:#898989;">&gt;
+</span><span>        </span><span style="color:#014a69;">public static </span><span style="color:#877611;">int </span><span style="color:#a15001;">GetDice</span><span>(</span><span style="color:#014a69;">this </span><span style="color:#877611;">ulong </span><span style="color:#696989;">bits</span><span>, </span><span style="color:#877611;">int </span><span style="color:#696989;">col</span><span>, </span><span style="color:#877611;">int </span><span style="color:#696989;">row</span><span>)
+</span><span>        {
+</span><span>            </span><span style="color:#877611;">var </span><span style="color:#696989;">index </span><span style="color:#016692;">= </span><span style="color:#696989;">GetDiceIndex</span><span>(</span><span style="color:#696989;">col</span><span>, </span><span style="color:#696989;">row</span><span>);
+</span><span>            </span><span style="color:#877611;">var </span><span style="color:#696989;">bitOffset </span><span style="color:#016692;">= </span><span style="color:#696989;">index </span><span style="color:#016692;">* </span><span style="color:#696989;">DICE_BIT_WIDTH</span><span>;
+</span><span>
+</span><span>            </span><span style="color:#016692;">return </span><span>(</span><span style="color:#877611;">int</span><span>)((</span><span style="color:#696989;">bits </span><span style="color:#016692;">&gt;&gt; </span><span style="color:#696989;">bitOffset</span><span>) </span><span style="color:#016692;">&amp; </span><span style="color:#696989;">DICE_BIT_MASK</span><span>);
+</span><span>        }
+</span><span>
+</span><span>        </span><span style="color:#898989;">/// &lt;</span><span style="color:#00528b;">summary</span><span style="color:#898989;">&gt;
+</span><span style="color:#898989;">        /// サイコロの配置を更新した値を返す
+</span><span style="color:#898989;">        /// &lt;/</span><span style="color:#00528b;">summary</span><span style="color:#898989;">&gt;
+</span><span>        </span><span style="color:#014a69;">public static </span><span style="color:#877611;">ulong </span><span style="color:#a15001;">PutDice</span><span>(</span><span style="color:#014a69;">this </span><span style="color:#877611;">ulong </span><span style="color:#696989;">bits</span><span>, </span><span style="color:#877611;">int </span><span style="color:#696989;">col</span><span>, </span><span style="color:#877611;">int </span><span style="color:#696989;">row</span><span>, </span><span style="color:#877611;">int </span><span style="color:#696989;">value</span><span>)
+</span><span>        {
+</span><span>            </span><span style="color:#877611;">var </span><span style="color:#696989;">index </span><span style="color:#016692;">= </span><span style="color:#696989;">GetDiceIndex</span><span>(</span><span style="color:#696989;">col</span><span>, </span><span style="color:#696989;">row</span><span>);
+</span><span>            </span><span style="color:#877611;">var </span><span style="color:#696989;">bitOffset </span><span style="color:#016692;">= </span><span style="color:#696989;">index </span><span style="color:#016692;">* </span><span style="color:#696989;">DICE_BIT_WIDTH</span><span>;
+</span><span>
+</span><span>            </span><span style="color:#898989;">// 一度クリアしてからセットする
+</span><span>            </span><span style="color:#696989;">bits </span><span style="color:#016692;">&amp;= ~</span><span>(</span><span style="color:#696989;">DICE_BIT_MASK </span><span style="color:#016692;">&lt;&lt; </span><span style="color:#696989;">bitOffset</span><span>);
+</span><span>            </span><span style="color:#696989;">bits </span><span style="color:#016692;">|= </span><span>((</span><span style="color:#877611;">ulong</span><span>)</span><span style="color:#696989;">value </span><span style="color:#016692;">&amp; </span><span style="color:#696989;">DICE_BIT_MASK</span><span>) </span><span style="color:#016692;">&lt;&lt; </span><span style="color:#696989;">bitOffset</span><span>;
+</span><span>
+</span><span>            </span><span style="color:#016692;">return </span><span style="color:#696989;">bits</span><span>;
+</span><span>        }
+</span></code></pre>
+<h3 id="saikorowozhen-rudong-zuo-nituite">サイコロを振る動作について</h3>
+<p>サイコロを振る動作はできるだけランダム要素と自然な挙動を重視したく、設計当初から物理演算任せにしようとは考えていた。
+ただ、ユーザー自身に振る動作をするとイカサマ云々が面倒になるので、あくまでタイミング制御のみを担うことにしている。</p>
+<p>実装時に一つ問題があり、物理演算を行う物体に Animation Controller から干渉すると期待通りの挙動にならなず、変な水平移動が出たりと物理演算側が破綻してしまう。（よく考えれば当たり前の気がしてくるが...）
+これの対策に、振るまでの間中空で回転アニメーションを再生するサイコロと、振った瞬間の位置・向きを転写しつつランダムな方向に吹き飛ばして物理演算で転がりを表現する 2 種類のサイコロをユーザー見えには自然につながるように組み合わせた。</p>
+<p>以下 gif で座標軸の gizmo が表示されているのは転がっているサイコロ。ひたすら回転しているサイコロと表示を切り替えることで、物理演算との組み合わせにできた。</p>
+<p><img src="/2024/create-vrchat-game/knucklebones-test3.gif" alt="movie" /></p>
+<p>サイコロの向いている面は、CustonEventDelaySeconds で遅延させたイベントで何度か監視し、面の法線方向のベクトルと Y+ベクトルの角度が最も小さい面を採用とした。
+LINQ が使えないので若干不格好だが、愚直でシンプルな実装になっていると思われる。</p>
+<pre data-lang="cs" style="background-color:#ffffff;color:#010101;" class="language-cs "><code class="language-cs" data-lang="cs"><span>            </span><span style="color:#898989;">// DiceForRollの向き情報を取得
+</span><span>            </span><span style="color:#877611;">var </span><span style="color:#696989;">forward </span><span style="color:#016692;">= </span><span style="color:#696989;">DiceForRoll</span><span>.</span><span style="color:#696989;">gameObject</span><span>.</span><span style="color:#696989;">transform</span><span>.</span><span style="color:#696989;">forward</span><span>;
+</span><span>            </span><span style="color:#877611;">var </span><span style="color:#696989;">up </span><span style="color:#016692;">= </span><span style="color:#696989;">DiceForRoll</span><span>.</span><span style="color:#696989;">gameObject</span><span>.</span><span style="color:#696989;">transform</span><span>.</span><span style="color:#696989;">up</span><span>;
+</span><span>            </span><span style="color:#877611;">var </span><span style="color:#696989;">right </span><span style="color:#016692;">= </span><span style="color:#696989;">DiceForRoll</span><span>.</span><span style="color:#696989;">gameObject</span><span>.</span><span style="color:#696989;">transform</span><span>.</span><span style="color:#696989;">right</span><span>;
+</span><span>            </span><span style="color:#877611;">var </span><span style="color:#696989;">back </span><span style="color:#016692;">= -</span><span style="color:#696989;">forward</span><span>;
+</span><span>            </span><span style="color:#877611;">var </span><span style="color:#696989;">down </span><span style="color:#016692;">= -</span><span style="color:#696989;">up</span><span>;
+</span><span>            </span><span style="color:#877611;">var </span><span style="color:#696989;">left </span><span style="color:#016692;">= -</span><span style="color:#696989;">right</span><span>;
+</span><span>
+</span><span>            </span><span style="color:#898989;">// Vector3.upとの角度が最も小さいものが上面
+</span><span>            </span><span style="color:#898989;">// anglesのindexはFaceDirectionと対応
+</span><span>            </span><span style="color:#877611;">var </span><span style="color:#696989;">angles </span><span style="color:#016692;">= new</span><span>[] {
+</span><span>                </span><span style="color:#696989;">Vector3</span><span>.</span><span style="color:#696989;">Angle</span><span>(</span><span style="color:#696989;">forward</span><span>, </span><span style="color:#696989;">Vector3</span><span>.</span><span style="color:#696989;">up</span><span>),
+</span><span>                </span><span style="color:#696989;">Vector3</span><span>.</span><span style="color:#696989;">Angle</span><span>(</span><span style="color:#696989;">back</span><span>, </span><span style="color:#696989;">Vector3</span><span>.</span><span style="color:#696989;">up</span><span>),
+</span><span>                </span><span style="color:#696989;">Vector3</span><span>.</span><span style="color:#696989;">Angle</span><span>(</span><span style="color:#696989;">left</span><span>, </span><span style="color:#696989;">Vector3</span><span>.</span><span style="color:#696989;">up</span><span>),
+</span><span>                </span><span style="color:#696989;">Vector3</span><span>.</span><span style="color:#696989;">Angle</span><span>(</span><span style="color:#696989;">right</span><span>, </span><span style="color:#696989;">Vector3</span><span>.</span><span style="color:#696989;">up</span><span>),
+</span><span>                </span><span style="color:#696989;">Vector3</span><span>.</span><span style="color:#696989;">Angle</span><span>(</span><span style="color:#696989;">up</span><span>, </span><span style="color:#696989;">Vector3</span><span>.</span><span style="color:#696989;">up</span><span>),
+</span><span>                </span><span style="color:#696989;">Vector3</span><span>.</span><span style="color:#696989;">Angle</span><span>(</span><span style="color:#696989;">down</span><span>, </span><span style="color:#696989;">Vector3</span><span>.</span><span style="color:#696989;">up</span><span>),
+</span><span>            };
+</span><span>
+</span><span>            </span><span style="color:#898989;">// 最小値のインデックスを取得
+</span><span>            </span><span style="color:#877611;">var </span><span style="color:#696989;">minIndex </span><span style="color:#016692;">= </span><span style="color:#8c008a;">0</span><span>;
+</span><span>            </span><span style="color:#016692;">for </span><span>(</span><span style="color:#877611;">var </span><span style="color:#696989;">i </span><span style="color:#016692;">= </span><span style="color:#8c008a;">1</span><span>; </span><span style="color:#696989;">i </span><span style="color:#016692;">&lt; </span><span style="color:#696989;">angles</span><span>.</span><span style="color:#696989;">Length</span><span>; </span><span style="color:#696989;">i</span><span style="color:#016692;">++</span><span>)
+</span><span>            {
+</span><span>                </span><span style="color:#016692;">if </span><span>(</span><span style="color:#696989;">angles</span><span>[</span><span style="color:#696989;">i</span><span>] </span><span style="color:#016692;">&lt; </span><span style="color:#696989;">angles</span><span>[</span><span style="color:#696989;">minIndex</span><span>])
+</span><span>                {
+</span><span>                    </span><span style="color:#696989;">minIndex </span><span style="color:#016692;">= </span><span style="color:#696989;">i</span><span>;
+</span><span>                }
+</span><span>            }
+</span></code></pre>
+<p>動きの収束には <code>Rigidbody.IsSleeping</code> と、一定時間のタイムアウトのどちらかを満たした時点を採用した。
+また、高速で弾き出した際に壁を貫通する恐れがあったので、速いオブジェクト対静的オブジェクトの衝突と考え Collision Detection を Continuous に設定してある。</p>
+<h3 id="udonchips-dui-ying-nituite">UdonChips 対応について</h3>
+<p>こちらは作り始めた時点でぜひ実装したかった要素である。一方で、VCC 配布の都合上 asmdef で分けていることで頭を悩ませた点でもある。
+UdonChips の実装は、シーン中に置いてある UdonChips という名称の GameObject を取得し、これの money を操作することで実現している。</p>
+<p>この UdonChips Object の class には asmdef の定義はなく、 <code>Assembly-CSharp &gt; UCS &gt; UdonChips</code> の定義になっている。
+そのため、<code>me.wipeseals.udon-knucklebones</code> package からはそのままでは見えず、<code>Assembly-CSharp</code> を参照するかこれ自体に属する必要があった。</p>
+<p>対応としては <code>UdonKnucklebones</code> を継承可能なクラスとして実装しておき、別途 <code>Assembly-CSharp</code> に属する <code>UdonKnucklebonesSupportUdonChips</code> class を作り、ここから UdonChips 関連の操作だけを加える方法を取っている。
+UdonChips がない環境でコンパイルエラーにならないように、unitypackage で配布パッケージに同梱してある。</p>
+<pre data-lang="log" style="background-color:#ffffff;color:#010101;" class="language-log "><code class="language-log" data-lang="log"><span>
+</span><span>my package            |    Assembly-CSharp
+</span><span>----------------------|----------------------
+</span><span>                      |
+</span><span>                      |         UCS.UdonChips
+</span><span>                      |             ^
+</span><span>                      |             |
+</span><span>                      |             |
+</span><span>                      |           [参照]
+</span><span>                      |             |
+</span><span>                      |             |
+</span><span>UdonKnuckebones&lt;----[継承]---UdonKnuckebonesSupportUdonChips
+</span><span>                      |
+</span><span>                      |
+</span><span>                      |
+</span></code></pre>
+<p>UdonKnuckebonesSupportUdonChips class は表示と UdonChips 更新関連の処理しか書かないで済むようになっている。継承使えてよかった。</p>
+<pre data-lang="cs" style="background-color:#ffffff;color:#010101;" class="language-cs "><code class="language-cs" data-lang="cs"><span style="color:#014a69;">public </span><span style="color:#877611;">class </span><span style="color:#a15001;">UdonKnucklebonesSupportUdonChips </span><span>: </span><span style="font-style:italic;color:#d19264;">UdonKnucklebones
+</span><span>{
+</span><span>    </span><span style="color:#898989;">/// &lt;</span><span style="color:#00528b;">summary</span><span style="color:#898989;">&gt;
+</span><span style="color:#898989;">    /// 取引されたならtrue
+</span><span style="color:#898989;">    /// &lt;/</span><span style="color:#00528b;">summary</span><span style="color:#898989;">&gt;
+</span><span>    </span><span style="color:#877611;">bool </span><span style="color:#696989;">_isPaid </span><span style="color:#016692;">= </span><span style="color:#333366;">false</span><span>;
+</span><span>    </span><span style="color:#898989;">/// &lt;</span><span style="color:#00528b;">summary</span><span style="color:#898989;">&gt;
+</span><span style="color:#898989;">    /// 取引レート
+</span><span style="color:#898989;">    /// &lt;/</span><span style="color:#00528b;">summary</span><span style="color:#898989;">&gt;
+</span><span>    </span><span style="color:#877611;">float </span><span style="color:#696989;">_rate </span><span style="color:#016692;">= </span><span style="color:#8c008a;">0.0</span><span style="color:#877611;">f</span><span>;
+</span><span>    </span><span style="color:#898989;">/// &lt;</span><span style="color:#00528b;">summary</span><span style="color:#898989;">&gt;
+</span><span style="color:#898989;">    /// 取引されたUdonChipsの金額
+</span><span style="color:#898989;">    /// &lt;/</span><span style="color:#00528b;">summary</span><span style="color:#898989;">&gt;
+</span><span>    </span><span style="color:#877611;">float </span><span style="color:#696989;">_applyMoney </span><span style="color:#016692;">= </span><span style="color:#8c008a;">0.0</span><span style="color:#877611;">f</span><span>;
+</span><span>
+</span><span>    </span><span style="color:#898989;">/// &lt;</span><span style="color:#00528b;">summary</span><span style="color:#898989;">&gt;
+</span><span style="color:#898989;">    /// システムメッセージを取得。UI反映用のメッセージ
+</span><span style="color:#898989;">    /// &lt;/</span><span style="color:#00528b;">summary</span><span style="color:#898989;">&gt;
+</span><span style="color:#898989;">    /// &lt;</span><span style="color:#00528b;">returns</span><span style="color:#898989;">&gt;&lt;/</span><span style="color:#00528b;">returns</span><span style="color:#898989;">&gt;
+</span><span>    </span><span style="color:#014a69;">public override </span><span style="color:#877611;">string </span><span style="color:#a15001;">GetSystemMessage</span><span>()
+</span><span>    {
+</span><span>        </span><span style="color:#898989;">//...
+</span><span>    }
+</span><span>
+</span><span>    </span><span style="color:#898989;">/// &lt;</span><span style="color:#00528b;">summary</span><span style="color:#898989;">&gt;
+</span><span style="color:#898989;">    /// 所持金を取得し同期変数に設定
+</span><span style="color:#898989;">    /// &lt;/</span><span style="color:#00528b;">summary</span><span style="color:#898989;">&gt;
+</span><span>    </span><span style="color:#014a69;">public override </span><span style="color:#877611;">void </span><span style="color:#a15001;">OnUpdateCurrentUdonChips</span><span>()
+</span><span>    {
+</span><span>        </span><span style="color:#898989;">//...
+</span><span>    }
+</span><span>
+</span><span>    </span><span style="color:#898989;">/// &lt;</span><span style="color:#00528b;">summary</span><span style="color:#898989;">&gt;
+</span><span style="color:#898989;">    /// 勝敗の金額を反映。ローカル処理
+</span><span style="color:#898989;">    /// &lt;/</span><span style="color:#00528b;">summary</span><span style="color:#898989;">&gt;
+</span><span>    </span><span style="color:#014a69;">public override </span><span style="color:#877611;">void </span><span style="color:#a15001;">OnApplyUdonChips</span><span>()
+</span><span>    {
+</span><span>         </span><span style="color:#898989;">//...
+</span><span>    }
+</span><span>}
+</span></code></pre>
+<h2 id="dong-zuo-que-ren">動作確認</h2>
+<h3 id="dan-ti-tesuto">単体テスト</h3>
+<p>ゲームの根幹に関わる部分で、特定の盤面でないと発生しないような不具合はできるだけ論理検証で潰しておきたかった。
+幸いにもサイコロの配置の更新や点数計算などは u64 のビット演算として Utility に切り出していたので、これの論理検証を実装してある。</p>
+<p>本当は PlayMode Test 込で網羅性の高いものにしたかったが、品質と時間の妥協ラインがこのあたりだったのでひとまず自分が必要だと思った範囲に絞っている。
+(4bit ごとに 1 個割り当てているおかげで、hex 表示すると盤面が見えやすくて助かった)</p>
+<pre data-lang="cs" style="background-color:#ffffff;color:#010101;" class="language-cs "><code class="language-cs" data-lang="cs"><span>        [</span><span style="color:#696989;">TestCase</span><span>(</span><span style="color:#8c008a;">0x00000000_00000000</span><span style="color:#696989;">UL</span><span>, </span><span style="color:#8c008a;">0</span><span>, </span><span style="color:#696989;">ExpectedResult </span><span style="color:#016692;">= </span><span style="color:#8c008a;">0</span><span>)]
+</span><span>        [</span><span style="color:#696989;">TestCase</span><span>(</span><span style="color:#8c008a;">0x00000000_00000001</span><span style="color:#696989;">UL</span><span>, </span><span style="color:#8c008a;">0</span><span>, </span><span style="color:#696989;">ExpectedResult </span><span style="color:#016692;">= </span><span style="color:#8c008a;">1</span><span>)]
+</span><span>        [</span><span style="color:#696989;">TestCase</span><span>(</span><span style="color:#8c008a;">0x00000000_00000011</span><span style="color:#696989;">UL</span><span>, </span><span style="color:#8c008a;">0</span><span>, </span><span style="color:#696989;">ExpectedResult </span><span style="color:#016692;">= </span><span>(</span><span style="color:#8c008a;">1 </span><span style="color:#016692;">+ </span><span style="color:#8c008a;">1</span><span>) </span><span style="color:#016692;">* </span><span style="color:#8c008a;">2</span><span>)]
+</span><span>        [</span><span style="color:#696989;">TestCase</span><span>(</span><span style="color:#8c008a;">0x00000000_00000111</span><span style="color:#696989;">UL</span><span>, </span><span style="color:#8c008a;">0</span><span>, </span><span style="color:#696989;">ExpectedResult </span><span style="color:#016692;">= </span><span>(</span><span style="color:#8c008a;">1 </span><span style="color:#016692;">+ </span><span style="color:#8c008a;">1 </span><span style="color:#016692;">+ </span><span style="color:#8c008a;">1</span><span>) </span><span style="color:#016692;">* </span><span style="color:#8c008a;">3</span><span>)]
+</span><span>        [</span><span style="color:#696989;">TestCase</span><span>(</span><span style="color:#8c008a;">0x00000000_00001111</span><span style="color:#696989;">UL</span><span>, </span><span style="color:#8c008a;">0</span><span>, </span><span style="color:#696989;">ExpectedResult </span><span style="color:#016692;">= </span><span>(</span><span style="color:#8c008a;">1 </span><span style="color:#016692;">+ </span><span style="color:#8c008a;">1 </span><span style="color:#016692;">+ </span><span style="color:#8c008a;">1</span><span>) </span><span style="color:#016692;">* </span><span style="color:#8c008a;">3</span><span>)]
+</span><span>        [</span><span style="color:#696989;">TestCase</span><span>(</span><span style="color:#8c008a;">0x00000000_00011111</span><span style="color:#696989;">UL</span><span>, </span><span style="color:#8c008a;">0</span><span>, </span><span style="color:#696989;">ExpectedResult </span><span style="color:#016692;">= </span><span>(</span><span style="color:#8c008a;">1 </span><span style="color:#016692;">+ </span><span style="color:#8c008a;">1 </span><span style="color:#016692;">+ </span><span style="color:#8c008a;">1</span><span>) </span><span style="color:#016692;">* </span><span style="color:#8c008a;">3</span><span>)]
+</span><span>        [</span><span style="color:#696989;">TestCase</span><span>(</span><span style="color:#8c008a;">0x00000000_00111111</span><span style="color:#696989;">UL</span><span>, </span><span style="color:#8c008a;">0</span><span>, </span><span style="color:#696989;">ExpectedResult </span><span style="color:#016692;">= </span><span>(</span><span style="color:#8c008a;">1 </span><span style="color:#016692;">+ </span><span style="color:#8c008a;">1 </span><span style="color:#016692;">+ </span><span style="color:#8c008a;">1</span><span>) </span><span style="color:#016692;">* </span><span style="color:#8c008a;">3</span><span>)]
+</span><span>        [</span><span style="color:#696989;">TestCase</span><span>(</span><span style="color:#8c008a;">0x00000000_01111111</span><span style="color:#696989;">UL</span><span>, </span><span style="color:#8c008a;">0</span><span>, </span><span style="color:#696989;">ExpectedResult </span><span style="color:#016692;">= </span><span>(</span><span style="color:#8c008a;">1 </span><span style="color:#016692;">+ </span><span style="color:#8c008a;">1 </span><span style="color:#016692;">+ </span><span style="color:#8c008a;">1</span><span>) </span><span style="color:#016692;">* </span><span style="color:#8c008a;">3</span><span>)]
+</span><span>        [</span><span style="color:#696989;">TestCase</span><span>(</span><span style="color:#8c008a;">0x00000000_11111111</span><span style="color:#696989;">UL</span><span>, </span><span style="color:#8c008a;">0</span><span>, </span><span style="color:#696989;">ExpectedResult </span><span style="color:#016692;">= </span><span>(</span><span style="color:#8c008a;">1 </span><span style="color:#016692;">+ </span><span style="color:#8c008a;">1 </span><span style="color:#016692;">+ </span><span style="color:#8c008a;">1</span><span>) </span><span style="color:#016692;">* </span><span style="color:#8c008a;">3</span><span>)]
+</span><span>        [</span><span style="color:#696989;">TestCase</span><span>(</span><span style="color:#8c008a;">0x00000001_11111111</span><span style="color:#696989;">UL</span><span>, </span><span style="color:#8c008a;">0</span><span>, </span><span style="color:#696989;">ExpectedResult </span><span style="color:#016692;">= </span><span>(</span><span style="color:#8c008a;">1 </span><span style="color:#016692;">+ </span><span style="color:#8c008a;">1 </span><span style="color:#016692;">+ </span><span style="color:#8c008a;">1</span><span>) </span><span style="color:#016692;">* </span><span style="color:#8c008a;">3</span><span>)]
+</span><span>        [</span><span style="color:#696989;">TestCase</span><span>(</span><span style="color:#8c008a;">0x00000001_11111112</span><span style="color:#696989;">UL</span><span>, </span><span style="color:#8c008a;">0</span><span>, </span><span style="color:#696989;">ExpectedResult </span><span style="color:#016692;">= </span><span>(</span><span style="color:#8c008a;">1 </span><span style="color:#016692;">+ </span><span style="color:#8c008a;">1</span><span>) </span><span style="color:#016692;">* </span><span style="color:#8c008a;">2 </span><span style="color:#016692;">+ </span><span style="color:#8c008a;">2</span><span>)]
+</span><span>        [</span><span style="color:#696989;">TestCase</span><span>(</span><span style="color:#8c008a;">0x00000001_11111116</span><span style="color:#696989;">UL</span><span>, </span><span style="color:#8c008a;">0</span><span>, </span><span style="color:#696989;">ExpectedResult </span><span style="color:#016692;">= </span><span>(</span><span style="color:#8c008a;">1 </span><span style="color:#016692;">+ </span><span style="color:#8c008a;">1</span><span>) </span><span style="color:#016692;">* </span><span style="color:#8c008a;">2 </span><span style="color:#016692;">+ </span><span style="color:#8c008a;">6</span><span>)]
+</span><span>        [</span><span style="color:#696989;">TestCase</span><span>(</span><span style="color:#8c008a;">0x00000001_11111156</span><span style="color:#696989;">UL</span><span>, </span><span style="color:#8c008a;">0</span><span>, </span><span style="color:#696989;">ExpectedResult </span><span style="color:#016692;">= </span><span style="color:#8c008a;">1 </span><span style="color:#016692;">+ </span><span style="color:#8c008a;">5 </span><span style="color:#016692;">+ </span><span style="color:#8c008a;">6</span><span>)]
+</span><span>        [</span><span style="color:#696989;">TestCase</span><span>(</span><span style="color:#8c008a;">0x00000001_11111456</span><span style="color:#696989;">UL</span><span>, </span><span style="color:#8c008a;">0</span><span>, </span><span style="color:#696989;">ExpectedResult </span><span style="color:#016692;">= </span><span style="color:#8c008a;">4 </span><span style="color:#016692;">+ </span><span style="color:#8c008a;">5 </span><span style="color:#016692;">+ </span><span style="color:#8c008a;">6</span><span>)]
+</span><span>        [</span><span style="color:#696989;">TestCase</span><span>(</span><span style="color:#8c008a;">0x00000002_22333444</span><span style="color:#696989;">UL</span><span>, </span><span style="color:#8c008a;">0</span><span>, </span><span style="color:#696989;">ExpectedResult </span><span style="color:#016692;">= </span><span>(</span><span style="color:#8c008a;">4 </span><span style="color:#016692;">+ </span><span style="color:#8c008a;">4 </span><span style="color:#016692;">+ </span><span style="color:#8c008a;">4</span><span>) </span><span style="color:#016692;">* </span><span style="color:#8c008a;">3</span><span>)]
+</span><span>        [</span><span style="color:#696989;">TestCase</span><span>(</span><span style="color:#8c008a;">0x00000002_22333444</span><span style="color:#696989;">UL</span><span>, </span><span style="color:#8c008a;">1</span><span>, </span><span style="color:#696989;">ExpectedResult </span><span style="color:#016692;">= </span><span>(</span><span style="color:#8c008a;">3 </span><span style="color:#016692;">+ </span><span style="color:#8c008a;">3 </span><span style="color:#016692;">+ </span><span style="color:#8c008a;">3</span><span>) </span><span style="color:#016692;">* </span><span style="color:#8c008a;">3</span><span>)]
+</span><span>        [</span><span style="color:#696989;">TestCase</span><span>(</span><span style="color:#8c008a;">0x00000002_22333444</span><span style="color:#696989;">UL</span><span>, </span><span style="color:#8c008a;">2</span><span>, </span><span style="color:#696989;">ExpectedResult </span><span style="color:#016692;">= </span><span>(</span><span style="color:#8c008a;">2 </span><span style="color:#016692;">+ </span><span style="color:#8c008a;">2 </span><span style="color:#016692;">+ </span><span style="color:#8c008a;">2</span><span>) </span><span style="color:#016692;">* </span><span style="color:#8c008a;">3</span><span>)]
+</span><span>        </span><span style="color:#014a69;">public </span><span style="color:#877611;">int </span><span style="color:#a15001;">GetColumnScoreTest</span><span>(</span><span style="color:#877611;">ulong </span><span style="color:#696989;">initialBits</span><span>, </span><span style="color:#877611;">int </span><span style="color:#696989;">col</span><span>)
+</span><span>        {
+</span><span>            </span><span style="color:#016692;">return </span><span style="color:#696989;">DiceArrayBits</span><span>.</span><span style="color:#696989;">GetColumnScore</span><span>(</span><span style="color:#696989;">initialBits</span><span>, </span><span style="color:#696989;">col</span><span>);
+</span><span>        }
+</span><span>
+</span><span>        [</span><span style="color:#696989;">TestCase</span><span>(</span><span style="color:#8c008a;">0x00000000_00000000</span><span style="color:#696989;">UL</span><span>, </span><span style="color:#696989;">ExpectedResult </span><span style="color:#016692;">= </span><span style="color:#8c008a;">0</span><span>)]
+</span><span>        [</span><span style="color:#696989;">TestCase</span><span>(</span><span style="color:#8c008a;">0x00000000_00000001</span><span style="color:#696989;">UL</span><span>, </span><span style="color:#696989;">ExpectedResult </span><span style="color:#016692;">= </span><span style="color:#8c008a;">1</span><span>)]
+</span><span>        [</span><span style="color:#696989;">TestCase</span><span>(</span><span style="color:#8c008a;">0x00000000_00001001</span><span style="color:#696989;">UL</span><span>, </span><span style="color:#696989;">ExpectedResult </span><span style="color:#016692;">= </span><span style="color:#8c008a;">1 </span><span style="color:#016692;">+ </span><span style="color:#8c008a;">1</span><span>)]
+</span><span>        [</span><span style="color:#696989;">TestCase</span><span>(</span><span style="color:#8c008a;">0x00000000_01001001</span><span style="color:#696989;">UL</span><span>, </span><span style="color:#696989;">ExpectedResult </span><span style="color:#016692;">= </span><span style="color:#8c008a;">1 </span><span style="color:#016692;">+ </span><span style="color:#8c008a;">1 </span><span style="color:#016692;">+ </span><span style="color:#8c008a;">1</span><span>)]
+</span><span>        [</span><span style="color:#696989;">TestCase</span><span>(</span><span style="color:#8c008a;">0x00000000_21021021</span><span style="color:#696989;">UL</span><span>, </span><span style="color:#696989;">ExpectedResult </span><span style="color:#016692;">= </span><span style="color:#8c008a;">1 </span><span style="color:#016692;">+ </span><span style="color:#8c008a;">2 </span><span style="color:#016692;">+ </span><span style="color:#8c008a;">1 </span><span style="color:#016692;">+ </span><span style="color:#8c008a;">2 </span><span style="color:#016692;">+ </span><span style="color:#8c008a;">1 </span><span style="color:#016692;">+ </span><span style="color:#8c008a;">2</span><span>)]
+</span><span>        [</span><span style="color:#696989;">TestCase</span><span>(</span><span style="color:#8c008a;">0x00000003_21321321</span><span style="color:#696989;">UL</span><span>, </span><span style="color:#696989;">ExpectedResult </span><span style="color:#016692;">= </span><span style="color:#8c008a;">1 </span><span style="color:#016692;">+ </span><span style="color:#8c008a;">2 </span><span style="color:#016692;">+ </span><span style="color:#8c008a;">3 </span><span style="color:#016692;">+ </span><span style="color:#8c008a;">1 </span><span style="color:#016692;">+ </span><span style="color:#8c008a;">2 </span><span style="color:#016692;">+ </span><span style="color:#8c008a;">3 </span><span style="color:#016692;">+ </span><span style="color:#8c008a;">1 </span><span style="color:#016692;">+ </span><span style="color:#8c008a;">2 </span><span style="color:#016692;">+ </span><span style="color:#8c008a;">3</span><span>)]
+</span><span>        [</span><span style="color:#696989;">TestCase</span><span>(</span><span style="color:#8c008a;">0x00000006_66555444</span><span style="color:#696989;">UL</span><span>, </span><span style="color:#696989;">ExpectedResult </span><span style="color:#016692;">= </span><span>(</span><span style="color:#8c008a;">4 </span><span style="color:#016692;">+ </span><span style="color:#8c008a;">4 </span><span style="color:#016692;">+ </span><span style="color:#8c008a;">4</span><span>) </span><span style="color:#016692;">* </span><span style="color:#8c008a;">3 </span><span style="color:#016692;">+ </span><span>(</span><span style="color:#8c008a;">5 </span><span style="color:#016692;">+ </span><span style="color:#8c008a;">5 </span><span style="color:#016692;">+ </span><span style="color:#8c008a;">5</span><span>) </span><span style="color:#016692;">* </span><span style="color:#8c008a;">3 </span><span style="color:#016692;">+ </span><span>(</span><span style="color:#8c008a;">6 </span><span style="color:#016692;">+ </span><span style="color:#8c008a;">6 </span><span style="color:#016692;">+ </span><span style="color:#8c008a;">6</span><span>) </span><span style="color:#016692;">* </span><span style="color:#8c008a;">3</span><span>)]
+</span><span>        </span><span style="color:#014a69;">public </span><span style="color:#877611;">int </span><span style="color:#696989;">GetTotalScoreTest</span><span>(</span><span style="color:#877611;">ulong </span><span style="color:#696989;">initialBits</span><span>)
+</span><span>        {
+</span><span>            </span><span style="color:#016692;">return </span><span style="color:#696989;">DiceArrayBits</span><span>.</span><span style="color:#696989;">GetTotalScore</span><span>(</span><span style="color:#696989;">initialBits</span><span>);
+</span><span>        }
+</span></code></pre>
+<h3 id="shi-ji-nodong-zuo-que-ren">実際の動作確認</h3>
+<p>まずは Unity 上で問題なく動作することを確認した。その後、VRChat Client を複数起動してのデバッグで同期関連を見ている。
+観点としては以下のようにネットワーク周りの不具合と、VR 環境特有の使い勝手の悪さがないかなどを気にしていた。</p>
+<ul>
+<li>ネットワーク越しに正常に動作するか</li>
+<li>途中で Player の片方・両方が離脱したときに操作不能にならないか
+<ul>
+<li>（どちらかが抜けた時点で、試合を Abort 状態にして初期状態に戻している）</li>
+</ul>
+</li>
+<li>後から入ってきた Player に状況が見えるか</li>
+<li>後から入ってきた Player が参加して Play 可能か</li>
+<li>極端に重くなるケースや、どちらかの Player にだけ見えていない現象などがないか</li>
+<li>特定のやり取りは正常に行われるか</li>
+<li>Interact する距離が遠すぎる・短すぎる、変な位置に Player と衝突するコライダーがないか</li>
+</ul>
+<p>クライアント増やしたり減らしているしている図</p>
+<p><img src="/2024/create-vrchat-game/2024-10-15-220508.png" alt="ss" /></p>
+<h2 id="sanpuruwarudozuo-cheng">サンプルワールド作成</h2>
+<p>ここは必須ではなかったが突然気乗りしたので作った。コンセプトはカラオケの居抜きのような狭い空間でゲームだけをするスペースのイメージ。
+ゲーム本体と同じく Blender で制作し、Unity で細かい見た目の調整を施した。まっさらなサンプルワールドよりかはおしゃれになった。</p>
+<p><img src="/2024/create-vrchat-game/2024-10-10-001643.png" alt="ss" /></p>
+<h2 id="pei-bu-zhun-bei">配布準備</h2>
+<p>VCC で配布をするものの、Package 関連の主な流通は Booth もしくは Vket という認識なので、これ向けにもなるように README.md に説明文章を作成した。
+また、ワールド制作者がゲーム自体の説明を書かなくて済むように、ゲーム説明用のパネルのようなものも作成・同梱してある。</p>
+<p><img src="/2024/create-vrchat-game/UdonKnucklebones-Manual-3.png" alt="ss" /></p>
+<p>後は Github Actions で最新版をリリースし、Booth に説明等々を乗せてリリースして完了。あとは変なバグがないことを祈る。</p>
+<h2 id="zong-gua">総括</h2>
+<p>だいぶ駆け足で包括的な説明にはなっていないが、書き残しておきたかった要素要素には触れることできたのではないかと思う。</p>
+<p>Console UI でゲームを作るのに対し考えることが多い分、創意工夫できる点が多く実際に動いたり遊んでもらえたときにはかなり嬉しい。
+何より、Platform が用意されているので遊んでもらうまでの敷居が低いので、テストプレイなどもお願いしやすい。（ありがとうございました）</p>
+<p>ゲーム自体の完成度や考え方については、もう少し数をこなしたりユーザーの操作体験を重視した複雑なものを作ると見えてくるものがあるかもしれない。</p>
+
+        </div>
+
+        
+            <div class="pagination">
+                <div class="pagination__title">
+                    <span class="pagination__title-h">Read more</span>
+                    <hr />
+                </div>
+                <div class="pagination__buttons">
+                        <span class="button previous">
+                            <a href="https://blog.wipeseals.me/blog/2024/create-blog/">
+                                <span class="button__icon">←</span>&nbsp;
+                                <span class="button__text">Blog を作る</span>
+                            </a>
+                        </span>
+                    
+                    
+                        <span class="button next">
+                            <a href="https://blog.wipeseals.me/blog/2025/setup-litex/">
+                                <span class="button__text">LiteX を Ubuntu 24.04 on WSL2 で使用し、 Demo Applicationを動作させる</span>&nbsp;
+                                <span class="button__icon">→</span>
+                            </a>
+                        </span>
+                    </div>
+            </div>
+        
+    </div>
+
+    </div>
+
+    
+    <footer class="footer">
+        <div class="footer__inner">
+                <div class="copyright copyright--user">Copyright &copy; 2025 wipeseals</div>
+            </div>
+    </footer>
+    
+
+</div>
+</body>
+
+</html>
