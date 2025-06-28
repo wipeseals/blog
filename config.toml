@@ -17,7 +17,7 @@ background_color = "light"
 logo_text = "blog.wipeseals.me"
 logo_home_link = "/"
 author = "wipeseals"
-copyright_html = "Copyright &copy; 2024 wipeseals"
+copyright_html = "Copyright &copy; 2025 wipeseals"
 menu_items = [
     { name = "blog", url = "$BASE_URL" },
 
