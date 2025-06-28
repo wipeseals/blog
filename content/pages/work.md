@@ -4,6 +4,8 @@ path = "work"
 template = "page.html"
 +++
 
+Last updated: 2025/06/29
+
 ## nandio.pio
 
 A project that accelerates NAND Flash communication using the Raspberry Pi Pico's PIO (Programmable I/O).
