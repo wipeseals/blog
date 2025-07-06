@@ -4,7 +4,7 @@ path = "work"
 template = "page.html"
 +++
 
-Last updated: 2025/06/29
+Last updated: 2025/07/07
 
 ## nandio.pio
 
@@ -25,6 +25,35 @@ This is a playable implementation of the dice game "Knucklebones" designed for t
 
 - GitHub: [https://github.com/wipeseals/UdonKnucklebones](https://github.com/wipeseals/UdonKnucklebones)
 - BOOTH: [https://wipeseals.booth.pm/items/6278798](https://wipeseals.booth.pm/items/6278798)
+- Demo World: [https://vrchat.com/home/launch?worldId=wrld_1cfea318-1c43-4093-a077-38ca6bcf8491](https://vrchat.com/home/launch?worldId=wrld_1cfea318-1c43-4093-a077-38ca6bcf8491)
+
+---
+
+## nvme-bar0-viewer
+
+A parser and validator for binary dumps of NVMe (Non-Volatile Memory Express) Controller Registers, specifically over PCIe BAR0.
+
+```bash
+❯ echo "00000000: ff ff 03 3c 30 00 00 00 00 04 01 00 00 00 00 00
+        00000010: 00 00 00 00 01 40 46 00 00 00 00 00 09 00 00 00
+        00000020: 00 00 00 00 1f 00 1f 00 00 c0 a4 ff 00 00 00 00
+        00000030: 00 d0 a4 ff 00 00 00 00 00 00 00 00 00 00 00 00" | npx nvme-bar0-viewer --json
+npm warn exec The following package was not found and will be installed: nvme-bar0-viewer@2.0.2
+{
+  "registers": [
+    {
+      "offset": 0,
+      "size": 8,
+      "name": "CAP",
+      "value": "207165325311",
+      "description": "Controller Capabilities",
+      "fields": [
+(snipped)
+```
+
+- Viewer: [https://wipeseals.github.io/nvme-bar0-viewer/](https://wipeseals.github.io/nvme-bar0-viewer)
+- GitHub: [https://github.com/wipeseals/nvme-bar0-viewer](https://github.com/wipeseals/nvme-bar0-viewer)
+- NPM: [https://www.npmjs.com/package/nvme-bar0-viewer](https://www.npmjs.com/package/nvme-bar0-viewer)
 
 ---
 
@@ -118,53 +147,6 @@ Group Name
 
 - Viewer: [https://wipeseals.github.io/asciidrom/](https://wipeseals.github.io/asciidrom/)
 - GitHub: [https://github.com/wipeseals/asciidrom](https://github.com/wipeseals/asciidrom)
-
----
-
-## nvme-over-pcie-bar0-viewer
-
-A parser and validator for binary dumps of NVMe (Non-Volatile Memory Express) Controller Registers, specifically over PCIe BAR0.
-
-input
-
-```text
-00000000: ff ff 03 3c 30 00 00 00 00 04 01 00 00 00 00 00
-00000010: 00 00 00 00 01 40 46 00 00 00 00 00 09 00 00 00
-00000020: 00 00 00 00 1f 00 1f 00 00 c0 a4 ff 00 00 00 00
-00000030: 00 d0 a4 ff 00 00 00 00 00 00 00 00 00 00 00 00
-(snipped)
-```
-
-output
-
-```text
-Offset  Register   Raw Bytes (LE)   Parsed & Validated Details
-0x00    CAP        ff ff 03 3c 30 00 00 00
-
-Controller Capabilities
-Value: 0x000000303C03FFFF
-
-Field        Bit(s)     Hex     Parsed Value & Validation
-MQES         15:0       0xFFFF  65536 entries
-CQR          16         0x01    Yes
-AMS (WRR)    17         0x01    Weighted Round Robin: Supported
-AMS (VS)     18         0x00    Vendor Specific: Not Supported
-Reserved0    23:19      -
-TO           31:24      0x3C    30000 ms
-DSTRD        35:32      0x00    4 bytes
-NSSRS        36         0x01    Yes
-CSS (NVM)    37         0x01    NVM Command Set: Supported
-Reserved1    44:38      -
-BPS          45         0x00    No
-Reserved2    47:46      -
-MPSMIN       51:48      0x00    4096 B
-MPSMAX       55:52      0x00    4096 B
-Reserved3    63:56      -
-(snipped)
-```
-
-- Viewer: [https://wipeseals.github.io/nvme-over-pcie-bar0-viewer/](https://wipeseals.github.io/nvme-over-pcie-bar0-viewer)
-- GitHub: [https://github.com/wipeseals/nvme-over-pcie-bar0-viewer](https://github.com/wipeseals/nvme-over-pcie-bar0-viewer)
 
 ---
 
