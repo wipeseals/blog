@@ -38,7 +38,6 @@ A parser and validator for binary dumps of NVMe (Non-Volatile Memory Express) Co
         00000010: 00 00 00 00 01 40 46 00 00 00 00 00 09 00 00 00
         00000020: 00 00 00 00 1f 00 1f 00 00 c0 a4 ff 00 00 00 00
         00000030: 00 d0 a4 ff 00 00 00 00 00 00 00 00 00 00 00 00" | npx nvme-bar0-viewer --json
-npm warn exec The following package was not found and will be installed: nvme-bar0-viewer@2.0.2
 {
   "registers": [
     {
