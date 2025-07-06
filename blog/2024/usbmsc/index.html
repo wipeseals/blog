@@ -1,0 +1,1624 @@
+<!doctype html>
+<html class="not-ready lg:text-base" lang="ja">
+  <head>
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+
+  <!-- Title -->
+  <title>
+    RustでUSB Mass Storage Class Bulk-Only Transportを実装する - blog.wipeseals.me
+  </title>
+
+  <!-- Meta -->
+  <meta name="theme-color" />
+
+  
+  <!-- Author -->
+  
+  <!---->
+  
+  <!---->
+  
+  <!---->
+  
+  <!---->
+  
+  <!---->
+  <meta name="description" content="RustでUSB Mass Storage Class Bulk-Only Transportを実装する" />
+  <meta name="author" content="wipeseals" />
+  <!-- The Open Graph protocol -->
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="RustでUSB Mass Storage Class Bulk-Only Transportを実装する" />
+  <meta property="og:site_name" content="blog.wipeseals.me" />
+  <meta property="og:description" content="RustでUSB Mass Storage Class Bulk-Only Transportを実装する" />
+  <meta property="og:url" content="https:&#x2F;&#x2F;blog.wipeseals.me&#x2F;blog&#x2F;2024&#x2F;usbmsc&#x2F;" />
+  
+  <!---->
+  
+  <!---->
+  
+  <!---->
+  
+  <meta property="og:image" content="https://blog.wipeseals.me/icon.png" />
+  
+  <!---->
+  
+
+  <!-- CSS & JS -->
+  <link rel="preload stylesheet" as="style" href="https://blog.wipeseals.me/main.css" />
+  <style>
+    :root {
+      --bg: #f4f4f5;
+      --bg-dark: #18181b;
+      --header: #e4e4e7;
+      --header-dark: #27272a;
+    }
+  </style>
+
+  
+
+  <!-- Dark Icon -->
+  <link rel="preload" as="image" href="https://blog.wipeseals.me/icons/theme.svg" />
+
+  <!-- Math -->
+  
+  <!---->
+  <link
+  rel="stylesheet"
+  href="https://cdn.jsdelivr.net/npm/katex@0.16/dist/katex.min.css"
+  crossorigin="anonymous"
+/>
+<script
+  defer
+  src="https://cdn.jsdelivr.net/npm/katex@0.16/dist/katex.min.js"
+  crossorigin="anonymous"
+></script>
+<script
+  defer
+  src="https://cdn.jsdelivr.net/npm/katex@0.16/dist/contrib/auto-render.min.js"
+  crossorigin="anonymous"
+></script>
+
+<script>
+  document.addEventListener("DOMContentLoaded", () =>
+    renderMathInElement(document.body, {
+      // customised options
+      // • auto-render specific keys, e.g.:
+      delimiters: [
+        { left: "$$", right: "$$", display: true },
+        { left: "$", right: "$", display: false },
+      ],
+      // • rendering keys, e.g.:
+      throwOnError: false,
+    }),
+  );
+</script>
+
+  <!---->
+  
+  <!---->
+
+  <!-- Mermaid -->
+  
+  <!---->
+  <script type="module">
+  import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs";
+
+  const initMermaid = (isDark) => {
+    mermaid.initialize({
+      theme: isDark ? "dark" : "default",
+      startOnLoad: false,
+    });
+    mermaid.run();
+  };
+
+  // Add data-mermaid-code attribute on all mermaid block.
+  document.querySelectorAll(".mermaid").forEach((element) => {
+    element.setAttribute("data-mermaid-code", element.innerHTML);
+  });
+
+  // Re-render mermaid when theme changed.
+  document.body.addEventListener("set-theme", (e) => {
+    document.querySelectorAll(".mermaid").forEach((element) => {
+      const mermaidCode = element.getAttribute("data-mermaid-code");
+      if (mermaidCode != null) {
+        element.removeAttribute("data-processed");
+        element.innerHTML = mermaidCode;
+      }
+    });
+    initMermaid(e.detail === "dark");
+  });
+
+  // The es module script will load defer, so the localStorage should already be set by script in header.
+  // If this script is loaded first, the script in header will dispatch an event to re-render mermaid, it's works too.
+  initMermaid(localStorage.getItem("dark") === "true");
+</script>
+
+  <!---->
+  
+  <!---->
+
+  <!-- Favicon -->
+  <link rel="icon" href="https://blog.wipeseals.me/favicon.ico" />
+  <link rel="apple-touch-icon" href="https://blog.wipeseals.me/apple-touch-icon.png" />
+
+  <!-- Feeds -->
+  
+  <!---->
+  
+  <link
+    rel="alternate"
+    type="application/atom+xml"
+    title="Atom"
+    href="https://blog.wipeseals.me/atom.xml"
+  />
+   
+  <!---->
+  
+
+  <!-- Canonical -->
+  <link rel="canonical" href="https:&#x2F;&#x2F;blog.wipeseals.me&#x2F;blog&#x2F;2024&#x2F;usbmsc&#x2F;" />
+
+  <!-- Head inject -->
+  
+</head>
+
+  <body class="text-black duration-200 ease-out dark:text-white">
+    <header
+  class="header fixed top-0 z-40 mx-auto min-h-[3.5rem] w-full"
+>
+  <div class="mx-auto w-full max-w-4xl p-3 lg:flex lg:justify-between">
+    <div class="flex justify-between">
+      <div class="flex items-center">
+        <a class="text-2xl font-semibold" href="https://blog.wipeseals.me">blog.wipeseals.me</a>
+        <div
+          class="btn-dark ml-4 h-6 w-6 shrink-0 cursor-pointer text-[0px] [background:url(./icons/theme.svg)_left_center/cover_no-repeat] dark:[background-position:right] dark:invert"
+          role="button"
+          aria-label="Dark"
+        ></div>
+      </div>
+      
+      <div
+        class="btn-menu relative z-50 flex h-8 w-8 shrink-0 cursor-pointer flex-col items-center justify-center gap-2.5 lg:hidden"
+        role="button"
+        aria-label="Menu"
+      ></div>
+      
+    </div>
+    <script>
+      // base
+      const htmlClass = document.documentElement.classList;
+      setTimeout(() => {
+        htmlClass.remove("not-ready");
+      }, 10);
+
+      // mobile menu
+      const btnMenu = document.querySelector(".btn-menu");
+      btnMenu?.addEventListener("click", () => {
+        htmlClass.toggle("open");
+      });
+
+      // dark theme
+      const setDark = (isDark) => {
+        if (isDark) {
+          document.body.dispatchEvent(new CustomEvent("set-theme", { detail: "dark" }));
+          htmlClass.add("dark");
+        } else {
+          document.body.dispatchEvent(new CustomEvent("set-theme", { detail: "light" }));
+          htmlClass.remove("dark");
+        }
+        localStorage.setItem("dark", isDark);
+      };
+
+      // init
+      const darkScheme = window.matchMedia("(prefers-color-scheme: dark)");
+      if (htmlClass.contains("dark")) {
+        setDark(true);
+      } else {
+        const darkVal = localStorage.getItem("dark");
+        setDark(darkVal ? darkVal === "true" : darkScheme.matches);
+      }
+
+      // listen system
+      darkScheme.addEventListener("change", (event) => {
+        setDark(event.matches);
+      });
+
+      // manual switch
+      const btnDark = document.querySelector(".btn-dark");
+      btnDark.addEventListener("click", () => {
+        setDark(localStorage.getItem("dark") !== "true");
+      });
+    </script>
+    
+    <nav class="flex w-full items-center lg:w-auto">
+      <ul
+        class="nav-wrapper flex w-full flex-col py-2 lg:w-auto lg:flex-row lg:self-center lg:py-0"
+      >
+        
+        <li>
+          <a
+            class="primary-link block py-2 text-center text-lg font-medium lg:px-3 lg:py-0"
+            href="https://blog.wipeseals.me"
+            >blog</a
+          >
+        </li>
+        
+        <li>
+          <a
+            class="primary-link block py-2 text-center text-lg font-medium lg:px-3 lg:py-0"
+            href="https://blog.wipeseals.me/tags"
+            >tags</a
+          >
+        </li>
+        
+        <li>
+          <a
+            class="primary-link block py-2 text-center text-lg font-medium lg:px-3 lg:py-0"
+            href="https://blog.wipeseals.me/work"
+            >work</a
+          >
+        </li>
+        
+        <li>
+          <a
+            class="primary-link block py-2 text-center text-lg font-medium lg:px-3 lg:py-0"
+            href="https://wipeseals.me"
+            >about</a
+          >
+        </li>
+        
+        <li>
+          <a
+            class="primary-link block py-2 text-center text-lg font-medium lg:px-3 lg:py-0"
+            href="https://github.com/wipeseals"
+            >github</a
+          >
+        </li>
+        
+      </ul>
+      <!-- Header Nav inject -->
+      
+    </nav>
+    
+  </div>
+</header>
+
+
+    <!-- Body Start inject -->
+    
+
+    <main
+      class="prose prose-neutral dark:prose-invert prose-pre:rounded-lg prose-img:rounded-lg relative mx-auto min-h-[calc(100vh-9rem)] max-w-3xl px-4 pt-24 pb-16 break-words lg:pt-32"
+    >
+      
+<article>
+  <!-- Page Start inject -->
+  
+
+  <header class="mb-16">
+    <h1 class="my-0! pb-2.5">RustでUSB Mass Storage Class Bulk-Only Transportを実装する</h1>
+    <div class="text-sm antialiased opacity-60">
+  
+  <time>2024-09-17</time>
+  <span class="mx-1">&middot;</span>
+  <span>16min</span>
+  <!---->
+  <!---->
+  <!---->
+  <!---->
+  
+  <span class="mx-1">&middot;</span>
+  <span>wipeseals</span>
+  
+  <!-- Page Info inject -->
+  
+</div>
+
+  </header>
+
+  
+
+  <!-- TOC -->
+  <!---->
+<div class="block-bg mb-12 flex rounded-lg p-2 text-lg">
+  <details>
+    <summary class="cursor-pointer py-1 pl-4">
+      <span>Table of Contents</span>
+    </summary>
+    <div class="px-2">
+      <ul>
+        
+        <li>
+          <a class="no-underline hover:underline" href="https://blog.wipeseals.me/blog/2024/usbmsc/#usb-tong-xin-nogou-cheng-she-ding"
+            >USB 通信の構成・設定</a
+          >
+          
+          <ul>
+            
+            <li>
+              <a class="no-underline hover:underline" href="https://blog.wipeseals.me/blog/2024/usbmsc/#descriptor-gou-cheng"
+                >Descriptor 構成</a
+              >
+            </li>
+            
+            <li>
+              <a class="no-underline hover:underline" href="https://blog.wipeseals.me/blog/2024/usbmsc/#usb-mass-storage-class"
+                >USB Mass Storage Class</a
+              >
+            </li>
+            
+            <li>
+              <a class="no-underline hover:underline" href="https://blog.wipeseals.me/blog/2024/usbmsc/#usb-nozhuan-song-fang-fa"
+                >USB の転送方法</a
+              >
+            </li>
+            
+            <li>
+              <a class="no-underline hover:underline" href="https://blog.wipeseals.me/blog/2024/usbmsc/#bulk-only-transfer"
+                >Bulk-only Transfer</a
+              >
+            </li>
+            
+          </ul>
+          
+        </li>
+        
+        <li>
+          <a class="no-underline hover:underline" href="https://blog.wipeseals.me/blog/2024/usbmsc/#komandojie-shi"
+            >コマンド解釈</a
+          >
+          
+          <ul>
+            
+            <li>
+              <a class="no-underline hover:underline" href="https://blog.wipeseals.me/blog/2024/usbmsc/#command-data-status-protocol"
+                >Command&#x2F;Data&#x2F;Status Protocol</a
+              >
+            </li>
+            
+            <li>
+              <a class="no-underline hover:underline" href="https://blog.wipeseals.me/blog/2024/usbmsc/#scsi-command-set"
+                >SCSI Command set</a
+              >
+            </li>
+            
+          </ul>
+          
+        </li>
+        
+        <li>
+          <a class="no-underline hover:underline" href="https://blog.wipeseals.me/blog/2024/usbmsc/#shi-zhuang"
+            >実装</a
+          >
+          
+          <ul>
+            
+            <li>
+              <a class="no-underline hover:underline" href="https://blog.wipeseals.me/blog/2024/usbmsc/#control-zhuan-song"
+                >Control 転送</a
+              >
+            </li>
+            
+            <li>
+              <a class="no-underline hover:underline" href="https://blog.wipeseals.me/blog/2024/usbmsc/#bulk-zhuan-song"
+                >Bulk 転送</a
+              >
+            </li>
+            
+            <li>
+              <a class="no-underline hover:underline" href="https://blog.wipeseals.me/blog/2024/usbmsc/#usb-setup-bu-fen"
+                >USB Setup 部分</a
+              >
+            </li>
+            
+            <li>
+              <a class="no-underline hover:underline" href="https://blog.wipeseals.me/blog/2024/usbmsc/#ram-shang-nodetacao-zuo"
+                >RAM 上のデータ操作</a
+              >
+            </li>
+            
+          </ul>
+          
+        </li>
+        
+        <li>
+          <a class="no-underline hover:underline" href="https://blog.wipeseals.me/blog/2024/usbmsc/#shi-zhuang-shi-nimisusitanei-rong"
+            >実装時にミスした内容</a
+          >
+          
+        </li>
+        
+      </ul>
+    </div>
+  </details>
+</div>
+
+<!---->
+
+  <!-- Content -->
+  <section><p>掲題の通り Rust で USB Mass Storage Class (MSC) Bulk-Only Transport を実装した。
+RAM 上の値を Disk Drive に見せかけたデバイスとして Windows から認識できるようになったので要所を書き残す。</p>
+<p>実装には Rust を使用し、 Raspberry pi pico (rp2040) 上で動作確認を行っている。実装の Framework には <a href="https://github.com/embassy-rs/embassy">embassy-rs</a> を使用した。</p>
+<h2 id="usb-tong-xin-nogou-cheng-she-ding">USB 通信の構成・設定</h2>
+<p><a href="https://www.usb.org/sites/default/files/usbmassbulk_10.pdf">Mass Storage Bulk Only 1.0 - usb.org</a> に基づいて実装する。具体的に以下の通信を行う。</p>
+<p><img src="/2024/usbmsc/usb-config.png" alt="usb-config.png" /></p>
+<h3 id="descriptor-gou-cheng">Descriptor 構成</h3>
+<ul>
+<li>USB Device
+<ul>
+<li>Device Descriptor (MSC Bulk Only Transport)</li>
+<li>Configuration Descriptor
+<ul>
+<li>Interface Descriptor0 (MSC Bulk Only Transport)
+<ul>
+<li>Endpoint Descriptor1: Bulk out</li>
+<li>Endpoint Descriptor2: Bulk in</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h3 id="usb-mass-storage-class">USB Mass Storage Class</h3>
+<p>USB（に限らない話だが）を用いた通信は Host/Device 双方の FW で共通のプロトコル定義に基づいた実装が必要だが、一般的に使われる機能については USB の仕様としてクラス定義されている。</p>
+<p>例: キーボード・マウス等入力デバイス定義 <a href="https://usb.org/sites/default/files/hid1_11.pdf">Device Class Definition for Human Interface Devices(HID)</a></p>
+<p>今日使われている OS で USB が使える環境にあれば、Host 側のドライバ実装は多くの場合用意されているので、独自のドライバ作成と署名・インストールの手順を省くことができる。
+開発者は Device 側の FW を定義に基づいて実装するだけで良い。</p>
+<p>このクラス定義のうち、外付け記憶装置を制御するための 1 つとして MSC がある。</p>
+<span id="continue-reading"></span><h3 id="usb-nozhuan-song-fang-fa">USB の転送方法</h3>
+<p>Bulk-only Transfer の前に Bulk 転送について触れておく。USB の転送方法には主に以下の 4 種類があり、用途次第で使い分けられている。</p>
+<ul>
+<li>Control Transfer
+<ul>
+<li>デバイスの設定・制御・少量のデータ転送を行い場合</li>
+</ul>
+</li>
+<li>Bulk Transfer
+<ul>
+<li>大量のデータを転送する場合</li>
+</ul>
+</li>
+<li>Interrupt Transfer
+<ul>
+<li>定期的、即時通知が必要な場合</li>
+</ul>
+</li>
+<li>Isochronous Transfer
+<ul>
+<li>Audio/Video 等リアルタイム性が求められるデータ転送を行う場合</li>
+</ul>
+</li>
+</ul>
+<p>また 1 つの USB Device は論理的に複数の機能をもたせることができる。この分割単位を Interface と呼ぶ。
+Interface が実装している機能次第で転送に必要な線路の種類と数が異なっており、この転送の最小単位を EndPoint と呼ぶ。</p>
+<ul>
+<li>Device Descriptor
+<ul>
+<li>Class/SubClass/Protocol code (次項参照), VID,PID, 製造元、製品名、シリアルナンバーなどデバイス自身の情報</li>
+</ul>
+</li>
+<li>Configuration Descriptor
+<ul>
+<li>Interface Descriptor
+<ul>
+<li>対象の機能が必要とする通信次第で複数持てる</li>
+<li>Endpoint Descriptor
+<ul>
+<li>転送方法(Control/Bulk/Interrupt/Isochronous) 、転送方向 (IN/OUT)、PacketSize など</li>
+<li>Interface が必要な Endpoint の数だけ複数持てる</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h3 id="bulk-only-transfer">Bulk-only Transfer</h3>
+<p>USB のクラス定義は 同じ MSC でもサブクラス、プロトコルで細分化される。
+どのような転送方法を使用するか、どのようなコマンドセットで通信するかを設定値 (Device Descriptor) を Host に報告する。</p>
+<p>MSC Bulk-only Transfer は太字の設定を報告する。注意点として、Bulk-only transport という名前ではあるが、一部の要求は Control 転送を用いて要求されるのでこれにも反応できる必要がある。</p>
+<p>Class Request と呼ばれ、EndPoint 0 番目 を使用する。 EndPoint 0 は常に Control 転送に固定されているため、Interface Descriptor &gt; Endpoint Descriptor で報告する必要はない。
+0 番目に存在するのは、Descriptor 自体の読み取りや初期設定など基本的な通信で使用するため。</p>
+<ul>
+<li>Class
+<ul>
+<li><strong>Mass Storage Class</strong></li>
+</ul>
+</li>
+<li>SubClass
+<ul>
+<li><strong>SubClass: SCSI transport command set</strong></li>
+<li>SubClass: ATAPI command set</li>
+<li>SubClass: UFI (USB Floppy Interface) command set</li>
+</ul>
+</li>
+<li>Protocol
+<ul>
+<li><strong><a href="https://www.usb.org/sites/default/files/usbmassbulk_10.pdf">Bulk-Only Transport</a></strong></li>
+<li><a href="https://usb.org/sites/default/files/usb_msc_cbi_1.1.pdf">Control/Bulk/Interrupt Transport</a></li>
+</ul>
+</li>
+</ul>
+<h2 id="komandojie-shi">コマンド解釈</h2>
+<h3 id="command-data-status-protocol">Command/Data/Status Protocol</h3>
+<p>MSC Bulk-only Transfer は Class Request を除き、Bulk in/out の Endpoint だけを用いて通信を行う。</p>
+<ul>
+<li>
+<p>Command Block Wrapper (CBW):</p>
+<ul>
+<li>
+<p>ホストからデバイスに送信されるコマンドパケットで、デバイスに対して実行するコマンドを指定</p>
+</li>
+<li>
+<p>CBW は以下のようなフォーマットとなっており、CBWCD に本命のコマンドが格納されている。</p>
+<table><thead><tr><th>フィールド名</th><th>サイズ (バイト)</th><th>説明</th></tr></thead><tbody>
+<tr><td>dCBWSignature</td><td>4</td><td>固定値 <code>0x43425355</code></td></tr>
+<tr><td>dCBWTag</td><td>4</td><td>ホストが設定するタグ。CSW で同じ値を返す</td></tr>
+<tr><td>dCBWDataTransferLength</td><td>4</td><td>転送するデータのバイト数</td></tr>
+<tr><td>bmCBWFlags</td><td>1</td><td>データ転送の方向 (0x80: DataIn デバイスからホスト, 0x00: DataOut ホストからデバイス)</td></tr>
+<tr><td>bCBWLUN</td><td>1</td><td>論理ユニット番号 (LUN)</td></tr>
+<tr><td>bCBWCBLength</td><td>1</td><td>CBWCB の長さ (1〜16 バイト)</td></tr>
+<tr><td>CBWCB</td><td>16</td><td>コマンドブロック (SCSI コマンドなど)</td></tr>
+</tbody></table>
+</li>
+</ul>
+</li>
+<li>
+<p>DataOut</p>
+<ul>
+<li>ホストからデバイスに送信されるデータで、書き込むデータなど</li>
+</ul>
+</li>
+<li>
+<p>DataIn</p>
+<ul>
+<li>デバイスからホストに送信されるデータで、読み取ったデータなど</li>
+</ul>
+</li>
+<li>
+<p>Command Status Wrapper (CSW)</p>
+<ul>
+<li>
+<p>デバイスからホストに送信されるステータスパケットで、実行結果をホストに通知する</p>
+<table><thead><tr><th>フィールド名</th><th>サイズ (バイト)</th><th>説明</th></tr></thead><tbody>
+<tr><td>dCSWSignature</td><td>4</td><td>固定値 <code>0x53425355</code></td></tr>
+<tr><td>dCSWTag</td><td>4</td><td>対応する CBW の dCBWTag と同じ値</td></tr>
+<tr><td>dCSWDataResidue</td><td>4</td><td>実際に転送されたデータ量と期待されたデータ量の差</td></tr>
+<tr><td>bCSWStatus</td><td>1</td><td>コマンドの実行結果 (0x00: 成功, 0x01: 失敗, 0x02: Phase Error)</td></tr>
+</tbody></table>
+</li>
+</ul>
+</li>
+</ul>
+<p>DataOut が必要な場合、DataIn が必要な場合、どちらも不要な場合の 3 パターンが有り、以下のようなやり取りとなる。</p>
+<h4 id="dataout-gabi-yao-nakomando-write-deng">DataOut が必要なコマンド (Write 等)</h4>
+<pre data-lang="mermaid" style="background-color:#2b303b;color:#c0c5ce;" class="language-mermaid "><code class="language-mermaid" data-lang="mermaid"><span>sequenceDiagram
+</span><span>    participant Host
+</span><span>    participant Device
+</span><span>
+</span><span>    Host-&gt;&gt;Device: CBW (Command Block Wrapper)
+</span><span>    loop 必要データ分
+</span><span>      Host-&gt;&gt;Device: Data-Out
+</span><span>    end
+</span><span>
+</span><span>    Device-&gt;&gt;Host: CSW (Command Status Wrapper)
+</span></code></pre>
+<h4 id="datain-gabi-yao-nakomando-read-deng">DataIn が必要なコマンド (Read 等)</h4>
+<pre data-lang="mermaid" style="background-color:#2b303b;color:#c0c5ce;" class="language-mermaid "><code class="language-mermaid" data-lang="mermaid"><span>sequenceDiagram
+</span><span>    participant Host
+</span><span>    participant Device
+</span><span>
+</span><span>    Host-&gt;&gt;Device: CBW (Command Block Wrapper)
+</span><span>    loop 必要データ分
+</span><span>      Device--&gt;&gt;Host: Data-In
+</span><span>    end
+</span><span>
+</span><span>    Device-&gt;&gt;Host: CSW (Command Status Wrapper)
+</span></code></pre>
+<h4 id="dataout-datain-dotiramobu-yao-nachang-he">DataOut/DataIn どちらも不要な場合</h4>
+<pre data-lang="mermaid" style="background-color:#2b303b;color:#c0c5ce;" class="language-mermaid "><code class="language-mermaid" data-lang="mermaid"><span>sequenceDiagram
+</span><span>    participant Host
+</span><span>    participant Device
+</span><span>
+</span><span>    Host-&gt;&gt;Device: CBW (Command Block Wrapper)
+</span><span>    Device-&gt;&gt;Host: CSW (Command Status Wrapper)
+</span></code></pre>
+<h3 id="scsi-command-set">SCSI Command set</h3>
+<p>usb.org の仕様書を見ていると、CBW/CSW の説明があるが具体的なコマンドセット記述がないことに気がつく。これは SubClass で表明している内容で変化するためである。
+今回の場合 SCSI transport command set がこれに当たるが、 残念ながら <a href="https://www.t10.org/drafts.htm">t10.org</a>, <a href="https://www.incits.org/">INCITS.org</a> は委員もしくは購入しないと正式なものは見ることができない。</p>
+<p>今回は Hobby 用途なので、未実装の CBW をすべてエラー応答しつつ、そのコマンド内容を出力して Windows が要求するコマンドを順に debug print/Wireshark で確認した。
+その後、1 次ソースではないが網羅的にコマンドセットの情報が得られる情報をいくつか確認しながら実装を繰り返した。</p>
+<p>注意点だが、CBW/CSW 等 USB の仕様に基づく内容は Little Endian だが、SCSI に関わる部分 (CBWCB を Parse するときの Format) は Big Endian である。技術的背景によるものだが Parse 時にミスしないように注意したい。</p>
+<ul>
+<li><a href="https://www.seagate.com/files/staticfiles/support/docs/manual/Interface%20manuals/100293068j.pdf">SCSI Commands Reference Manual - seagate</a></li>
+<li><a href="https://www.ibm.com/docs/en/ts3500-tape-library?topic=reference-scsi">SCSI Reference - IBM TS3500 Tape Library</a></li>
+<li><a href="https://docs.oracle.com/en/storage/tape-storage/storagetek-sl150-modular-tape-library/index.html">Storagetek SL150 Modular Tape Library - Oracle</a></li>
+<li><a href="https://ww1.microchip.com/downloads/aemDocuments/documents/OTH/ApplicationNotes/ApplicationNotes/00002554A.pdf">AN2554 Creating a Multi-LUN USB Mass Storage Class Device Using the MPLAB Harmony USB Device Stack - Microchip</a>
+<ul>
+<li>セットすべきフィールドに悩んだときに以下を見つけて助かりました</li>
+<li><a href="https://aidanmocke.com/blog/2020/12/30/USB-MSD-1/">How to make a USB Mass Storage Device part 1</a></li>
+</ul>
+</li>
+</ul>
+<p>順に実装したコマンドとその要点</p>
+<ul>
+<li>Test Unit Ready
+<ul>
+<li>デバイスの準備完了を確認するコマンド。特別 Setup に時間がかかる処理がなければ CSW だ成功応答</li>
+</ul>
+</li>
+<li>Request Sense
+<ul>
+<li>前回のコマンドでエラーが起きた場合に、そのエラー詳細を収集するためのコマンド</li>
+<li>実装上は前回のコマンドの結果を持っておき、エラーがあった場合は対応するエラー内容を Host に送信後、CSW で成功応答</li>
+<li>エラー内容は Sense Key, Additional Sense Code (ASC), Additional Sense Code Qualifier (ASCQ) で分類したものを通知する <a href="https://docs.oracle.com/en/storage/tape-storage/storagetek-sl150-modular-tape-library/slorm/request-sense-03h.html#GUID-9309F2C0-ABF8-470E-AE25-E9535C821B39">参考: Oracle の docs</a>
+<ul>
+<li>例えば、未実装のコマンドを不正扱いで応答するなら Sense Key = 0x05 (llegal Request), ASC/ASCQ = 0x20/0x00 (Invalid Command)</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>Inquiry
+<ul>
+<li>SCSI Device の基本情報を取得するコマンド。Device Descriptor と同じく本デバイス固有の情報を Host に送信してから CSW で成功応答</li>
+<li>Removable Media Bit (RMB): リムーバブルディスクメディアサポート。1 に設定</li>
+<li>Version: 準拠している SCSI のバージョン。AN2554 に倣って 4</li>
+<li>Response Data Format (RDF): 応答データのフォーマットバージョイン。AN2554 に倣って 2</li>
+<li>Vendor Identification/Product Identification/Product Revision Level: 固有の情報を設定</li>
+</ul>
+</li>
+<li>Read Format Capacities
+<ul>
+<li>サポートする容量を返す。リスト数は 1 で、RAM 上に配置したデータを Logical Block Size (512byte) で割った Block 数で返す</li>
+<li>Capacity List Length: 1</li>
+<li>Number of Blocks: サポートする総 Byte 数 / 512byte</li>
+<li>Descriptor Code: 2=Formatted media</li>
+<li>Block Length: 512byte</li>
+</ul>
+</li>
+<li>ReadCapacity (10)
+<ul>
+<li>Read Format Capacities と似ているが前者はサポート可能なフォーマット一覧。ReadCapacity は現在のデバイスの総容量とブロックサイズを取得する</li>
+<li>Last Logical Block Address: サポートする範囲の最後の LBA。 <strong>Read Format Capacities の Number of Blocks - 1 になる点に注意</strong></li>
+<li>Block Length: 512byte</li>
+</ul>
+</li>
+<li>Mode Sense (6)
+<ul>
+<li>現在の設定や動作モードを取得するコマンド。可変長だったため AN2554 を参考に最小限の内容を応答</li>
+<li>Mode Data Length: 3byte (Block Descriptors/Mode Pages なし)</li>
+<li>Medium Type: 0</li>
+<li>Device-Specific Parameter: 0</li>
+<li>Block Descriptor Length: 0</li>
+</ul>
+</li>
+<li>Prevent/Allow Medium Removal
+<ul>
+<li>リムーバブルディスクを誤って取り外さないように、外してよいかを Host から通知するコマンド</li>
+<li>今回は外すものはないのでコマンドにある Prevent は無視して CSW で応答</li>
+</ul>
+</li>
+<li>Read (10)
+<ul>
+<li>コマンドに指定された Logical Block Address (LBA) から Transfer Length 分のデータを Host に送信してから CSW で成功応答</li>
+<li>今回使用している Raspberry pi pico は USB Full Speed のため、USB Max Packet size が 64byte のため、1LBA あたり <code>512byte/64byte=8回</code> 転送を行う</li>
+</ul>
+</li>
+<li>Write (10)
+<ul>
+<li>コマンドに指定された Logical Block Address (LBA) から Transfer Length 分のデータが Host から送信されるので、内部のデータを順に更新してから CSW で成功応答</li>
+<li>Read (10) と同様に 64byte に分割されてくるので逐次適用するか、Logical block Size 分集めてから適用する</li>
+</ul>
+</li>
+</ul>
+<h2 id="shi-zhuang">実装</h2>
+<p>embassy が提供している rp2040 向けのサンプルの以下をベースに構築した。</p>
+<ul>
+<li>Control 転送: <a href="https://github.com/embassy-rs/embassy/blob/main/examples/rp/src/bin/usb_raw.rs">usb_raw.rs</a></li>
+<li>Bulk 転送: <a href="https://github.com/embassy-rs/embassy/blob/main/examples/rp/src/bin/usb_raw_bulk.rs">usb_raw_bulk.rs</a></li>
+</ul>
+<p>大まかな実装点</p>
+<ul>
+<li>Control 転送のハンドラ <code>embassy_usb::Handler</code> を実装しつつ、BulkIn/BulkOut の Endpoint を持つデバイスとして初期化</li>
+<li>Device Descriptor を MSC Bulk-only Transfer の定義になるよう修正
+<ul>
+<li>Control 転送と Bulk 転送で異なる Context となるため、Control 転送から Bulk 転送への通知用に Channel を用意
+<ul>
+<li>Channel: 異なるスレッド間でデータを送受信するための通信線路</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>Bulk 転送から Read/Write の実処理は、コード肥大化防止/責務分割のため Channel を用意</li>
+</ul>
+<h3 id="control-zhuan-song">Control 転送</h3>
+<ul>
+<li>Get Max LUN: 0 固定応答</li>
+<li>Mass Storage Reset: Channel 経由で Bulk 処理側に通知</li>
+</ul>
+<pre data-lang="rust" style="background-color:#2b303b;color:#c0c5ce;" class="language-rust "><code class="language-rust" data-lang="rust"><span style="color:#65737e;">/// USB Mass Storage Class Control Handler
+</span><span style="color:#65737e;">/// This handler is used to handle the control requests for the Mass Storage Class.
+</span><span style="color:#65737e;">/// It supports the Mass Storage Reset and Get Max LUN requests.
+</span><span style="color:#b48ead;">pub struct </span><span>MscCtrlHandler&lt;</span><span style="color:#b48ead;">&#39;ch</span><span>&gt; {
+</span><span>    </span><span style="color:#65737e;">/// Interface Number
+</span><span>    </span><span style="color:#bf616a;">if_num</span><span>: InterfaceNumber,
+</span><span>    </span><span style="color:#65737e;">/// Bulk Transfer Request Sender (for Mass Storage Reset)
+</span><span>    </span><span style="color:#bf616a;">bulk_request_sender</span><span>: DynamicSender&lt;</span><span style="color:#b48ead;">&#39;ch</span><span>, BulkTransferRequest&gt;,
+</span><span>}
+</span><span>
+</span><span style="color:#b48ead;">impl</span><span>&lt;</span><span style="color:#b48ead;">&#39;ch</span><span>&gt; Handler </span><span style="color:#b48ead;">for </span><span>MscCtrlHandler&lt;</span><span style="color:#b48ead;">&#39;ch</span><span>&gt; {
+</span><span>    </span><span style="color:#b48ead;">fn </span><span style="color:#8fa1b3;">control_out</span><span>&lt;</span><span style="color:#b48ead;">&#39;a</span><span>&gt;(&amp;</span><span style="color:#b48ead;">&#39;a mut </span><span style="color:#bf616a;">self</span><span>, </span><span style="color:#bf616a;">req</span><span>: Request, </span><span style="color:#bf616a;">buf</span><span>: &amp;</span><span style="color:#b48ead;">&#39;a</span><span> [</span><span style="color:#b48ead;">u8</span><span>]) -&gt; Option&lt;OutResponse&gt; {
+</span><span>        </span><span style="color:#b48ead;">crate</span><span>::trace!(&quot;</span><span style="color:#a3be8c;">Got control_out, request={}, buf={:a}</span><span>&quot;, req, buf);
+</span><span>        None
+</span><span>    }
+</span><span>
+</span><span>    </span><span style="color:#65737e;">/// Respond to DeviceToHost control messages, where the host requests some data from us.
+</span><span>    </span><span style="color:#b48ead;">fn </span><span style="color:#8fa1b3;">control_in</span><span>&lt;</span><span style="color:#b48ead;">&#39;a</span><span>&gt;(&amp;</span><span style="color:#b48ead;">&#39;a mut </span><span style="color:#bf616a;">self</span><span>, </span><span style="color:#bf616a;">req</span><span>: Request, </span><span style="color:#bf616a;">buf</span><span>: &amp;</span><span style="color:#b48ead;">&#39;a mut</span><span> [</span><span style="color:#b48ead;">u8</span><span>]) -&gt; Option&lt;InResponse&lt;</span><span style="color:#b48ead;">&#39;a</span><span>&gt;&gt; {
+</span><span>        </span><span style="color:#b48ead;">crate</span><span>::trace!(&quot;</span><span style="color:#a3be8c;">Got control_in, request={}</span><span>&quot;, req);
+</span><span>
+</span><span>        </span><span style="color:#65737e;">// requestType: Class/Interface, host-&gt;device
+</span><span>        </span><span style="color:#65737e;">// request: 0xff (Mass Storage Reset), 0xfe (Get Max LUN)
+</span><span>
+</span><span>        </span><span style="color:#b48ead;">if</span><span> req.request_type != RequestType::Class || req.recipient != Recipient::Interface {
+</span><span>            </span><span style="color:#b48ead;">return </span><span>None;
+</span><span>        }
+</span><span>        </span><span style="color:#b48ead;">match</span><span> req.request {
+</span><span>            x </span><span style="color:#b48ead;">if</span><span> x == ClassSpecificRequest::MassStorageReset as </span><span style="color:#b48ead;">u8 </span><span>=&gt; {
+</span><span>                </span><span style="color:#65737e;">// Mass Storage Reset
+</span><span>                </span><span style="color:#b48ead;">crate</span><span>::trace!(&quot;</span><span style="color:#a3be8c;">Mass Storage Reset</span><span>&quot;);
+</span><span>                </span><span style="color:#b48ead;">match </span><span style="color:#bf616a;">self
+</span><span>                    .bulk_request_sender
+</span><span>                    .</span><span style="color:#96b5b4;">try_send</span><span>(BulkTransferRequest::Reset)
+</span><span>                {
+</span><span>                    Ok(_) =&gt; Some(InResponse::Accepted(&amp;buf[..</span><span style="color:#d08770;">0</span><span>])),
+</span><span>                    Err(_) =&gt; Some(InResponse::Rejected),
+</span><span>                }
+</span><span>            }
+</span><span>            x </span><span style="color:#b48ead;">if</span><span> x == ClassSpecificRequest::GetMaxLun as </span><span style="color:#b48ead;">u8 </span><span>&amp;&amp; req.length == </span><span style="color:#d08770;">1 </span><span>=&gt; {
+</span><span>                </span><span style="color:#65737e;">// Get Max LUN
+</span><span>                </span><span style="color:#b48ead;">crate</span><span>::trace!(&quot;</span><span style="color:#a3be8c;">Get Max LUN</span><span>&quot;);
+</span><span>                buf[</span><span style="color:#d08770;">0</span><span>] = </span><span style="color:#d08770;">0</span><span>; </span><span style="color:#65737e;">// Only one LUN supported
+</span><span>                Some(InResponse::Accepted(&amp;buf[..</span><span style="color:#d08770;">1</span><span>]))
+</span><span>            }
+</span><span>            _ =&gt; {
+</span><span>                </span><span style="color:#b48ead;">crate</span><span>::warn!(&quot;</span><span style="color:#a3be8c;">Unsupported request: {}</span><span>&quot;, req.request);
+</span><span>                Some(InResponse::Rejected)
+</span><span>            }
+</span><span>        }
+</span><span>    }
+</span><span>}
+</span></code></pre>
+<h3 id="bulk-zhuan-song">Bulk 転送</h3>
+<ul>
+<li>SCSI Command 対応</li>
+<li>Read/Write は Channel 経由でデータ転送を実施</li>
+<li>Control 転送からの Mass Storage Reset を受けたら、現在の処理を一度打ち切って BulkOut EP 待ち合わせから</li>
+</ul>
+<pre data-lang="rust" style="background-color:#2b303b;color:#c0c5ce;" class="language-rust "><code class="language-rust" data-lang="rust"><span style="color:#b48ead;">impl </span><span>MscBulkHandlerConfig {
+</span><span>    </span><span style="color:#b48ead;">pub fn </span><span style="color:#8fa1b3;">new</span><span>(
+</span><span>        </span><span style="color:#bf616a;">vendor_id</span><span>: [</span><span style="color:#b48ead;">u8</span><span>; 8],
+</span><span>        </span><span style="color:#bf616a;">product_id</span><span>: [</span><span style="color:#b48ead;">u8</span><span>; 16],
+</span><span>        </span><span style="color:#bf616a;">product_revision_level</span><span>: [</span><span style="color:#b48ead;">u8</span><span>; 4],
+</span><span>        </span><span style="color:#bf616a;">num_blocks</span><span>: </span><span style="color:#b48ead;">usize</span><span>,
+</span><span>        </span><span style="color:#bf616a;">block_size</span><span>: </span><span style="color:#b48ead;">usize</span><span>,
+</span><span>    ) -&gt; </span><span style="color:#b48ead;">Self </span><span>{
+</span><span>        </span><span style="color:#b48ead;">Self </span><span>{
+</span><span>            vendor_id,
+</span><span>            product_id,
+</span><span>            product_revision_level,
+</span><span>            num_blocks,
+</span><span>            block_size,
+</span><span>        }
+</span><span>    }
+</span><span>}
+</span><span>
+</span><span style="color:#65737e;">/// USB Mass Storage Class Bulk Handler
+</span><span style="color:#65737e;">/// This handler is used to handle the bulk transfers for the Mass Storage Class.
+</span><span style="color:#b48ead;">pub struct </span><span>MscBulkHandler&lt;</span><span style="color:#b48ead;">&#39;driver</span><span>, </span><span style="color:#b48ead;">&#39;ch</span><span>, D: Driver&lt;</span><span style="color:#b48ead;">&#39;driver</span><span>&gt;&gt; {
+</span><span>    </span><span style="color:#65737e;">/// Bulk Transfer Request Receiver (for Mass Storage Reset)
+</span><span>    </span><span style="color:#bf616a;">ctrl_to_bulk_request_receiver</span><span>: DynamicReceiver&lt;</span><span style="color:#b48ead;">&#39;ch</span><span>, BulkTransferRequest&gt;,
+</span><span>    </span><span style="color:#65737e;">/// Bulk Endpoint Out
+</span><span>    </span><span style="color:#bf616a;">read_ep</span><span>: Option&lt;&lt;D as Driver&lt;</span><span style="color:#b48ead;">&#39;driver</span><span>&gt;&gt;::EndpointOut&gt;,
+</span><span>    </span><span style="color:#65737e;">/// Bulk Endpoint In
+</span><span>    </span><span style="color:#bf616a;">write_ep</span><span>: Option&lt;&lt;D as Driver&lt;</span><span style="color:#b48ead;">&#39;driver</span><span>&gt;&gt;::EndpointIn&gt;,
+</span><span>
+</span><span>    </span><span style="color:#65737e;">/// Config
+</span><span>    </span><span style="color:#bf616a;">config</span><span>: MscBulkHandlerConfig,
+</span><span>
+</span><span>    </span><span style="color:#65737e;">/// Request Read/Write to Internal
+</span><span>    </span><span style="color:#bf616a;">data_request_sender</span><span>: DynamicSender&lt;</span><span style="color:#b48ead;">&#39;ch</span><span>, StorageRequest&lt;MscReqTag, USB_LOGICAL_BLOCK_SIZE&gt;&gt;,
+</span><span>    </span><span style="color:#65737e;">/// Response Read/Write from Internal
+</span><span>    </span><span style="color:#bf616a;">data_response_receiver</span><span>:
+</span><span>        DynamicReceiver&lt;</span><span style="color:#b48ead;">&#39;ch</span><span>, StorageResponse&lt;MscReqTag, USB_LOGICAL_BLOCK_SIZE&gt;&gt;,
+</span><span>}
+</span><span>
+</span><span style="color:#b48ead;">impl</span><span>&lt;</span><span style="color:#b48ead;">&#39;driver</span><span>, </span><span style="color:#b48ead;">&#39;ch</span><span>, D: Driver&lt;</span><span style="color:#b48ead;">&#39;driver</span><span>&gt;&gt; MscBulkHandler&lt;</span><span style="color:#b48ead;">&#39;driver</span><span>, </span><span style="color:#b48ead;">&#39;ch</span><span>, D&gt; {
+</span><span>    </span><span style="color:#b48ead;">pub fn </span><span style="color:#8fa1b3;">new</span><span>(
+</span><span>        </span><span style="color:#bf616a;">config</span><span>: MscBulkHandlerConfig,
+</span><span>        </span><span style="color:#bf616a;">ctrl_to_bulk_request_receiver</span><span>: DynamicReceiver&lt;</span><span style="color:#b48ead;">&#39;ch</span><span>, BulkTransferRequest&gt;,
+</span><span>        </span><span style="color:#bf616a;">data_request_sender</span><span>: DynamicSender&lt;</span><span style="color:#b48ead;">&#39;ch</span><span>, StorageRequest&lt;MscReqTag, USB_LOGICAL_BLOCK_SIZE&gt;&gt;,
+</span><span>        </span><span style="color:#bf616a;">data_response_receiver</span><span>: DynamicReceiver&lt;
+</span><span>            </span><span style="color:#b48ead;">&#39;ch</span><span>,
+</span><span>            StorageResponse&lt;MscReqTag, USB_LOGICAL_BLOCK_SIZE&gt;,
+</span><span>        &gt;,
+</span><span>    ) -&gt; </span><span style="color:#b48ead;">Self </span><span>{
+</span><span>        </span><span style="color:#b48ead;">Self </span><span>{
+</span><span>            read_ep: None,
+</span><span>            write_ep: None,
+</span><span>            config,
+</span><span>            ctrl_to_bulk_request_receiver,
+</span><span>            data_request_sender,
+</span><span>            data_response_receiver,
+</span><span>        }
+</span><span>    }
+</span><span>
+</span><span>    </span><span style="color:#65737e;">/// Handle response for simple command
+</span><span>    async </span><span style="color:#b48ead;">fn </span><span style="color:#8fa1b3;">handle_response_single</span><span>&lt;</span><span style="color:#b48ead;">&#39;a</span><span>&gt;(
+</span><span>        </span><span style="color:#bf616a;">write_ep</span><span>: &amp;</span><span style="color:#b48ead;">&#39;a mut </span><span>&lt;D as Driver&lt;</span><span style="color:#b48ead;">&#39;driver</span><span>&gt;&gt;::EndpointIn,
+</span><span>        </span><span style="color:#bf616a;">status</span><span>: CommandBlockStatus,
+</span><span>        </span><span style="color:#bf616a;">write_data</span><span>: Option&lt;&amp;</span><span style="color:#b48ead;">&#39;a </span><span>[</span><span style="color:#b48ead;">u8</span><span>]&gt;,
+</span><span>        </span><span style="color:#bf616a;">cbw_packet</span><span>: &amp;</span><span style="color:#b48ead;">&#39;a</span><span> CommandBlockWrapperPacket,
+</span><span>        </span><span style="color:#bf616a;">csw_packet</span><span>: &amp;</span><span style="color:#b48ead;">&#39;a mut</span><span> CommandStatusWrapperPacket,
+</span><span>    ) -&gt; Result&lt;(), EndpointError&gt; {
+</span><span>        </span><span style="color:#b48ead;">if let </span><span>Some(data) = write_data {
+</span><span>            </span><span style="color:#65737e;">// transfer data
+</span><span>            write_ep.</span><span style="color:#96b5b4;">write</span><span>(data).await?;
+</span><span>            </span><span style="color:#65737e;">// update csw_packet.data_residue
+</span><span>            </span><span style="color:#b48ead;">if</span><span> data.</span><span style="color:#96b5b4;">len</span><span>() &lt; cbw_packet.data_transfer_length as </span><span style="color:#b48ead;">usize </span><span>{
+</span><span>                csw_packet.data_residue =
+</span><span>                    (cbw_packet.data_transfer_length as </span><span style="color:#b48ead;">usize </span><span>- data.</span><span style="color:#96b5b4;">len</span><span>()) as </span><span style="color:#b48ead;">u32</span><span>;
+</span><span>            }
+</span><span>        }
+</span><span>        </span><span style="color:#65737e;">// update csw_packet
+</span><span>        csw_packet.status = status;
+</span><span>
+</span><span>        </span><span style="color:#65737e;">// Status Transport
+</span><span>        </span><span style="color:#b48ead;">let</span><span> csw_data = csw_packet.</span><span style="color:#96b5b4;">to_data</span><span>();
+</span><span>        </span><span style="color:#b48ead;">crate</span><span>::trace!(&quot;</span><span style="color:#a3be8c;">Send CSW: {:#x}</span><span>&quot;, csw_packet);
+</span><span>        write_ep.</span><span style="color:#96b5b4;">write</span><span>(&amp;csw_data).await?;
+</span><span>
+</span><span>        Ok(())
+</span><span>    }
+</span><span>
+</span><span>    </span><span style="color:#65737e;">/// Main loop for bulk-only transport
+</span><span>    </span><span style="color:#b48ead;">pub</span><span> async </span><span style="color:#b48ead;">fn </span><span style="color:#8fa1b3;">run</span><span>(&amp;</span><span style="color:#b48ead;">mut </span><span style="color:#bf616a;">self</span><span>) -&gt; ! {
+</span><span>        </span><span style="color:#b48ead;">crate</span><span>::assert!(</span><span style="color:#bf616a;">self</span><span>.read_ep.</span><span style="color:#96b5b4;">is_some</span><span>());
+</span><span>        </span><span style="color:#b48ead;">crate</span><span>::assert!(</span><span style="color:#bf616a;">self</span><span>.write_ep.</span><span style="color:#96b5b4;">is_some</span><span>());
+</span><span>        </span><span style="color:#b48ead;">let</span><span> read_ep = </span><span style="color:#bf616a;">self</span><span>.read_ep.</span><span style="color:#96b5b4;">as_mut</span><span>().</span><span style="color:#96b5b4;">unwrap</span><span>();
+</span><span>        </span><span style="color:#b48ead;">let</span><span> write_ep = </span><span style="color:#bf616a;">self</span><span>.write_ep.</span><span style="color:#96b5b4;">as_mut</span><span>().</span><span style="color:#96b5b4;">unwrap</span><span>();
+</span><span>        &#39;main_loop: </span><span style="color:#b48ead;">loop </span><span>{
+</span><span>            </span><span style="color:#65737e;">// EndPoint有効待ち
+</span><span>            read_ep.</span><span style="color:#96b5b4;">wait_enabled</span><span>().await;
+</span><span>            </span><span style="color:#b48ead;">crate</span><span>::trace!(&quot;</span><span style="color:#a3be8c;">Connected</span><span>&quot;);
+</span><span>
+</span><span>            </span><span style="color:#65737e;">// Request Sense CommandでError reportingが必要なので、前回の情報を保持しておく
+</span><span>            </span><span style="color:#b48ead;">let mut</span><span> latest_sense_data: Option&lt;RequestSenseData&gt; = None;
+</span><span>            </span><span style="color:#65737e;">// Phase Error時の対応用
+</span><span>            </span><span style="color:#b48ead;">let mut</span><span> phase_error_tag: Option&lt;</span><span style="color:#b48ead;">u32</span><span>&gt; = None;
+</span><span>
+</span><span>            &#39;read_ep_loop: </span><span style="color:#b48ead;">loop </span><span>{
+</span><span>                </span><span style="color:#65737e;">// Check if Mass Storage Reset occurred
+</span><span>                </span><span style="color:#b48ead;">if </span><span>(</span><span style="color:#bf616a;">self</span><span>.ctrl_to_bulk_request_receiver.</span><span style="color:#96b5b4;">try_receive</span><span>()
+</span><span>                    == Ok(BulkTransferRequest::Reset))
+</span><span>                {
+</span><span>                    </span><span style="color:#b48ead;">crate</span><span>::trace!(&quot;</span><span style="color:#a3be8c;">Mass Storage Reset</span><span>&quot;);
+</span><span>                    phase_error_tag = None;
+</span><span>                    </span><span style="color:#b48ead;">break &#39;read_ep_loop</span><span>;
+</span><span>                }
+</span><span>
+</span><span>                </span><span style="color:#65737e;">// clear latest sense data
+</span><span>                latest_sense_data = None;
+</span><span>
+</span><span>                </span><span style="color:#65737e;">// Command Transport
+</span><span>                </span><span style="color:#b48ead;">let mut</span><span> read_buf = [</span><span style="color:#d08770;">0</span><span style="color:#b48ead;">u8</span><span>; </span><span style="color:#d08770;">USB_LOGICAL_BLOCK_SIZE</span><span>]; </span><span style="color:#65737e;">// read buffer分確保
+</span><span>                </span><span style="color:#b48ead;">let </span><span>Ok(read_cbw_size) = read_ep.</span><span style="color:#96b5b4;">read</span><span>(&amp;</span><span style="color:#b48ead;">mut</span><span> read_buf).await </span><span style="color:#b48ead;">else </span><span>{
+</span><span>                    </span><span style="color:#b48ead;">crate</span><span>::error!(&quot;</span><span style="color:#a3be8c;">Read EP Error (CBW)</span><span>&quot;);
+</span><span>                    phase_error_tag = None; </span><span style="color:#65737e;">// unknown tag
+</span><span>                    latest_sense_data = Some(RequestSenseData::from(
+</span><span>                        SenseKey::IllegalRequest,
+</span><span>                        AdditionalSenseCodeType::IllegalRequestInvalidCommand,
+</span><span>                    ));
+</span><span>                    </span><span style="color:#b48ead;">break &#39;read_ep_loop</span><span>;
+</span><span>                };
+</span><span>                </span><span style="color:#b48ead;">let </span><span>Some(cbw_packet) = CommandBlockWrapperPacket::from_data(&amp;read_buf) </span><span style="color:#b48ead;">else </span><span>{
+</span><span>                    </span><span style="color:#b48ead;">crate</span><span>::error!(&quot;</span><span style="color:#a3be8c;">Invalid CBW: {:#x}</span><span>&quot;, read_buf);
+</span><span>                    phase_error_tag = None; </span><span style="color:#65737e;">// unknown tag
+</span><span>                    latest_sense_data = Some(RequestSenseData::from(
+</span><span>                        SenseKey::IllegalRequest,
+</span><span>                        AdditionalSenseCodeType::IllegalRequestInvalidCommand,
+</span><span>                    ));
+</span><span>                    </span><span style="color:#b48ead;">break &#39;read_ep_loop</span><span>;
+</span><span>                };
+</span><span>                </span><span style="color:#b48ead;">if </span><span>!cbw_packet.</span><span style="color:#96b5b4;">is_valid_signature</span><span>() {
+</span><span>                    </span><span style="color:#b48ead;">crate</span><span>::error!(&quot;</span><span style="color:#a3be8c;">Invalid CBW signature: {:#x}</span><span>&quot;, cbw_packet);
+</span><span>                    phase_error_tag = None; </span><span style="color:#65737e;">// unknown tag
+</span><span>                    latest_sense_data = Some(RequestSenseData::from(
+</span><span>                        SenseKey::IllegalRequest,
+</span><span>                        AdditionalSenseCodeType::IllegalRequestInParameters,
+</span><span>                    ));
+</span><span>                    </span><span style="color:#b48ead;">break &#39;read_ep_loop</span><span>;
+</span><span>                };
+</span><span>                </span><span style="color:#b48ead;">if</span><span> cbw_packet.command_length == </span><span style="color:#d08770;">0 </span><span>{
+</span><span>                    </span><span style="color:#b48ead;">crate</span><span>::error!(&quot;</span><span style="color:#a3be8c;">Invalid CBW command length: {:#x}</span><span>&quot;, cbw_packet);
+</span><span>                    phase_error_tag = None; </span><span style="color:#65737e;">// unknown tag
+</span><span>                    latest_sense_data = Some(RequestSenseData::from(
+</span><span>                        SenseKey::IllegalRequest,
+</span><span>                        AdditionalSenseCodeType::IllegalRequestInParameters,
+</span><span>                    ));
+</span><span>                    </span><span style="color:#b48ead;">break &#39;read_ep_loop</span><span>;
+</span><span>                };
+</span><span>
+</span><span>                </span><span style="color:#65737e;">// Prepare CSW
+</span><span>                </span><span style="color:#b48ead;">let mut</span><span> csw_packet = CommandStatusWrapperPacket::new();
+</span><span>                csw_packet.tag = cbw_packet.tag;
+</span><span>                csw_packet.data_residue = </span><span style="color:#d08770;">0</span><span>;
+</span><span>                csw_packet.status = CommandBlockStatus::CommandPassed;
+</span><span>
+</span><span>                </span><span style="color:#65737e;">// Parse SCSI Command
+</span><span>                </span><span style="color:#b48ead;">let</span><span> scsi_commands = cbw_packet.</span><span style="color:#96b5b4;">get_commands</span><span>();
+</span><span>                </span><span style="color:#b48ead;">let</span><span> scsi_command = scsi_commands[</span><span style="color:#d08770;">0</span><span>];
+</span><span>                </span><span style="color:#65737e;">// コマンドごとに処理
+</span><span>                </span><span style="color:#b48ead;">let</span><span> send_resp_status: Result&lt;(), EndpointError&gt; = </span><span style="color:#b48ead;">match</span><span> scsi_command {
+</span><span>                    x </span><span style="color:#b48ead;">if</span><span> x == ScsiCommand::TestUnitReady as </span><span style="color:#b48ead;">u8 </span><span>=&gt; {
+</span><span>                        </span><span style="color:#b48ead;">crate</span><span>::trace!(&quot;</span><span style="color:#a3be8c;">Test Unit Ready</span><span>&quot;);
+</span><span>                        </span><span style="color:#65737e;">// カードの抜き差しなどはないので問題無しで応答
+</span><span>                        </span><span style="color:#b48ead;">Self</span><span>::handle_response_single(
+</span><span>                            write_ep,
+</span><span>                            CommandBlockStatus::CommandPassed,
+</span><span>                            None,
+</span><span>                            &amp;cbw_packet,
+</span><span>                            &amp;</span><span style="color:#b48ead;">mut</span><span> csw_packet,
+</span><span>                        )
+</span><span>                        .await
+</span><span>                    }
+</span><span>                    x </span><span style="color:#b48ead;">if</span><span> x == ScsiCommand::Inquiry as </span><span style="color:#b48ead;">u8 </span><span>=&gt; {
+</span><span>                        </span><span style="color:#b48ead;">crate</span><span>::trace!(&quot;</span><span style="color:#a3be8c;">Inquiry</span><span>&quot;);
+</span><span>                        </span><span style="color:#65737e;">// Inquiry data. resp fixed data
+</span><span>                        </span><span style="color:#b48ead;">let</span><span> inquiry_data = InquiryCommandData::new(
+</span><span>                            </span><span style="color:#bf616a;">self</span><span>.config.vendor_id,
+</span><span>                            </span><span style="color:#bf616a;">self</span><span>.config.product_id,
+</span><span>                            </span><span style="color:#bf616a;">self</span><span>.config.product_revision_level,
+</span><span>                        );
+</span><span>
+</span><span>                        </span><span style="color:#b48ead;">let mut</span><span> write_data = [</span><span style="color:#d08770;">0</span><span style="color:#b48ead;">u8</span><span>; </span><span style="color:#d08770;">INQUIRY_COMMAND_DATA_SIZE</span><span>];
+</span><span>                        inquiry_data.</span><span style="color:#96b5b4;">prepare_to_buf</span><span>(&amp;</span><span style="color:#b48ead;">mut</span><span> write_data);
+</span><span>                        </span><span style="color:#b48ead;">Self</span><span>::handle_response_single(
+</span><span>                            write_ep,
+</span><span>                            CommandBlockStatus::CommandPassed,
+</span><span>                            Some(&amp;write_data),
+</span><span>                            &amp;cbw_packet,
+</span><span>                            &amp;</span><span style="color:#b48ead;">mut</span><span> csw_packet,
+</span><span>                        )
+</span><span>                        .await
+</span><span>                    }
+</span><span>                    x </span><span style="color:#b48ead;">if</span><span> x == ScsiCommand::ReadFormatCapacities as </span><span style="color:#b48ead;">u8 </span><span>=&gt; {
+</span><span>                        </span><span style="color:#b48ead;">crate</span><span>::trace!(&quot;</span><span style="color:#a3be8c;">Read Format Capacities</span><span>&quot;);
+</span><span>                        </span><span style="color:#65737e;">// Read Format Capacities data. resp fixed data
+</span><span>                        </span><span style="color:#b48ead;">let</span><span> read_format_capacities_data = ReadFormatCapacitiesData::new(
+</span><span>                            </span><span style="color:#bf616a;">self</span><span>.config.num_blocks as </span><span style="color:#b48ead;">u32</span><span>,
+</span><span>                            </span><span style="color:#bf616a;">self</span><span>.config.block_size as </span><span style="color:#b48ead;">u32</span><span>,
+</span><span>                        );
+</span><span>
+</span><span>                        </span><span style="color:#b48ead;">let mut</span><span> write_data = [</span><span style="color:#d08770;">0</span><span style="color:#b48ead;">u8</span><span>; </span><span style="color:#d08770;">READ_FORMAT_CAPACITIES_DATA_SIZE</span><span>];
+</span><span>                        read_format_capacities_data.</span><span style="color:#96b5b4;">prepare_to_buf</span><span>(&amp;</span><span style="color:#b48ead;">mut</span><span> write_data);
+</span><span>                        </span><span style="color:#b48ead;">Self</span><span>::handle_response_single(
+</span><span>                            write_ep,
+</span><span>                            CommandBlockStatus::CommandPassed,
+</span><span>                            Some(&amp;write_data),
+</span><span>                            &amp;cbw_packet,
+</span><span>                            &amp;</span><span style="color:#b48ead;">mut</span><span> csw_packet,
+</span><span>                        )
+</span><span>                        .await
+</span><span>                    }
+</span><span>                    x </span><span style="color:#b48ead;">if</span><span> x == ScsiCommand::ReadCapacity as </span><span style="color:#b48ead;">u8 </span><span>=&gt; {
+</span><span>                        </span><span style="color:#b48ead;">crate</span><span>::trace!(&quot;</span><span style="color:#a3be8c;">Read Capacity</span><span>&quot;);
+</span><span>                        </span><span style="color:#65737e;">// Read Capacity data. resp fixed data
+</span><span>                        </span><span style="color:#b48ead;">let</span><span> read_capacity_data = ReadCapacityData::new(
+</span><span>                            (</span><span style="color:#bf616a;">self</span><span>.config.num_blocks - </span><span style="color:#d08770;">1</span><span>) as </span><span style="color:#b48ead;">u32</span><span>,
+</span><span>                            </span><span style="color:#bf616a;">self</span><span>.config.block_size as </span><span style="color:#b48ead;">u32</span><span>,
+</span><span>                        );
+</span><span>
+</span><span>                        </span><span style="color:#b48ead;">let mut</span><span> write_data = [</span><span style="color:#d08770;">0</span><span style="color:#b48ead;">u8</span><span>; </span><span style="color:#d08770;">READ_CAPACITY_16_DATA_SIZE</span><span>];
+</span><span>                        read_capacity_data.</span><span style="color:#96b5b4;">prepare_to_buf</span><span>(&amp;</span><span style="color:#b48ead;">mut</span><span> write_data);
+</span><span>                        </span><span style="color:#b48ead;">Self</span><span>::handle_response_single(
+</span><span>                            write_ep,
+</span><span>                            CommandBlockStatus::CommandPassed,
+</span><span>                            Some(&amp;write_data),
+</span><span>                            &amp;cbw_packet,
+</span><span>                            &amp;</span><span style="color:#b48ead;">mut</span><span> csw_packet,
+</span><span>                        )
+</span><span>                        .await
+</span><span>                    }
+</span><span>                    x </span><span style="color:#b48ead;">if</span><span> x == ScsiCommand::ModeSense6 as </span><span style="color:#b48ead;">u8 </span><span>=&gt; {
+</span><span>                        </span><span style="color:#b48ead;">crate</span><span>::trace!(&quot;</span><span style="color:#a3be8c;">Mode Sense 6</span><span>&quot;);
+</span><span>                        </span><span style="color:#65737e;">// Mode Sense 6 data. resp fixed data
+</span><span>                        </span><span style="color:#b48ead;">let</span><span> mode_sense_data = ModeSense6Data::new();
+</span><span>
+</span><span>                        </span><span style="color:#b48ead;">let mut</span><span> write_data = [</span><span style="color:#d08770;">0</span><span style="color:#b48ead;">u8</span><span>; </span><span style="color:#d08770;">MODE_SENSE_6_DATA_SIZE</span><span>];
+</span><span>                        mode_sense_data.</span><span style="color:#96b5b4;">prepare_to_buf</span><span>(&amp;</span><span style="color:#b48ead;">mut</span><span> write_data);
+</span><span>                        </span><span style="color:#b48ead;">Self</span><span>::handle_response_single(
+</span><span>                            write_ep,
+</span><span>                            CommandBlockStatus::CommandPassed,
+</span><span>                            Some(&amp;write_data),
+</span><span>                            &amp;cbw_packet,
+</span><span>                            &amp;</span><span style="color:#b48ead;">mut</span><span> csw_packet,
+</span><span>                        )
+</span><span>                        .await
+</span><span>                    }
+</span><span>                    x </span><span style="color:#b48ead;">if</span><span> x == ScsiCommand::RequestSense as </span><span style="color:#b48ead;">u8 </span><span>=&gt; {
+</span><span>                        </span><span style="color:#65737e;">// Error reporting
+</span><span>                        </span><span style="color:#b48ead;">if</span><span> latest_sense_data.</span><span style="color:#96b5b4;">is_none</span><span>() {
+</span><span>                            latest_sense_data = Some(RequestSenseData::from(
+</span><span>                                SenseKey::NoSense,
+</span><span>                                AdditionalSenseCodeType::NoAdditionalSenseInformation,
+</span><span>                            ));
+</span><span>                        }
+</span><span>                        </span><span style="color:#b48ead;">crate</span><span>::trace!(&quot;</span><span style="color:#a3be8c;">Request Sense Data: {:#x}</span><span>&quot;, latest_sense_data.</span><span style="color:#96b5b4;">unwrap</span><span>());
+</span><span>
+</span><span>                        </span><span style="color:#b48ead;">let mut</span><span> write_data = [</span><span style="color:#d08770;">0</span><span style="color:#b48ead;">u8</span><span>; </span><span style="color:#d08770;">REQUEST_SENSE_DATA_SIZE</span><span>];
+</span><span>                        latest_sense_data.</span><span style="color:#96b5b4;">unwrap</span><span>().</span><span style="color:#96b5b4;">prepare_to_buf</span><span>(&amp;</span><span style="color:#b48ead;">mut</span><span> write_data);
+</span><span>                        </span><span style="color:#b48ead;">Self</span><span>::handle_response_single(
+</span><span>                            write_ep,
+</span><span>                            CommandBlockStatus::CommandPassed,
+</span><span>                            Some(&amp;write_data),
+</span><span>                            &amp;cbw_packet,
+</span><span>                            &amp;</span><span style="color:#b48ead;">mut</span><span> csw_packet,
+</span><span>                        )
+</span><span>                        .await
+</span><span>                    }
+</span><span>                    x </span><span style="color:#b48ead;">if</span><span> x == ScsiCommand::Read10 as </span><span style="color:#b48ead;">u8 </span><span>=&gt; {
+</span><span>                        </span><span style="color:#65737e;">// Read 10 data. resp variable data
+</span><span>                        </span><span style="color:#b48ead;">let</span><span> read10_data = Read10Command::from_data(scsi_commands);
+</span><span>                        </span><span style="color:#b48ead;">crate</span><span>::trace!(&quot;</span><span style="color:#a3be8c;">Read 10 Data: {:#x}</span><span>&quot;, read10_data);
+</span><span>                        </span><span style="color:#b48ead;">let</span><span> transfer_length = read10_data.transfer_length as </span><span style="color:#b48ead;">usize</span><span>;
+</span><span>
+</span><span>                        </span><span style="color:#65737e;">// TODO: channelに空きがある場合transfer_length分のRequest投げるTaskと、Responseを受け取るTaskのjoinにする
+</span><span>                        </span><span style="color:#b48ead;">for</span><span> transfer_index in </span><span style="color:#d08770;">0</span><span>..transfer_length {
+</span><span>                            </span><span style="color:#b48ead;">let</span><span> lba = read10_data.lba as </span><span style="color:#b48ead;">usize </span><span>+ transfer_index;
+</span><span>                            </span><span style="color:#b48ead;">let</span><span> req_tag = MscReqTag::new(cbw_packet.tag, transfer_index as </span><span style="color:#b48ead;">u32</span><span>);
+</span><span>                            </span><span style="color:#b48ead;">let</span><span> req = StorageRequest::read(req_tag, lba);
+</span><span>
+</span><span>                            </span><span style="color:#bf616a;">self</span><span>.data_request_sender.</span><span style="color:#96b5b4;">send</span><span>(req).await;
+</span><span>                            </span><span style="color:#b48ead;">let</span><span> resp = </span><span style="color:#bf616a;">self</span><span>.data_response_receiver.</span><span style="color:#96b5b4;">receive</span><span>().await;
+</span><span>
+</span><span>                            </span><span style="color:#65737e;">// Read処理中にRead以外の応答が来た場合は実装不具合
+</span><span>                            </span><span style="color:#b48ead;">if</span><span> resp.message_id != StorageMsgId::Read {
+</span><span>                                </span><span style="color:#b48ead;">crate</span><span>::unreachable!(&quot;</span><span style="color:#a3be8c;">Invalid Response: {:#x}</span><span>&quot;, resp);
+</span><span>                            }
+</span><span>                            </span><span style="color:#65737e;">// Check if the response is valid
+</span><span>                            </span><span style="color:#b48ead;">if </span><span>(req_tag != resp.req_tag) {
+</span><span>                                </span><span style="color:#b48ead;">crate</span><span>::error!(&quot;</span><span style="color:#a3be8c;">Invalid Response: {:#x}</span><span>&quot;, resp);
+</span><span>                                latest_sense_data = Some(RequestSenseData::from(
+</span><span>                                    SenseKey::HardwareError,
+</span><span>                                    AdditionalSenseCodeType::HardwareErrorEmbeddedSoftware,
+</span><span>                                ));
+</span><span>                            }
+</span><span>                            </span><span style="color:#65737e;">// Check if there is an error
+</span><span>                            </span><span style="color:#b48ead;">if let </span><span>Some(error) = resp.meta_data {
+</span><span>                                </span><span style="color:#b48ead;">crate</span><span>::error!(&quot;</span><span style="color:#a3be8c;">Invalid Response: {:#x}</span><span>&quot;, resp);
+</span><span>                                latest_sense_data =
+</span><span>                                    Some(RequestSenseData::from_data_request_error(error));
+</span><span>                            }
+</span><span>
+</span><span>                            </span><span style="color:#65737e;">// transfer read data
+</span><span>                            </span><span style="color:#b48ead;">let</span><span> read_data = resp.data.</span><span style="color:#96b5b4;">as_ref</span><span>();
+</span><span>                            </span><span style="color:#b48ead;">for</span><span> packet_i in </span><span style="color:#d08770;">0</span><span>..</span><span style="color:#d08770;">USB_PACKET_COUNT_PER_LOGICAL_BLOCK </span><span>{
+</span><span>                                </span><span style="color:#b48ead;">let</span><span> start_index = (packet_i * </span><span style="color:#d08770;">USB_MAX_PACKET_SIZE</span><span>);
+</span><span>                                </span><span style="color:#b48ead;">let</span><span> end_index = ((packet_i + </span><span style="color:#d08770;">1</span><span>) * </span><span style="color:#d08770;">USB_MAX_PACKET_SIZE</span><span>);
+</span><span>                                </span><span style="color:#65737e;">// 範囲がUSB_BLOCK_SIZEを超えないように修正
+</span><span>                                </span><span style="color:#b48ead;">let</span><span> end_index = end_index.</span><span style="color:#96b5b4;">min</span><span>(</span><span style="color:#d08770;">USB_LOGICAL_BLOCK_SIZE</span><span>);
+</span><span>
+</span><span>                                </span><span style="color:#65737e;">// データを取り出して応答
+</span><span>                                </span><span style="color:#b48ead;">let</span><span> packet_data = &amp;read_data[start_index..end_index];
+</span><span>                                </span><span style="color:#b48ead;">crate</span><span>::trace!(
+</span><span>                                    &quot;</span><span style="color:#a3be8c;">Send Read Data (LBA: {:#x}, TransferIndex: {:#x}, PacketIndex: {:#x}): {:#x}</span><span>&quot;,
+</span><span>                                    lba, transfer_index, packet_i, packet_data
+</span><span>                                );
+</span><span>                                </span><span style="color:#b48ead;">let </span><span>Ok(write_resp) = write_ep.</span><span style="color:#96b5b4;">write</span><span>(packet_data).await </span><span style="color:#b48ead;">else </span><span>{
+</span><span>                                    </span><span style="color:#b48ead;">crate</span><span>::error!(&quot;</span><span style="color:#a3be8c;">Write EP Error (Read 10)</span><span>&quot;);
+</span><span>                                    phase_error_tag = Some(cbw_packet.tag);
+</span><span>                                    latest_sense_data = Some(RequestSenseData::from(
+</span><span>                                        SenseKey::IllegalRequest,
+</span><span>                                        AdditionalSenseCodeType::IllegalRequestInvalidCommand,
+</span><span>                                    ));
+</span><span>                                    </span><span style="color:#b48ead;">break &#39;read_ep_loop</span><span>;
+</span><span>                                };
+</span><span>                            }
+</span><span>                        }
+</span><span>
+</span><span>                        </span><span style="color:#65737e;">// CSW 応答
+</span><span>                        csw_packet.status =
+</span><span>                            CommandBlockStatus::from_bool(latest_sense_data.</span><span style="color:#96b5b4;">is_none</span><span>());
+</span><span>                        </span><span style="color:#b48ead;">let</span><span> transfer_bytes = transfer_length * </span><span style="color:#bf616a;">self</span><span>.config.block_size;
+</span><span>                        </span><span style="color:#b48ead;">if</span><span> transfer_bytes &lt; cbw_packet.data_transfer_length as </span><span style="color:#b48ead;">usize </span><span>{
+</span><span>                            csw_packet.data_residue =
+</span><span>                                (cbw_packet.data_transfer_length as </span><span style="color:#b48ead;">usize </span><span>- transfer_bytes) as </span><span style="color:#b48ead;">u32</span><span>;
+</span><span>                        }
+</span><span>                        </span><span style="color:#b48ead;">let</span><span> csw_data = csw_packet.</span><span style="color:#96b5b4;">to_data</span><span>();
+</span><span>                        </span><span style="color:#b48ead;">crate</span><span>::trace!(&quot;</span><span style="color:#a3be8c;">Send CSW: {:#x}</span><span>&quot;, csw_packet);
+</span><span>                        write_ep.</span><span style="color:#96b5b4;">write</span><span>(&amp;csw_data).await
+</span><span>                    }
+</span><span>                    x </span><span style="color:#b48ead;">if</span><span> x == ScsiCommand::Write10 as </span><span style="color:#b48ead;">u8 </span><span>=&gt; {
+</span><span>                        </span><span style="color:#65737e;">// Write 10 data. resp variable data
+</span><span>                        </span><span style="color:#b48ead;">let</span><span> write10_data = Write10Command::from_data(scsi_commands);
+</span><span>                        </span><span style="color:#b48ead;">crate</span><span>::trace!(&quot;</span><span style="color:#a3be8c;">Write 10 Data: {:#x}</span><span>&quot;, write10_data);
+</span><span>                        </span><span style="color:#b48ead;">let</span><span> transfer_length = write10_data.transfer_length as </span><span style="color:#b48ead;">usize</span><span>;
+</span><span>
+</span><span>                        </span><span style="color:#b48ead;">for</span><span> transfer_index in </span><span style="color:#d08770;">0</span><span>..transfer_length {
+</span><span>                            </span><span style="color:#b48ead;">let</span><span> lba = write10_data.lba as </span><span style="color:#b48ead;">usize </span><span>+ transfer_index;
+</span><span>                            </span><span style="color:#65737e;">// packet size分のデータを受け取る
+</span><span>                            </span><span style="color:#b48ead;">let</span><span> req_tag = MscReqTag::new(cbw_packet.tag, transfer_index as </span><span style="color:#b48ead;">u32</span><span>);
+</span><span>                            </span><span style="color:#b48ead;">let mut</span><span> req =
+</span><span>                                StorageRequest::write(req_tag, lba, [</span><span style="color:#d08770;">0</span><span style="color:#b48ead;">u8</span><span>; </span><span style="color:#d08770;">USB_LOGICAL_BLOCK_SIZE</span><span>]);
+</span><span>                            </span><span style="color:#b48ead;">for</span><span> packet_i in </span><span style="color:#d08770;">0</span><span>..</span><span style="color:#d08770;">USB_PACKET_COUNT_PER_LOGICAL_BLOCK </span><span>{
+</span><span>                                </span><span style="color:#b48ead;">let</span><span> start_index = (packet_i * </span><span style="color:#d08770;">USB_MAX_PACKET_SIZE</span><span>);
+</span><span>                                </span><span style="color:#b48ead;">let</span><span> end_index = ((packet_i + </span><span style="color:#d08770;">1</span><span>) * </span><span style="color:#d08770;">USB_MAX_PACKET_SIZE</span><span>);
+</span><span>                                </span><span style="color:#65737e;">// 範囲がUSB_BLOCK_SIZEを超えないように修正
+</span><span>                                </span><span style="color:#b48ead;">let</span><span> end_index = end_index.</span><span style="color:#96b5b4;">min</span><span>(</span><span style="color:#d08770;">USB_LOGICAL_BLOCK_SIZE</span><span>);
+</span><span>
+</span><span>                                </span><span style="color:#65737e;">// データを受け取る
+</span><span>                                </span><span style="color:#b48ead;">let </span><span>Ok(read_resp) =
+</span><span>                                    read_ep.</span><span style="color:#96b5b4;">read</span><span>(&amp;</span><span style="color:#b48ead;">mut</span><span> req.data[start_index..end_index]).await
+</span><span>                                </span><span style="color:#b48ead;">else </span><span>{
+</span><span>                                    </span><span style="color:#b48ead;">crate</span><span>::error!(&quot;</span><span style="color:#a3be8c;">Read EP Error (Write 10)</span><span>&quot;);
+</span><span>                                    phase_error_tag = Some(cbw_packet.tag);
+</span><span>                                    latest_sense_data = Some(RequestSenseData::from(
+</span><span>                                        SenseKey::IllegalRequest,
+</span><span>                                        AdditionalSenseCodeType::IllegalRequestInvalidCommand,
+</span><span>                                    ));
+</span><span>                                    </span><span style="color:#b48ead;">break &#39;read_ep_loop</span><span>;
+</span><span>                                };
+</span><span>                            }
+</span><span>
+</span><span>                            </span><span style="color:#b48ead;">crate</span><span>::trace!(&quot;</span><span style="color:#a3be8c;">Send DataRequest: {:#x}</span><span>&quot;, req);
+</span><span>                            </span><span style="color:#bf616a;">self</span><span>.data_request_sender.</span><span style="color:#96b5b4;">send</span><span>(req).await;
+</span><span>
+</span><span>                            </span><span style="color:#b48ead;">let</span><span> resp = </span><span style="color:#bf616a;">self</span><span>.data_response_receiver.</span><span style="color:#96b5b4;">receive</span><span>().await;
+</span><span>                            </span><span style="color:#b48ead;">crate</span><span>::trace!(&quot;</span><span style="color:#a3be8c;">Receive DataResponse: {:#x}</span><span>&quot;, resp);
+</span><span>
+</span><span>                            </span><span style="color:#65737e;">// Write処理中にWrite以外の応答が来た場合は実装不具合
+</span><span>                            </span><span style="color:#b48ead;">if</span><span> resp.message_id != StorageMsgId::Write {
+</span><span>                                </span><span style="color:#b48ead;">crate</span><span>::unreachable!(&quot;</span><span style="color:#a3be8c;">Invalid Response: {:#x}</span><span>&quot;, resp);
+</span><span>                            }
+</span><span>
+</span><span>                            </span><span style="color:#65737e;">// Check if the response is valid
+</span><span>                            </span><span style="color:#b48ead;">if </span><span>(req_tag != resp.req_tag) {
+</span><span>                                </span><span style="color:#b48ead;">crate</span><span>::error!(&quot;</span><span style="color:#a3be8c;">Invalid Response: {:#x}</span><span>&quot;, resp);
+</span><span>                                latest_sense_data = Some(RequestSenseData::from(
+</span><span>                                    SenseKey::HardwareError,
+</span><span>                                    AdditionalSenseCodeType::HardwareErrorEmbeddedSoftware,
+</span><span>                                ));
+</span><span>                            }
+</span><span>                            </span><span style="color:#65737e;">// Check if there is an error
+</span><span>                            </span><span style="color:#b48ead;">if let </span><span>Some(error) = resp.meta_data {
+</span><span>                                </span><span style="color:#b48ead;">crate</span><span>::error!(&quot;</span><span style="color:#a3be8c;">Invalid Response: {:#x}</span><span>&quot;, resp);
+</span><span>                                latest_sense_data =
+</span><span>                                    Some(RequestSenseData::from_data_request_error(error));
+</span><span>                            }
+</span><span>                        }
+</span><span>
+</span><span>                        </span><span style="color:#65737e;">// CSW 応答
+</span><span>                        csw_packet.status =
+</span><span>                            CommandBlockStatus::from_bool(latest_sense_data.</span><span style="color:#96b5b4;">is_none</span><span>());
+</span><span>                        </span><span style="color:#b48ead;">let</span><span> transfer_bytes = transfer_length * </span><span style="color:#bf616a;">self</span><span>.config.block_size;
+</span><span>                        </span><span style="color:#b48ead;">if</span><span> transfer_bytes &lt; cbw_packet.data_transfer_length as </span><span style="color:#b48ead;">usize </span><span>{
+</span><span>                            csw_packet.data_residue =
+</span><span>                                (cbw_packet.data_transfer_length as </span><span style="color:#b48ead;">usize </span><span>- transfer_bytes) as </span><span style="color:#b48ead;">u32</span><span>;
+</span><span>                        }
+</span><span>                        </span><span style="color:#b48ead;">let</span><span> csw_data = csw_packet.</span><span style="color:#96b5b4;">to_data</span><span>();
+</span><span>                        write_ep.</span><span style="color:#96b5b4;">write</span><span>(&amp;csw_data).await
+</span><span>                    }
+</span><span>                    x </span><span style="color:#b48ead;">if</span><span> x == ScsiCommand::PreventAllowMediumRemoval as </span><span style="color:#b48ead;">u8 </span><span>=&gt; {
+</span><span>                        </span><span style="color:#b48ead;">crate</span><span>::trace!(&quot;</span><span style="color:#a3be8c;">Prevent/Allow Medium Removal</span><span>&quot;);
+</span><span>                        </span><span style="color:#65737e;">// カードの抜き差しを許可する
+</span><span>                        </span><span style="color:#b48ead;">Self</span><span>::handle_response_single(
+</span><span>                            write_ep,
+</span><span>                            CommandBlockStatus::CommandPassed,
+</span><span>                            None,
+</span><span>                            &amp;cbw_packet,
+</span><span>                            &amp;</span><span style="color:#b48ead;">mut</span><span> csw_packet,
+</span><span>                        )
+</span><span>                        .await
+</span><span>                    }
+</span><span>                    _ =&gt; {
+</span><span>                        </span><span style="color:#b48ead;">crate</span><span>::error!(&quot;</span><span style="color:#a3be8c;">Unsupported Command: {:#x}</span><span>&quot;, scsi_command);
+</span><span>                        </span><span style="color:#65737e;">// save latest sense data
+</span><span>                        latest_sense_data = Some(RequestSenseData::from(
+</span><span>                            SenseKey::IllegalRequest,
+</span><span>                            AdditionalSenseCodeType::IllegalRequestInvalidCommand,
+</span><span>                        ));
+</span><span>
+</span><span>                        </span><span style="color:#b48ead;">Self</span><span>::handle_response_single(
+</span><span>                            write_ep,
+</span><span>                            CommandBlockStatus::CommandFailed,
+</span><span>                            None,
+</span><span>                            &amp;cbw_packet,
+</span><span>                            &amp;</span><span style="color:#b48ead;">mut</span><span> csw_packet,
+</span><span>                        )
+</span><span>                        .await
+</span><span>                    }
+</span><span>                };
+</span><span>
+</span><span>                </span><span style="color:#65737e;">// Phase Error時の対応
+</span><span>                </span><span style="color:#b48ead;">if let </span><span>Err(e) = send_resp_status {
+</span><span>                    </span><span style="color:#b48ead;">crate</span><span>::error!(&quot;</span><span style="color:#a3be8c;">Send Response Error: {:?}</span><span>&quot;, e);
+</span><span>                    </span><span style="color:#65737e;">// Phase Error時の対応用にtagを保持
+</span><span>                    phase_error_tag = Some(cbw_packet.tag);
+</span><span>                    </span><span style="color:#b48ead;">break &#39;read_ep_loop</span><span>;
+</span><span>                }
+</span><span>            }
+</span><span>
+</span><span>            </span><span style="color:#65737e;">// CSW で Phase Error を返す
+</span><span>            </span><span style="color:#b48ead;">if let </span><span>Some(tag) = phase_error_tag {
+</span><span>                </span><span style="color:#b48ead;">crate</span><span>::error!(&quot;</span><span style="color:#a3be8c;">Phase Error Tag: {:#x}</span><span>&quot;, tag);
+</span><span>                </span><span style="color:#b48ead;">let mut</span><span> csw_packet = CommandStatusWrapperPacket::new();
+</span><span>                csw_packet.tag = tag;
+</span><span>                csw_packet.data_residue = </span><span style="color:#d08770;">0</span><span>;
+</span><span>                csw_packet.status = CommandBlockStatus::PhaseError;
+</span><span>                </span><span style="color:#b48ead;">let</span><span> csw_data = csw_packet.</span><span style="color:#96b5b4;">to_data</span><span>();
+</span><span>                </span><span style="color:#65737e;">// 失敗してもハンドリング無理
+</span><span>                write_ep.</span><span style="color:#96b5b4;">write</span><span>(&amp;csw_data).await;
+</span><span>            }
+</span><span>            </span><span style="color:#b48ead;">crate</span><span>::trace!(&quot;</span><span style="color:#a3be8c;">Disconnected</span><span>&quot;);
+</span><span>        }
+</span><span>    }
+</span><span>}
+</span></code></pre>
+<h3 id="usb-setup-bu-fen">USB Setup 部分</h3>
+<ul>
+<li>Channel 分離の通り Control 転送と Bulk 転送で管理構造を分けている</li>
+<li>初期化時に Bulk 転送には Endpoint だけを渡している</li>
+</ul>
+<pre data-lang="rust" style="background-color:#2b303b;color:#c0c5ce;" class="language-rust "><code class="language-rust" data-lang="rust"><span>
+</span><span style="color:#b48ead;">impl</span><span>&lt;</span><span style="color:#b48ead;">&#39;ch</span><span>&gt; MscCtrlHandler&lt;</span><span style="color:#b48ead;">&#39;ch</span><span>&gt; {
+</span><span>    </span><span style="color:#b48ead;">pub fn </span><span style="color:#8fa1b3;">new</span><span>(</span><span style="color:#bf616a;">bulk_request_sender</span><span>: DynamicSender&lt;</span><span style="color:#b48ead;">&#39;ch</span><span>, BulkTransferRequest&gt;) -&gt; </span><span style="color:#b48ead;">Self </span><span>{
+</span><span>        </span><span style="color:#b48ead;">Self </span><span>{
+</span><span>            if_num: InterfaceNumber(</span><span style="color:#d08770;">0</span><span>),
+</span><span>            bulk_request_sender,
+</span><span>        }
+</span><span>    }
+</span><span>
+</span><span>    </span><span style="color:#b48ead;">pub fn </span><span style="color:#8fa1b3;">build</span><span>&lt;</span><span style="color:#b48ead;">&#39;a</span><span>, </span><span style="color:#b48ead;">&#39;driver</span><span>, D: Driver&lt;</span><span style="color:#b48ead;">&#39;driver</span><span>&gt;&gt;(
+</span><span>        &amp;</span><span style="color:#b48ead;">&#39;ch mut </span><span style="color:#bf616a;">self</span><span>,
+</span><span>        </span><span style="color:#bf616a;">builder</span><span>: &amp;</span><span style="color:#b48ead;">mut </span><span>Builder&lt;</span><span style="color:#b48ead;">&#39;driver</span><span>, D&gt;,
+</span><span>        </span><span style="color:#bf616a;">config</span><span>: Config&lt;</span><span style="color:#b48ead;">&#39;ch</span><span>&gt;,
+</span><span>        </span><span style="color:#bf616a;">bulk_handler</span><span>: &amp;</span><span style="color:#b48ead;">&#39;a mut </span><span>MscBulkHandler&lt;</span><span style="color:#b48ead;">&#39;driver</span><span>, </span><span style="color:#b48ead;">&#39;ch</span><span>, D&gt;,
+</span><span>    ) </span><span style="color:#b48ead;">where
+</span><span>        </span><span style="color:#b48ead;">&#39;ch</span><span>: </span><span style="color:#b48ead;">&#39;driver</span><span>,
+</span><span>    {
+</span><span>        </span><span style="color:#65737e;">// Bulk Only Transport for Mass Storage
+</span><span>        </span><span style="color:#b48ead;">let mut</span><span> function = builder.</span><span style="color:#96b5b4;">function</span><span>(
+</span><span>            </span><span style="color:#d08770;">MSC_INTERFACE_CLASS</span><span>,
+</span><span>            </span><span style="color:#d08770;">MSC_INTERFACE_SUBCLASS</span><span>,
+</span><span>            </span><span style="color:#d08770;">MSC_INTERFACE_PROTOCOL</span><span>,
+</span><span>        );
+</span><span>        </span><span style="color:#b48ead;">let mut</span><span> interface = function.</span><span style="color:#96b5b4;">interface</span><span>();
+</span><span>        </span><span style="color:#b48ead;">let mut</span><span> alt = interface.</span><span style="color:#96b5b4;">alt_setting</span><span>(
+</span><span>            </span><span style="color:#d08770;">MSC_INTERFACE_CLASS</span><span>,
+</span><span>            </span><span style="color:#d08770;">MSC_INTERFACE_SUBCLASS</span><span>,
+</span><span>            </span><span style="color:#d08770;">MSC_INTERFACE_PROTOCOL</span><span>,
+</span><span>            None,
+</span><span>        );
+</span><span>        bulk_handler.read_ep = Some(alt.</span><span style="color:#96b5b4;">endpoint_bulk_out</span><span>(</span><span style="color:#d08770;">64</span><span>));
+</span><span>        bulk_handler.write_ep = Some(alt.</span><span style="color:#96b5b4;">endpoint_bulk_in</span><span>(</span><span style="color:#d08770;">64</span><span>));
+</span><span>
+</span><span>        </span><span style="color:#96b5b4;">drop</span><span>(function);
+</span><span>        builder.</span><span style="color:#96b5b4;">handler</span><span>(</span><span style="color:#bf616a;">self</span><span>);
+</span><span>    }
+</span><span>}
+</span></code></pre>
+<pre data-lang="rust" style="background-color:#2b303b;color:#c0c5ce;" class="language-rust "><code class="language-rust" data-lang="rust"><span style="color:#65737e;">/// USB Control Transfer and Bulk Transfer Channel
+</span><span>async </span><span style="color:#b48ead;">fn </span><span style="color:#8fa1b3;">usb_transport_task</span><span>(</span><span style="color:#bf616a;">driver</span><span>: Driver&lt;</span><span style="color:#b48ead;">&#39;static</span><span>, USB&gt;) {
+</span><span>    </span><span style="color:#65737e;">// wait for StorageHandler to be ready
+</span><span>    </span><span style="color:#b48ead;">crate</span><span>::info!(&quot;</span><span style="color:#a3be8c;">Send StorageRequest(Seup) to StorageHandler</span><span>&quot;);
+</span><span>    </span><span style="color:#b48ead;">let</span><span> num_blocks = </span><span style="color:#96b5b4;">setup_storage_request_response_channel</span><span>(MscReqTag::new(</span><span style="color:#d08770;">0xaa995566</span><span>, </span><span style="color:#d08770;">0</span><span>)).await;
+</span><span>
+</span><span>    </span><span style="color:#65737e;">// Create embassy-usb Config
+</span><span>    </span><span style="color:#b48ead;">crate</span><span>::info!(&quot;</span><span style="color:#a3be8c;">Setup USB Ctrl/Bulk Endpoint (num_blocks: {})</span><span>&quot;, num_blocks);
+</span><span>    </span><span style="color:#b48ead;">let mut</span><span> config = </span><span style="color:#96b5b4;">create_usb_config</span><span>();
+</span><span>
+</span><span>    </span><span style="color:#65737e;">// Create USB Handler
+</span><span>    </span><span style="color:#b48ead;">let mut</span><span> config_descriptor = [</span><span style="color:#d08770;">0</span><span>; </span><span style="color:#d08770;">256</span><span>];
+</span><span>    </span><span style="color:#b48ead;">let mut</span><span> bos_descriptor = [</span><span style="color:#d08770;">0</span><span>; </span><span style="color:#d08770;">256</span><span>];
+</span><span>    </span><span style="color:#b48ead;">let mut</span><span> msos_descriptor = [</span><span style="color:#d08770;">0</span><span>; </span><span style="color:#d08770;">256</span><span>];
+</span><span>    </span><span style="color:#b48ead;">let mut</span><span> control_buf = [</span><span style="color:#d08770;">0</span><span>; </span><span style="color:#d08770;">64</span><span>];
+</span><span>
+</span><span>    </span><span style="color:#b48ead;">let mut</span><span> ctrl_handler = MscCtrlHandler::new(</span><span style="color:#d08770;">CHANNEL_USB_CTRL_TO_USB_BULK</span><span>.</span><span style="color:#96b5b4;">dyn_sender</span><span>());
+</span><span>    </span><span style="color:#b48ead;">let mut</span><span> builder = Builder::new(
+</span><span>        driver,
+</span><span>        config,
+</span><span>        &amp;</span><span style="color:#b48ead;">mut</span><span> config_descriptor,
+</span><span>        &amp;</span><span style="color:#b48ead;">mut</span><span> bos_descriptor,
+</span><span>        &amp;</span><span style="color:#b48ead;">mut</span><span> msos_descriptor,
+</span><span>        &amp;</span><span style="color:#b48ead;">mut</span><span> control_buf,
+</span><span>    );
+</span><span>    </span><span style="color:#b48ead;">let mut</span><span> bulk_handler = MscBulkHandler::new(
+</span><span>        MscBulkHandlerConfig::new(
+</span><span>            </span><span style="color:#d08770;">USB_VENDOR_ID</span><span>,
+</span><span>            </span><span style="color:#d08770;">USB_PRODUCT_ID</span><span>,
+</span><span>            </span><span style="color:#d08770;">USB_PRODUCT_DEVICE_VERSION</span><span>,
+</span><span>            num_blocks,
+</span><span>            </span><span style="color:#d08770;">USB_LOGICAL_BLOCK_SIZE</span><span>,
+</span><span>        ),
+</span><span>        </span><span style="color:#d08770;">CHANNEL_USB_CTRL_TO_USB_BULK</span><span>.</span><span style="color:#96b5b4;">dyn_receiver</span><span>(),
+</span><span>        </span><span style="color:#d08770;">CHANNEL_USB_BULK_TO_STORAGE_REQUEST</span><span>.</span><span style="color:#96b5b4;">dyn_sender</span><span>(),
+</span><span>        </span><span style="color:#d08770;">CHANNEL_STORAGE_RESPONSE_TO_USB_BULK</span><span>.</span><span style="color:#96b5b4;">dyn_receiver</span><span>(),
+</span><span>    );
+</span><span>    ctrl_handler.</span><span style="color:#96b5b4;">build</span><span>(&amp;</span><span style="color:#b48ead;">mut</span><span> builder, config, &amp;</span><span style="color:#b48ead;">mut</span><span> bulk_handler);
+</span><span>
+</span><span>    </span><span style="color:#65737e;">// Run USB Handler
+</span><span>    </span><span style="color:#b48ead;">let mut</span><span> usb = builder.</span><span style="color:#96b5b4;">build</span><span>();
+</span><span>    </span><span style="color:#b48ead;">let</span><span> usb_fut = usb.</span><span style="color:#96b5b4;">run</span><span>();
+</span><span>    </span><span style="color:#b48ead;">let</span><span> bulk_fut = bulk_handler.</span><span style="color:#96b5b4;">run</span><span>();
+</span><span>
+</span><span>    </span><span style="color:#96b5b4;">join</span><span>(usb_fut, bulk_fut).await;
+</span><span>}
+</span></code></pre>
+<h3 id="ram-shang-nodetacao-zuo">RAM 上のデータ操作</h3>
+<ul>
+<li>Channel 経由で要求された Read/Write 操作を実行</li>
+<li><a href="https://github.com/hathach/tinyusb/blob/master/examples/device/cdc_msc/src/msc_disk.c#L52">tinyusb msc_disk</a> のサンプルを参考に、FAT12 Table の内容を RAM 上の初期値に設定</li>
+</ul>
+<pre data-lang="rust" style="background-color:#2b303b;color:#c0c5ce;" class="language-rust "><code class="language-rust" data-lang="rust"><span style="color:#b48ead;">pub struct </span><span>RamDiskHandler&lt;</span><span style="color:#b48ead;">const</span><span> LOGICAL_BLOCK_SIZE: </span><span style="color:#b48ead;">usize</span><span>, </span><span style="color:#b48ead;">const</span><span> TOTAL_DATA_SIZE: </span><span style="color:#b48ead;">usize</span><span>&gt; {
+</span><span>    </span><span style="color:#65737e;">/// Storage on RAM
+</span><span>    </span><span style="color:#bf616a;">data</span><span>: [</span><span style="color:#b48ead;">u8</span><span>; TOTAL_DATA_SIZE],
+</span><span>}
+</span><span>
+</span><span style="color:#b48ead;">impl</span><span>&lt;</span><span style="color:#b48ead;">const</span><span> LOGICAL_BLOCK_SIZE: </span><span style="color:#b48ead;">usize</span><span>, </span><span style="color:#b48ead;">const</span><span> TOTAL_DATA_SIZE: </span><span style="color:#b48ead;">usize</span><span>&gt;
+</span><span>    RamDiskHandler&lt;LOGICAL_BLOCK_SIZE, TOTAL_DATA_SIZE&gt;
+</span><span>{
+</span><span>    </span><span style="color:#65737e;">/// Create a new RamDisk
+</span><span>    </span><span style="color:#b48ead;">pub fn </span><span style="color:#8fa1b3;">new</span><span>() -&gt; </span><span style="color:#b48ead;">Self </span><span>{
+</span><span>        </span><span style="color:#b48ead;">Self </span><span>{
+</span><span>            data: [</span><span style="color:#d08770;">0</span><span>; </span><span style="color:#d08770;">TOTAL_DATA_SIZE</span><span>],
+</span><span>        }
+</span><span>    }
+</span><span>
+</span><span>    </span><span style="color:#65737e;">/// Set data to RamDisk
+</span><span>    </span><span style="color:#b48ead;">pub fn </span><span style="color:#8fa1b3;">set_data</span><span>&lt;</span><span style="color:#b48ead;">const</span><span> N: </span><span style="color:#b48ead;">usize</span><span>&gt;(&amp;</span><span style="color:#b48ead;">mut </span><span style="color:#bf616a;">self</span><span>, </span><span style="color:#bf616a;">offset_bytes</span><span>: </span><span style="color:#b48ead;">usize</span><span>, </span><span style="color:#bf616a;">data</span><span>: &amp;[</span><span style="color:#b48ead;">u8</span><span>; N]) {
+</span><span>        </span><span style="color:#bf616a;">self</span><span>.data[offset_bytes..offset_bytes + N].</span><span style="color:#96b5b4;">copy_from_slice</span><span>(data);
+</span><span>    }
+</span><span>
+</span><span>    </span><span style="color:#65737e;">/// Get data from RamDisk
+</span><span>    </span><span style="color:#b48ead;">pub fn </span><span style="color:#8fa1b3;">get_data</span><span>&lt;</span><span style="color:#b48ead;">const</span><span> N: </span><span style="color:#b48ead;">usize</span><span>&gt;(&amp;</span><span style="color:#bf616a;">self</span><span>, </span><span style="color:#bf616a;">offset_bytes</span><span>: </span><span style="color:#b48ead;">usize</span><span>) -&gt; &amp;[</span><span style="color:#b48ead;">u8</span><span>] {
+</span><span>        &amp;</span><span style="color:#bf616a;">self</span><span>.data[offset_bytes..offset_bytes + N]
+</span><span>    }
+</span><span>
+</span><span>    </span><span style="color:#65737e;">/// Set FAT12 Data to RAM Disk
+</span><span>    </span><span style="color:#65737e;">/// refs. https://github.com/hathach/tinyusb/blob/master/examples/device/cdc_msc/src/msc_disk.c#L52
+</span><span>    #[</span><span style="color:#bf616a;">rustfmt</span><span>::</span><span style="color:#bf616a;">skip</span><span>]
+</span><span>    </span><span style="color:#b48ead;">pub fn </span><span style="color:#8fa1b3;">set_fat12_sample_data</span><span>(&amp;</span><span style="color:#b48ead;">mut </span><span style="color:#bf616a;">self</span><span>) {
+</span><span>        </span><span style="color:#b48ead;">let</span><span> readme_contents = </span><span style="color:#b48ead;">b</span><span>&quot;</span><span style="color:#a3be8c;">Hello.</span><span style="color:#96b5b4;">\n</span><span>&quot;;
+</span><span>        </span><span style="color:#65737e;">// LBA0: MBR
+</span><span>        </span><span style="color:#bf616a;">self</span><span>.</span><span style="color:#96b5b4;">set_data</span><span>(
+</span><span>            </span><span style="color:#d08770;">0</span><span>,
+</span><span>            &amp;[
+</span><span>            </span><span style="color:#65737e;">/// |  0|    1|    2|    3|    4|    5|    6|    7|    8|    9|  0xa| 0xb|  0xc|  0xd|  0xe|  0xf|
+</span><span>                </span><span style="color:#d08770;">0xEB</span><span>, </span><span style="color:#d08770;">0x3C</span><span>, </span><span style="color:#d08770;">0x90</span><span>, </span><span style="color:#d08770;">0x4D</span><span>, </span><span style="color:#d08770;">0x53</span><span>, </span><span style="color:#d08770;">0x44</span><span>, </span><span style="color:#d08770;">0x4F</span><span>, </span><span style="color:#d08770;">0x53</span><span>, </span><span style="color:#d08770;">0x35</span><span>, </span><span style="color:#d08770;">0x2E</span><span>, </span><span style="color:#d08770;">0x30</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x02</span><span>, </span><span style="color:#d08770;">0x01</span><span>, </span><span style="color:#d08770;">0x01</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#65737e;">// 0x00
+</span><span>                </span><span style="color:#d08770;">0x01</span><span>, </span><span style="color:#d08770;">0x10</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x10</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0xF8</span><span>, </span><span style="color:#d08770;">0x01</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x01</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x01</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#65737e;">// 0x10
+</span><span>                </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x80</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x29</span><span>, </span><span style="color:#d08770;">0x34</span><span>, </span><span style="color:#d08770;">0x12</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#b48ead;">b</span><span>&#39;</span><span style="color:#a3be8c;">S</span><span>&#39;, </span><span style="color:#b48ead;">b</span><span>&#39;</span><span style="color:#a3be8c;">a</span><span>&#39;, </span><span style="color:#b48ead;">b</span><span>&#39;</span><span style="color:#a3be8c;">m</span><span>&#39;, </span><span style="color:#b48ead;">b</span><span>&#39;</span><span style="color:#a3be8c;">p</span><span>&#39;, </span><span style="color:#b48ead;">b</span><span>&#39;</span><span style="color:#a3be8c;">l</span><span>&#39;, </span><span style="color:#65737e;">// 0x20
+</span><span>                </span><span style="color:#b48ead;">b</span><span>&#39;</span><span style="color:#a3be8c;">e</span><span>&#39;, </span><span style="color:#b48ead;">b</span><span>&#39; &#39;, </span><span style="color:#b48ead;">b</span><span>&#39; &#39;, </span><span style="color:#b48ead;">b</span><span>&#39;</span><span style="color:#a3be8c;">M</span><span>&#39;, </span><span style="color:#b48ead;">b</span><span>&#39;</span><span style="color:#a3be8c;">S</span><span>&#39;, </span><span style="color:#b48ead;">b</span><span>&#39;</span><span style="color:#a3be8c;">C</span><span>&#39;, </span><span style="color:#d08770;">0x46</span><span>, </span><span style="color:#d08770;">0x41</span><span>, </span><span style="color:#d08770;">0x54</span><span>, </span><span style="color:#d08770;">0x31</span><span>, </span><span style="color:#d08770;">0x32</span><span>, </span><span style="color:#d08770;">0x20</span><span>, </span><span style="color:#d08770;">0x20</span><span>, </span><span style="color:#d08770;">0x20</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#65737e;">// 0x30
+</span><span>                </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#65737e;">// 0x40
+</span><span>                </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#65737e;">// 0x50
+</span><span>                </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#65737e;">// 0x60
+</span><span>                </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#65737e;">// 0x70
+</span><span>                </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#65737e;">// 0x80
+</span><span>                </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#65737e;">// 0x90
+</span><span>                </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#65737e;">// 0xa0
+</span><span>                </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#65737e;">// 0xb0
+</span><span>                </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#65737e;">// 0xc0
+</span><span>                </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#65737e;">// 0xd0
+</span><span>                </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#65737e;">// 0xe0
+</span><span>                </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x55</span><span>, </span><span style="color:#d08770;">0xaa</span><span>, </span><span style="color:#65737e;">// 0xf0
+</span><span>            ],
+</span><span>        );
+</span><span>        </span><span style="color:#65737e;">// LBA1: FAT12 Table
+</span><span>        </span><span style="color:#bf616a;">self</span><span>.</span><span style="color:#96b5b4;">set_data</span><span>(</span><span style="color:#d08770;">512</span><span>, &amp;[</span><span style="color:#d08770;">0xF8</span><span>, </span><span style="color:#d08770;">0xFF</span><span>, </span><span style="color:#d08770;">0xFF</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>]);
+</span><span>        </span><span style="color:#65737e;">// LBA2: Root Directory
+</span><span>        </span><span style="color:#b48ead;">let</span><span> flen = (readme_contents.</span><span style="color:#96b5b4;">len</span><span>() - </span><span style="color:#d08770;">1</span><span>) as </span><span style="color:#b48ead;">u8</span><span>;
+</span><span>        </span><span style="color:#bf616a;">self</span><span>.</span><span style="color:#96b5b4;">set_data</span><span>(
+</span><span>            </span><span style="color:#d08770;">1024</span><span>,
+</span><span>            &amp;[
+</span><span>            </span><span style="color:#65737e;">/// first entry is volume label
+</span><span>            </span><span style="color:#65737e;">/// |  0|    1|    2|    3|    4|    5|    6|    7|    8|    9|  0xa| 0xb|  0xc|  0xd|  0xe|  0xf|
+</span><span>                </span><span style="color:#b48ead;">b</span><span>&#39;</span><span style="color:#a3be8c;">S</span><span>&#39;, </span><span style="color:#b48ead;">b</span><span>&#39;</span><span style="color:#a3be8c;">a</span><span>&#39;, </span><span style="color:#b48ead;">b</span><span>&#39;</span><span style="color:#a3be8c;">m</span><span>&#39;, </span><span style="color:#b48ead;">b</span><span>&#39;</span><span style="color:#a3be8c;">p</span><span>&#39;, </span><span style="color:#b48ead;">b</span><span>&#39;</span><span style="color:#a3be8c;">l</span><span>&#39;, </span><span style="color:#b48ead;">b</span><span>&#39;</span><span style="color:#a3be8c;">e</span><span>&#39;, </span><span style="color:#b48ead;">b</span><span>&#39; &#39;, </span><span style="color:#b48ead;">b</span><span>&#39; &#39;, </span><span style="color:#b48ead;">b</span><span>&#39;</span><span style="color:#a3be8c;">M</span><span>&#39;, </span><span style="color:#b48ead;">b</span><span>&#39;</span><span style="color:#a3be8c;">S</span><span>&#39;, </span><span style="color:#b48ead;">b</span><span>&#39;</span><span style="color:#a3be8c;">C</span><span>&#39;, </span><span style="color:#d08770;">0x08</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#65737e;">// volume label
+</span><span>                </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x4F</span><span>, </span><span style="color:#d08770;">0x6D</span><span>, </span><span style="color:#d08770;">0x65</span><span>, </span><span style="color:#d08770;">0x43</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#65737e;">// readme file
+</span><span>                </span><span style="color:#b48ead;">b</span><span>&#39;</span><span style="color:#a3be8c;">R</span><span>&#39;, </span><span style="color:#b48ead;">b</span><span>&#39;</span><span style="color:#a3be8c;">E</span><span>&#39;, </span><span style="color:#b48ead;">b</span><span>&#39;</span><span style="color:#a3be8c;">A</span><span>&#39;, </span><span style="color:#b48ead;">b</span><span>&#39;</span><span style="color:#a3be8c;">D</span><span>&#39;, </span><span style="color:#b48ead;">b</span><span>&#39;</span><span style="color:#a3be8c;">M</span><span>&#39;, </span><span style="color:#b48ead;">b</span><span>&#39;</span><span style="color:#a3be8c;">E</span><span>&#39;, </span><span style="color:#b48ead;">b</span><span>&#39; &#39;, </span><span style="color:#b48ead;">b</span><span>&#39; &#39;, </span><span style="color:#b48ead;">b</span><span>&#39;</span><span style="color:#a3be8c;">T</span><span>&#39;, </span><span style="color:#b48ead;">b</span><span>&#39;</span><span style="color:#a3be8c;">X</span><span>&#39;, </span><span style="color:#b48ead;">b</span><span>&#39;</span><span style="color:#a3be8c;">T</span><span>&#39;, </span><span style="color:#d08770;">0x20</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0xC6</span><span>, </span><span style="color:#d08770;">0x52</span><span>, </span><span style="color:#d08770;">0x6D</span><span>, </span><span style="color:#65737e;">// readme file
+</span><span>                </span><span style="color:#b48ead;">b</span><span>&#39;</span><span style="color:#a3be8c;">e</span><span>&#39;, </span><span style="color:#b48ead;">b</span><span>&#39;</span><span style="color:#a3be8c;">C</span><span>&#39;, </span><span style="color:#b48ead;">b</span><span>&#39;</span><span style="color:#a3be8c;">e</span><span>&#39;, </span><span style="color:#b48ead;">b</span><span>&#39;</span><span style="color:#a3be8c;">C</span><span>&#39;, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x88</span><span>, </span><span style="color:#d08770;">0x6D</span><span>, </span><span style="color:#d08770;">0x65</span><span>, </span><span style="color:#d08770;">0x43</span><span>, </span><span style="color:#d08770;">0x02</span><span>, </span><span style="color:#d08770;">0x00</span><span>, flen, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#d08770;">0x00</span><span>, </span><span style="color:#65737e;">// readme file
+</span><span>            ],
+</span><span>        );
+</span><span>        </span><span style="color:#65737e;">// lba3 readme file
+</span><span>        </span><span style="color:#bf616a;">self</span><span>.</span><span style="color:#96b5b4;">set_data</span><span>(</span><span style="color:#d08770;">1536</span><span>, readme_contents);
+</span><span>
+</span><span>    }
+</span><span>}
+</span><span>
+</span><span style="color:#b48ead;">impl</span><span>&lt;ReqTag: Eq + PartialEq, </span><span style="color:#b48ead;">const</span><span> LOGICAL_BLOCK_SIZE: </span><span style="color:#b48ead;">usize</span><span>, </span><span style="color:#b48ead;">const</span><span> TOTAL_DATA_SIZE: </span><span style="color:#b48ead;">usize</span><span>&gt;
+</span><span>    StorageHandler&lt;ReqTag, LOGICAL_BLOCK_SIZE&gt;
+</span><span>    for RamDiskHandler&lt;LOGICAL_BLOCK_SIZE, TOTAL_DATA_SIZE&gt;
+</span><span>{
+</span><span>    </span><span style="color:#65737e;">/// Request handler
+</span><span>    async </span><span style="color:#b48ead;">fn </span><span style="color:#8fa1b3;">request</span><span>(
+</span><span>        &amp;</span><span style="color:#b48ead;">mut </span><span style="color:#bf616a;">self</span><span>,
+</span><span>        </span><span style="color:#bf616a;">request</span><span>: StorageRequest&lt;ReqTag, LOGICAL_BLOCK_SIZE&gt;,
+</span><span>    ) -&gt; StorageResponse&lt;ReqTag, LOGICAL_BLOCK_SIZE&gt; {
+</span><span>        </span><span style="color:#b48ead;">match</span><span> request.message_id {
+</span><span>            StorageMsgId::Setup =&gt; {
+</span><span>                </span><span style="color:#65737e;">// Setupは何もしない
+</span><span>                StorageResponse::report_setup_success(
+</span><span>                    request.req_tag,
+</span><span>                    </span><span style="color:#d08770;">TOTAL_DATA_SIZE </span><span>/ </span><span style="color:#d08770;">LOGICAL_BLOCK_SIZE</span><span>,
+</span><span>                )
+</span><span>            }
+</span><span>            StorageMsgId::Echo =&gt; {
+</span><span>                </span><span style="color:#65737e;">// Echoは何もしない
+</span><span>                StorageResponse::echo(request.req_tag)
+</span><span>            }
+</span><span>            StorageMsgId::Read =&gt; {
+</span><span>                </span><span style="color:#b48ead;">let mut</span><span> resp = StorageResponse::read(request.req_tag, [</span><span style="color:#d08770;">0</span><span>; </span><span style="color:#d08770;">LOGICAL_BLOCK_SIZE</span><span>]);
+</span><span>
+</span><span>                </span><span style="color:#b48ead;">let</span><span> ram_offset_start = request.lba * </span><span style="color:#d08770;">LOGICAL_BLOCK_SIZE</span><span>;
+</span><span>                </span><span style="color:#b48ead;">let</span><span> ram_offset_end = ram_offset_start + </span><span style="color:#d08770;">LOGICAL_BLOCK_SIZE</span><span>;
+</span><span>
+</span><span>                </span><span style="color:#b48ead;">if</span><span> ram_offset_end &gt; </span><span style="color:#bf616a;">self</span><span>.data.</span><span style="color:#96b5b4;">len</span><span>() {
+</span><span>                    resp.meta_data = Some(StorageResponseMetadata::OutOfRange { lba: request.lba });
+</span><span>                } </span><span style="color:#b48ead;">else </span><span>{
+</span><span>                    </span><span style="color:#65737e;">// データをRAM Diskからコピー
+</span><span>                    resp.data
+</span><span>                        .</span><span style="color:#96b5b4;">as_mut</span><span>()
+</span><span>                        .</span><span style="color:#96b5b4;">copy_from_slice</span><span>(&amp;</span><span style="color:#bf616a;">self</span><span>.data[ram_offset_start..ram_offset_end]);
+</span><span>                }
+</span><span>                resp
+</span><span>            }
+</span><span>            StorageMsgId::Write =&gt; {
+</span><span>                </span><span style="color:#b48ead;">let mut</span><span> resp = StorageResponse::write(request.req_tag);
+</span><span>
+</span><span>                </span><span style="color:#b48ead;">let</span><span> ram_offset_start = request.lba * </span><span style="color:#d08770;">LOGICAL_BLOCK_SIZE</span><span>;
+</span><span>                </span><span style="color:#b48ead;">let</span><span> ram_offset_end = ram_offset_start + </span><span style="color:#d08770;">LOGICAL_BLOCK_SIZE</span><span>;
+</span><span>
+</span><span>                </span><span style="color:#65737e;">// 範囲外応答
+</span><span>                </span><span style="color:#b48ead;">if</span><span> ram_offset_end &gt; </span><span style="color:#bf616a;">self</span><span>.data.</span><span style="color:#96b5b4;">len</span><span>() {
+</span><span>                    resp.meta_data = Some(StorageResponseMetadata::OutOfRange { lba: request.lba })
+</span><span>                } </span><span style="color:#b48ead;">else </span><span>{
+</span><span>                    </span><span style="color:#65737e;">// データをRAM Diskにコピーしてから応答
+</span><span>                    </span><span style="color:#bf616a;">self</span><span>.data[ram_offset_start..ram_offset_end]
+</span><span>                        .</span><span style="color:#96b5b4;">copy_from_slice</span><span>(request.data.</span><span style="color:#96b5b4;">as_ref</span><span>());
+</span><span>                }
+</span><span>                </span><span style="color:#65737e;">// 応答
+</span><span>                resp
+</span><span>            }
+</span><span>            StorageMsgId::Flush =&gt; {
+</span><span>                </span><span style="color:#65737e;">// Flushは何もしない
+</span><span>                StorageResponse::flush(request.req_tag)
+</span><span>            }
+</span><span>        }
+</span><span>    }
+</span><span>}
+</span><span>
+</span></code></pre>
+<h2 id="shi-zhuang-shi-nimisusitanei-rong">実装時にミスした内容</h2>
+<p>しょうもない不具合が多いが、同じようなことをしようと/している人がいたときのために書き残す。</p>
+<ul>
+<li>Read (10)の DataOut 時、一度に 512byte 転送しようとして Endpoint Error</li>
+<li>Read Capacity で Last Logical Block Address に Num of Block 相当の値を報告していた (Device 内部の最大 LBA+1block のアクセスが飛んできて気がついた)</li>
+<li>内部の Channel に Read/Write 要求を流す際に transfer_length 分のオフセット加算忘れ</li>
+<li>async 関数の await 呼び忘れ (Read (10) の内部要求を投げずに応答を待っていた)</li>
+</ul>
+<p>デバッグ時は USBPCap のオプション入りでインストールした Wireshark があると捗る。</p>
+<p><img src="/2024/usbmsc/wireshark.png" alt="wireshark.png" /></p>
+</section>
+
+  <hr />
+
+  <!-- Post Taxonomies -->
+  
+<footer class="mt-12 flex flex-col">
+  <!---->
+  <!---->
+  <!---->
+  <!---->
+  
+  <div class="mb-2 flex flex-wrap">
+    <span class="block-bg mr-1.5 mb-1.5 rounded-lg px-5 py-1.5">Tags </span>
+    
+    <a
+      class="block-bg block-hover mr-1.5 mb-1.5 rounded-lg px-5 py-1.5 no-underline"
+      href="https://blog.wipeseals.me/tags/tech/"
+      >tech</a
+    >
+    
+    <a
+      class="block-bg block-hover mr-1.5 mb-1.5 rounded-lg px-5 py-1.5 no-underline"
+      href="https://blog.wipeseals.me/tags/rust/"
+      >Rust</a
+    >
+    
+    <a
+      class="block-bg block-hover mr-1.5 mb-1.5 rounded-lg px-5 py-1.5 no-underline"
+      href="https://blog.wipeseals.me/tags/usb/"
+      >USB</a
+    >
+    
+    <a
+      class="block-bg block-hover mr-1.5 mb-1.5 rounded-lg px-5 py-1.5 no-underline"
+      href="https://blog.wipeseals.me/tags/embedded/"
+      >Embedded</a
+    >
+    
+    <a
+      class="block-bg block-hover mr-1.5 mb-1.5 rounded-lg px-5 py-1.5 no-underline"
+      href="https://blog.wipeseals.me/tags/raspberrypi/"
+      >raspberrypi</a
+    >
+    
+    <a
+      class="block-bg block-hover mr-1.5 mb-1.5 rounded-lg px-5 py-1.5 no-underline"
+      href="https://blog.wipeseals.me/tags/driver/"
+      >Driver</a
+    >
+    
+  </div>
+  
+</footer>
+
+<!---->
+
+  <!-- Post Nav -->
+  
+<nav class="block-bg mt-12 flex flex-wrap rounded-lg text-lg">
+  
+  <a
+    class="block-hover-mask flex min-w-[50%] grow items-center rounded-l-md p-6 pr-3 font-semibold no-underline"
+    href="https:&#x2F;&#x2F;blog.wipeseals.me&#x2F;blog&#x2F;2024&#x2F;vrchat-upload&#x2F;"
+    ><span class="mr-1.5">←</span><span>2024年5月時点 VRChat Avatar Upload環境memo</span></a
+  >
+  <!---->
+  
+  <a
+    class="block-hover-mask ml-auto flex min-w-[50%] grow items-center justify-end rounded-r-md p-6 pl-3 font-semibold no-underline"
+    href="https:&#x2F;&#x2F;blog.wipeseals.me&#x2F;blog&#x2F;2024&#x2F;usharp-asmdef&#x2F;"
+    ><span>U# assembly definition が定義されていない旨のエラー対処</span><span class="ml-1.5">→</span></a
+  >
+  
+</nav>
+
+<!---->
+
+  <!-- Comment -->
+  
+
+  <!-- Page End inject -->
+  
+</article>
+
+    </main>
+
+    <footer class="mx-auto flex max-w-3xl flex-wrap items-center px-8 py-4 text-sm opacity-60">
+  <div class="mr-auto basis-full lg:basis-1/2">
+    <!---->
+    <!---->
+    &copy; 2024 - 2025<!---->
+    
+    <a class="link" href="https://blog.wipeseals.me">
+      wipeseals
+    </a>
+    
+  </div>
+  <div class="flex basis-full lg:basis-1/2 lg:justify-end">
+    <a class="link mr-6 lg:ml-6" href="https://www.getzola.org/" rel="noopener" target="_blank">
+      Powered by Zola
+    </a>
+    <a class="link" href="https://github.com/st1020/kita" rel="noopener" target="_blank">✎ Kita</a>
+  </div>
+  <!-- Footer inject -->
+  
+</footer>
+
+
+    <!-- Body End inject -->
+    
+  </body>
+</html>

@@ -1,0 +1,428 @@
+<!doctype html>
+<html class="not-ready lg:text-base" lang="ja">
+  <head>
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+
+  <!-- Title -->
+  <title>
+    blog.wipeseals.me
+  </title>
+
+  <!-- Meta -->
+  <meta name="theme-color" />
+
+  
+  <!-- Author -->
+  
+  <!---->
+  <meta name="description" content="Miscellaneous logs..." />
+  <meta name="author" content="wipeseals" />
+  <!-- The Open Graph protocol -->
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="blog.wipeseals.me" />
+  <meta property="og:description" content="Miscellaneous logs..." />
+  <meta property="og:url" content="https://blog.wipeseals.me" />
+  
+  <meta property="og:image" content="https://blog.wipeseals.me/icon.png" />
+  
+  <!---->
+  
+
+  <!-- CSS & JS -->
+  <link rel="preload stylesheet" as="style" href="https://blog.wipeseals.me/main.css" />
+  <style>
+    :root {
+      --bg: #f4f4f5;
+      --bg-dark: #18181b;
+      --header: #e4e4e7;
+      --header-dark: #27272a;
+    }
+  </style>
+
+  
+
+  <!-- Dark Icon -->
+  <link rel="preload" as="image" href="https://blog.wipeseals.me/icons/theme.svg" />
+
+  <!-- Math -->
+  
+  <!---->
+  <link
+  rel="stylesheet"
+  href="https://cdn.jsdelivr.net/npm/katex@0.16/dist/katex.min.css"
+  crossorigin="anonymous"
+/>
+<script
+  defer
+  src="https://cdn.jsdelivr.net/npm/katex@0.16/dist/katex.min.js"
+  crossorigin="anonymous"
+></script>
+<script
+  defer
+  src="https://cdn.jsdelivr.net/npm/katex@0.16/dist/contrib/auto-render.min.js"
+  crossorigin="anonymous"
+></script>
+
+<script>
+  document.addEventListener("DOMContentLoaded", () =>
+    renderMathInElement(document.body, {
+      // customised options
+      // • auto-render specific keys, e.g.:
+      delimiters: [
+        { left: "$$", right: "$$", display: true },
+        { left: "$", right: "$", display: false },
+      ],
+      // • rendering keys, e.g.:
+      throwOnError: false,
+    }),
+  );
+</script>
+
+  <!---->
+  
+  <!---->
+
+  <!-- Mermaid -->
+  
+  <!---->
+  <script type="module">
+  import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs";
+
+  const initMermaid = (isDark) => {
+    mermaid.initialize({
+      theme: isDark ? "dark" : "default",
+      startOnLoad: false,
+    });
+    mermaid.run();
+  };
+
+  // Add data-mermaid-code attribute on all mermaid block.
+  document.querySelectorAll(".mermaid").forEach((element) => {
+    element.setAttribute("data-mermaid-code", element.innerHTML);
+  });
+
+  // Re-render mermaid when theme changed.
+  document.body.addEventListener("set-theme", (e) => {
+    document.querySelectorAll(".mermaid").forEach((element) => {
+      const mermaidCode = element.getAttribute("data-mermaid-code");
+      if (mermaidCode != null) {
+        element.removeAttribute("data-processed");
+        element.innerHTML = mermaidCode;
+      }
+    });
+    initMermaid(e.detail === "dark");
+  });
+
+  // The es module script will load defer, so the localStorage should already be set by script in header.
+  // If this script is loaded first, the script in header will dispatch an event to re-render mermaid, it's works too.
+  initMermaid(localStorage.getItem("dark") === "true");
+</script>
+
+  <!---->
+  
+  <!---->
+
+  <!-- Favicon -->
+  <link rel="icon" href="https://blog.wipeseals.me/favicon.ico" />
+  <link rel="apple-touch-icon" href="https://blog.wipeseals.me/apple-touch-icon.png" />
+
+  <!-- Feeds -->
+  
+  <!---->
+  
+  <link
+    rel="alternate"
+    type="application/atom+xml"
+    title="Atom"
+    href="https://blog.wipeseals.me/atom.xml"
+  />
+   
+  <!---->
+  
+
+  <!-- Canonical -->
+  <link rel="canonical" href="https:&#x2F;&#x2F;blog.wipeseals.me" />
+
+  <!-- Head inject -->
+  
+</head>
+
+  <body class="text-black duration-200 ease-out dark:text-white">
+    <header
+  class="header fixed top-0 z-40 mx-auto min-h-[3.5rem] w-full"
+>
+  <div class="mx-auto w-full max-w-4xl p-3 lg:flex lg:justify-between">
+    <div class="flex justify-between">
+      <div class="flex items-center">
+        <a class="text-2xl font-semibold" href="https://blog.wipeseals.me">blog.wipeseals.me</a>
+        <div
+          class="btn-dark ml-4 h-6 w-6 shrink-0 cursor-pointer text-[0px] [background:url(./icons/theme.svg)_left_center/cover_no-repeat] dark:[background-position:right] dark:invert"
+          role="button"
+          aria-label="Dark"
+        ></div>
+      </div>
+      
+      <div
+        class="btn-menu relative z-50 flex h-8 w-8 shrink-0 cursor-pointer flex-col items-center justify-center gap-2.5 lg:hidden"
+        role="button"
+        aria-label="Menu"
+      ></div>
+      
+    </div>
+    <script>
+      // base
+      const htmlClass = document.documentElement.classList;
+      setTimeout(() => {
+        htmlClass.remove("not-ready");
+      }, 10);
+
+      // mobile menu
+      const btnMenu = document.querySelector(".btn-menu");
+      btnMenu?.addEventListener("click", () => {
+        htmlClass.toggle("open");
+      });
+
+      // dark theme
+      const setDark = (isDark) => {
+        if (isDark) {
+          document.body.dispatchEvent(new CustomEvent("set-theme", { detail: "dark" }));
+          htmlClass.add("dark");
+        } else {
+          document.body.dispatchEvent(new CustomEvent("set-theme", { detail: "light" }));
+          htmlClass.remove("dark");
+        }
+        localStorage.setItem("dark", isDark);
+      };
+
+      // init
+      const darkScheme = window.matchMedia("(prefers-color-scheme: dark)");
+      if (htmlClass.contains("dark")) {
+        setDark(true);
+      } else {
+        const darkVal = localStorage.getItem("dark");
+        setDark(darkVal ? darkVal === "true" : darkScheme.matches);
+      }
+
+      // listen system
+      darkScheme.addEventListener("change", (event) => {
+        setDark(event.matches);
+      });
+
+      // manual switch
+      const btnDark = document.querySelector(".btn-dark");
+      btnDark.addEventListener("click", () => {
+        setDark(localStorage.getItem("dark") !== "true");
+      });
+    </script>
+    
+    <nav class="flex w-full items-center lg:w-auto">
+      <ul
+        class="nav-wrapper flex w-full flex-col py-2 lg:w-auto lg:flex-row lg:self-center lg:py-0"
+      >
+        
+        <li>
+          <a
+            class="primary-link block py-2 text-center text-lg font-medium lg:px-3 lg:py-0"
+            href="https://blog.wipeseals.me"
+            >blog</a
+          >
+        </li>
+        
+        <li>
+          <a
+            class="primary-link block py-2 text-center text-lg font-medium lg:px-3 lg:py-0"
+            href="https://blog.wipeseals.me/tags"
+            >tags</a
+          >
+        </li>
+        
+        <li>
+          <a
+            class="primary-link block py-2 text-center text-lg font-medium lg:px-3 lg:py-0"
+            href="https://blog.wipeseals.me/work"
+            >work</a
+          >
+        </li>
+        
+        <li>
+          <a
+            class="primary-link block py-2 text-center text-lg font-medium lg:px-3 lg:py-0"
+            href="https://wipeseals.me"
+            >about</a
+          >
+        </li>
+        
+        <li>
+          <a
+            class="primary-link block py-2 text-center text-lg font-medium lg:px-3 lg:py-0"
+            href="https://github.com/wipeseals"
+            >github</a
+          >
+        </li>
+        
+      </ul>
+      <!-- Header Nav inject -->
+      
+    </nav>
+    
+  </div>
+</header>
+
+
+    <!-- Body Start inject -->
+    
+
+    <main
+      class="prose prose-neutral dark:prose-invert prose-pre:rounded-lg prose-img:rounded-lg relative mx-auto min-h-[calc(100vh-9rem)] max-w-3xl px-4 pt-24 pb-16 break-words lg:pt-32"
+    >
+      
+<!-- Term Title -->
+<h1 class="mb-16">#UdonSharp</h1>
+<!-- Pages -->
+<!-- Pages -->
+<!---->
+<!---->
+<!---->
+
+
+<section
+  class="block-bg relative mb-4 rounded-lg p-4 first-of-type:mt-0 last-of-type:mb-0 active:scale-95 lg:mb-6 lg:p-6"
+>
+  <!---->
+
+  <h2 class="my-0! pb-1 leading-none! font-bold">VRChatで動くボードゲームを作る</h2>
+
+  <div class="not-prose my-1 truncate">
+    <!---->
+    <p>掲題の通り、VRChat 上で動作するボードゲームを先日公開した。自分自身の備忘録また同様の制作を行いたく情報を探している人向けの制作記録として機能することを願って作業記録を残すことにする。</p>
+<ul>
+<li><a href="https://wipeseals.booth.pm/items/6278798">[無料] UdonKnucklebones [UdonChips 対応] - Booth</a></li>
+<li><a href="https://github.com/wipeseals/UdonKnucklebones">wipeseals/UdonKnucklebones - GitHub</a></li>
+</ul>
+<p><img src="/2024/create-vrchat-game/2024-11-10-170028.png" alt="ss" /></p>
+<hr />
+<h2 id="zuo-rumono">作るもの</h2>
+<p>Knucklebones（ナックルボーン）と呼ばれるボードゲームを作ることにした。本家は<a href="https://store.steampowered.com/app/1313140/Cult_of_the_Lamb/?l=japanese">Cult of the Lamb</a> 作中に登場するゲームであり、今回の制作は非公式ファンアートの位置づけである。</p>
+<p>サイコロを振って並べるという単純明快なルールでありながら、駆け引き要素がよくできたゲームである。（高得点を狙うほど、相手から一網打尽にされるリスクが上がっていく）
+もちろん、Knucklebones だけでなくゲーム自体の完成度もすばらしいのでぜひ遊んでみてほしい。</p>
+<h2 id="zhi-zuo-shou-shun">制作手順</h2>
+<p>おおよそ以下の手順で進めた。あくまでいち参考として見ていただけるとありがたい。</p>
+<ol>
+<li>ゲームシステム試作</li>
+<li>モデリング</li>
+<li>VCC 配布可能な Unity Project 作成</li>
+<li>モデルの Unity Setup</li>
+<li>ゲームロジック 実装</li>
+<li>動作確認</li>
+<li>サンプルワールド作成</li>
+<li>配布準備</li>
+</ol>
+<!---->
+    
+  </div>
+
+  <div class="text-sm antialiased opacity-60">
+  
+  <time>2024-11-14</time>
+  <span class="mx-1">&middot;</span>
+  <span>23min</span>
+  <!---->
+  <!---->
+  <!---->
+  <!---->
+  
+  <span class="mx-1">&middot;</span>
+  <span>wipeseals</span>
+  
+  <!-- Page Info inject -->
+  
+</div>
+
+
+  <a class="absolute inset-0 text-[0px]" href="https:&#x2F;&#x2F;blog.wipeseals.me&#x2F;blog&#x2F;2024&#x2F;create-vrchat-game&#x2F;">VRChatで動くボードゲームを作る</a>
+</section>
+
+<section
+  class="block-bg relative mb-4 rounded-lg p-4 first-of-type:mt-0 last-of-type:mb-0 active:scale-95 lg:mb-6 lg:p-6"
+>
+  <!---->
+
+  <h2 class="my-0! pb-1 leading-none! font-bold">U# assembly definition が定義されていない旨のエラー対処</h2>
+
+  <div class="not-prose my-1 truncate">
+    <!---->
+    <p>公開用に <code>Packages/</code> 側で U# のアプリケーションを作っているときに、以下でビルドエラーになったのでの備忘録。</p>
+<pre data-lang="log" style="background-color:#2b303b;color:#c0c5ce;" class="language-log "><code class="language-log" data-lang="log"><span>&#39;/Packages/XXX/XXX.cs&#39; does not belong to a U# assembly, have you made a U# assembly definition for the assembly the script is a part of?
+</span></code></pre>
+<p><del>エラーメッセージの通りで書き残すほどでもない気はするが、U# Assembly Definition についてあまり情報がなかったので書き残す</del></p>
+<p><em>記事を書いている途中に公式ドキュメントを見つけました。 <a href="https://udonsharp.docs.vrchat.com/migration/#does-not-belong-to-u-assembly">https://udonsharp.docs.vrchat.com/migration/#does-not-belong-to-u-assembly</a></em></p>
+<h2 id="assembly-definition-asmdef-nituite">Assembly Definition (asmdef) について</h2>
+<p>asmdef は定義済アセンブリを明示するための設定ファイル。</p>
+<p>Unity C#で記述した Script がコンパイルされる際、 asmdef で定義を明示しない場合は <code>Assembly-CSharp*</code> にまとめられる。
+自分の書いた Script とその他無関係の Script が同一のアセンブリにビルドされるため、クラス名の衝突であったりコンパイルの時間増加等の問題につながるため、特別な理由がなければ定義しておくほうが無難。</p>
+<p>参考: <a href="https://docs.unity3d.com/ja/2022.3/Manual/ScriptCompileOrderFolders.html">特殊フォルダーとスクリプトのコンパイル順 - Unity Documentation 2022.3</a></p>
+<!---->
+    
+  </div>
+
+  <div class="text-sm antialiased opacity-60">
+  
+  <time>2024-10-01</time>
+  <span class="mx-1">&middot;</span>
+  <span>3min</span>
+  <!---->
+  <!---->
+  <!---->
+  <!---->
+  
+  <span class="mx-1">&middot;</span>
+  <span>wipeseals</span>
+  
+  <!-- Page Info inject -->
+  
+</div>
+
+
+  <a class="absolute inset-0 text-[0px]" href="https:&#x2F;&#x2F;blog.wipeseals.me&#x2F;blog&#x2F;2024&#x2F;usharp-asmdef&#x2F;">U# assembly definition が定義されていない旨のエラー対処</a>
+</section>
+
+
+<!-- Main Nav -->
+
+<nav class="not-prose mt-16 flex font-bold">
+  <!---->
+  
+</nav>
+
+<!---->
+
+    </main>
+
+    <footer class="mx-auto flex max-w-3xl flex-wrap items-center px-8 py-4 text-sm opacity-60">
+  <div class="mr-auto basis-full lg:basis-1/2">
+    <!---->
+    <!---->
+    &copy; 2024 - 2025<!---->
+    
+    <a class="link" href="https://blog.wipeseals.me">
+      wipeseals
+    </a>
+    
+  </div>
+  <div class="flex basis-full lg:basis-1/2 lg:justify-end">
+    <a class="link mr-6 lg:ml-6" href="https://www.getzola.org/" rel="noopener" target="_blank">
+      Powered by Zola
+    </a>
+    <a class="link" href="https://github.com/st1020/kita" rel="noopener" target="_blank">✎ Kita</a>
+  </div>
+  <!-- Footer inject -->
+  
+</footer>
+
+
+    <!-- Body End inject -->
+    
+  </body>
+</html>

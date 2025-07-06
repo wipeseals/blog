@@ -1,0 +1,711 @@
+<!doctype html>
+<html class="not-ready lg:text-base" lang="ja">
+  <head>
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+
+  <!-- Title -->
+  <title>
+    RPi Pico PIO + DMA 転送覚書 (MicroPython 版) - blog.wipeseals.me
+  </title>
+
+  <!-- Meta -->
+  <meta name="theme-color" />
+
+  
+  <!-- Author -->
+  
+  <!---->
+  
+  <!---->
+  
+  <!---->
+  
+  <!---->
+  
+  <!---->
+  <meta name="description" content="RPi Pico PIO + DMA 転送覚書 (MicroPython 版)" />
+  <meta name="author" content="wipeseals" />
+  <!-- The Open Graph protocol -->
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="RPi Pico PIO + DMA 転送覚書 (MicroPython 版)" />
+  <meta property="og:site_name" content="blog.wipeseals.me" />
+  <meta property="og:description" content="RPi Pico PIO + DMA 転送覚書 (MicroPython 版)" />
+  <meta property="og:url" content="https:&#x2F;&#x2F;blog.wipeseals.me&#x2F;blog&#x2F;2025&#x2F;rpi-pico-pio-dma&#x2F;" />
+  
+  <!---->
+  
+  <!---->
+  
+  <!---->
+  
+  <meta property="og:image" content="https://blog.wipeseals.me/icon.png" />
+  
+  <!---->
+  
+
+  <!-- CSS & JS -->
+  <link rel="preload stylesheet" as="style" href="https://blog.wipeseals.me/main.css" />
+  <style>
+    :root {
+      --bg: #f4f4f5;
+      --bg-dark: #18181b;
+      --header: #e4e4e7;
+      --header-dark: #27272a;
+    }
+  </style>
+
+  
+
+  <!-- Dark Icon -->
+  <link rel="preload" as="image" href="https://blog.wipeseals.me/icons/theme.svg" />
+
+  <!-- Math -->
+  
+  <!---->
+  <link
+  rel="stylesheet"
+  href="https://cdn.jsdelivr.net/npm/katex@0.16/dist/katex.min.css"
+  crossorigin="anonymous"
+/>
+<script
+  defer
+  src="https://cdn.jsdelivr.net/npm/katex@0.16/dist/katex.min.js"
+  crossorigin="anonymous"
+></script>
+<script
+  defer
+  src="https://cdn.jsdelivr.net/npm/katex@0.16/dist/contrib/auto-render.min.js"
+  crossorigin="anonymous"
+></script>
+
+<script>
+  document.addEventListener("DOMContentLoaded", () =>
+    renderMathInElement(document.body, {
+      // customised options
+      // • auto-render specific keys, e.g.:
+      delimiters: [
+        { left: "$$", right: "$$", display: true },
+        { left: "$", right: "$", display: false },
+      ],
+      // • rendering keys, e.g.:
+      throwOnError: false,
+    }),
+  );
+</script>
+
+  <!---->
+  
+  <!---->
+
+  <!-- Mermaid -->
+  
+  <!---->
+  <script type="module">
+  import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs";
+
+  const initMermaid = (isDark) => {
+    mermaid.initialize({
+      theme: isDark ? "dark" : "default",
+      startOnLoad: false,
+    });
+    mermaid.run();
+  };
+
+  // Add data-mermaid-code attribute on all mermaid block.
+  document.querySelectorAll(".mermaid").forEach((element) => {
+    element.setAttribute("data-mermaid-code", element.innerHTML);
+  });
+
+  // Re-render mermaid when theme changed.
+  document.body.addEventListener("set-theme", (e) => {
+    document.querySelectorAll(".mermaid").forEach((element) => {
+      const mermaidCode = element.getAttribute("data-mermaid-code");
+      if (mermaidCode != null) {
+        element.removeAttribute("data-processed");
+        element.innerHTML = mermaidCode;
+      }
+    });
+    initMermaid(e.detail === "dark");
+  });
+
+  // The es module script will load defer, so the localStorage should already be set by script in header.
+  // If this script is loaded first, the script in header will dispatch an event to re-render mermaid, it's works too.
+  initMermaid(localStorage.getItem("dark") === "true");
+</script>
+
+  <!---->
+  
+  <!---->
+
+  <!-- Favicon -->
+  <link rel="icon" href="https://blog.wipeseals.me/favicon.ico" />
+  <link rel="apple-touch-icon" href="https://blog.wipeseals.me/apple-touch-icon.png" />
+
+  <!-- Feeds -->
+  
+  <!---->
+  
+  <link
+    rel="alternate"
+    type="application/atom+xml"
+    title="Atom"
+    href="https://blog.wipeseals.me/atom.xml"
+  />
+   
+  <!---->
+  
+
+  <!-- Canonical -->
+  <link rel="canonical" href="https:&#x2F;&#x2F;blog.wipeseals.me&#x2F;blog&#x2F;2025&#x2F;rpi-pico-pio-dma&#x2F;" />
+
+  <!-- Head inject -->
+  
+</head>
+
+  <body class="text-black duration-200 ease-out dark:text-white">
+    <header
+  class="header fixed top-0 z-40 mx-auto min-h-[3.5rem] w-full"
+>
+  <div class="mx-auto w-full max-w-4xl p-3 lg:flex lg:justify-between">
+    <div class="flex justify-between">
+      <div class="flex items-center">
+        <a class="text-2xl font-semibold" href="https://blog.wipeseals.me">blog.wipeseals.me</a>
+        <div
+          class="btn-dark ml-4 h-6 w-6 shrink-0 cursor-pointer text-[0px] [background:url(./icons/theme.svg)_left_center/cover_no-repeat] dark:[background-position:right] dark:invert"
+          role="button"
+          aria-label="Dark"
+        ></div>
+      </div>
+      
+      <div
+        class="btn-menu relative z-50 flex h-8 w-8 shrink-0 cursor-pointer flex-col items-center justify-center gap-2.5 lg:hidden"
+        role="button"
+        aria-label="Menu"
+      ></div>
+      
+    </div>
+    <script>
+      // base
+      const htmlClass = document.documentElement.classList;
+      setTimeout(() => {
+        htmlClass.remove("not-ready");
+      }, 10);
+
+      // mobile menu
+      const btnMenu = document.querySelector(".btn-menu");
+      btnMenu?.addEventListener("click", () => {
+        htmlClass.toggle("open");
+      });
+
+      // dark theme
+      const setDark = (isDark) => {
+        if (isDark) {
+          document.body.dispatchEvent(new CustomEvent("set-theme", { detail: "dark" }));
+          htmlClass.add("dark");
+        } else {
+          document.body.dispatchEvent(new CustomEvent("set-theme", { detail: "light" }));
+          htmlClass.remove("dark");
+        }
+        localStorage.setItem("dark", isDark);
+      };
+
+      // init
+      const darkScheme = window.matchMedia("(prefers-color-scheme: dark)");
+      if (htmlClass.contains("dark")) {
+        setDark(true);
+      } else {
+        const darkVal = localStorage.getItem("dark");
+        setDark(darkVal ? darkVal === "true" : darkScheme.matches);
+      }
+
+      // listen system
+      darkScheme.addEventListener("change", (event) => {
+        setDark(event.matches);
+      });
+
+      // manual switch
+      const btnDark = document.querySelector(".btn-dark");
+      btnDark.addEventListener("click", () => {
+        setDark(localStorage.getItem("dark") !== "true");
+      });
+    </script>
+    
+    <nav class="flex w-full items-center lg:w-auto">
+      <ul
+        class="nav-wrapper flex w-full flex-col py-2 lg:w-auto lg:flex-row lg:self-center lg:py-0"
+      >
+        
+        <li>
+          <a
+            class="primary-link block py-2 text-center text-lg font-medium lg:px-3 lg:py-0"
+            href="https://blog.wipeseals.me"
+            >blog</a
+          >
+        </li>
+        
+        <li>
+          <a
+            class="primary-link block py-2 text-center text-lg font-medium lg:px-3 lg:py-0"
+            href="https://blog.wipeseals.me/tags"
+            >tags</a
+          >
+        </li>
+        
+        <li>
+          <a
+            class="primary-link block py-2 text-center text-lg font-medium lg:px-3 lg:py-0"
+            href="https://blog.wipeseals.me/work"
+            >work</a
+          >
+        </li>
+        
+        <li>
+          <a
+            class="primary-link block py-2 text-center text-lg font-medium lg:px-3 lg:py-0"
+            href="https://wipeseals.me"
+            >about</a
+          >
+        </li>
+        
+        <li>
+          <a
+            class="primary-link block py-2 text-center text-lg font-medium lg:px-3 lg:py-0"
+            href="https://github.com/wipeseals"
+            >github</a
+          >
+        </li>
+        
+      </ul>
+      <!-- Header Nav inject -->
+      
+    </nav>
+    
+  </div>
+</header>
+
+
+    <!-- Body Start inject -->
+    
+
+    <main
+      class="prose prose-neutral dark:prose-invert prose-pre:rounded-lg prose-img:rounded-lg relative mx-auto min-h-[calc(100vh-9rem)] max-w-3xl px-4 pt-24 pb-16 break-words lg:pt-32"
+    >
+      
+<article>
+  <!-- Page Start inject -->
+  
+
+  <header class="mb-16">
+    <h1 class="my-0! pb-2.5">RPi Pico PIO + DMA 転送覚書 (MicroPython 版)</h1>
+    <div class="text-sm antialiased opacity-60">
+  
+  <time>2025-06-03</time>
+  <span class="mx-1">&middot;</span>
+  <span>5min</span>
+  <!---->
+  <!---->
+  <!---->
+  <!---->
+  
+  <span class="mx-1">&middot;</span>
+  <span>wipeseals</span>
+  
+  <!-- Page Info inject -->
+  
+</div>
+
+  </header>
+
+  
+
+  <!-- TOC -->
+  <!---->
+<div class="block-bg mb-12 flex rounded-lg p-2 text-lg">
+  <details>
+    <summary class="cursor-pointer py-1 pl-4">
+      <span>Table of Contents</span>
+    </summary>
+    <div class="px-2">
+      <ul>
+        
+        <li>
+          <a class="no-underline hover:underline" href="https://blog.wipeseals.me/blog/2025/rpi-pico-pio-dma/#hw-shang-da-cheng-subekikoto"
+            >HW 上達成すべきこと</a
+          >
+          
+          <ul>
+            
+            <li>
+              <a class="no-underline hover:underline" href="https://blog.wipeseals.me/blog/2025/rpi-pico-pio-dma/#piox-base"
+                >PIOx_BASE</a
+              >
+            </li>
+            
+            <li>
+              <a class="no-underline hover:underline" href="https://blog.wipeseals.me/blog/2025/rpi-pico-pio-dma/#t-r-xfy"
+                >(T|R)XFy</a
+              >
+            </li>
+            
+            <li>
+              <a class="no-underline hover:underline" href="https://blog.wipeseals.me/blog/2025/rpi-pico-pio-dma/#dma-niokeru-fifo-status-noque-ren"
+                >DMA における FIFO Status の確認</a
+              >
+            </li>
+            
+          </ul>
+          
+        </li>
+        
+        <li>
+          <a class="no-underline hover:underline" href="https://blog.wipeseals.me/blog/2025/rpi-pico-pio-dma/#micropython-denoshi-zhuang"
+            >MicroPython での実装</a
+          >
+          
+        </li>
+        
+        <li>
+          <a class="no-underline hover:underline" href="https://blog.wipeseals.me/blog/2025/rpi-pico-pio-dma/#tips"
+            >Tips</a
+          >
+          
+          <ul>
+            
+            <li>
+              <a class="no-underline hover:underline" href="https://blog.wipeseals.me/blog/2025/rpi-pico-pio-dma/#byteswap-sitai"
+                >byteswap したい</a
+              >
+            </li>
+            
+            <li>
+              <a class="no-underline hover:underline" href="https://blog.wipeseals.me/blog/2025/rpi-pico-pio-dma/#1byte-zutuzhuan-song-sitai"
+                >1byte ずつ転送したい</a
+              >
+            </li>
+            
+            <li>
+              <a class="no-underline hover:underline" href="https://blog.wipeseals.me/blog/2025/rpi-pico-pio-dma/#sniff-sitai-chain-sitai"
+                >sniff したい、chain したい、...</a
+              >
+            </li>
+            
+          </ul>
+          
+        </li>
+        
+        <li>
+          <a class="no-underline hover:underline" href="https://blog.wipeseals.me/blog/2025/rpi-pico-pio-dma/#zhong-warini"
+            >終わりに</a
+          >
+          
+        </li>
+        
+        <li>
+          <a class="no-underline hover:underline" href="https://blog.wipeseals.me/blog/2025/rpi-pico-pio-dma/#reference"
+            >Reference</a
+          >
+          
+        </li>
+        
+      </ul>
+    </div>
+  </details>
+</div>
+
+<!---->
+
+  <!-- Content -->
+  <section><p>MicroPython を用いて Raspberry Pi Pico の PIO と DMA を使う方法についての覚書。それぞれの情報は入手できるが、TX_FIFO/RX_FIFO 両方に DMA する例がなかったので書き残す。</p>
+<p>本内容は MicroPython のドキュメント並びに RP2040 の仕様書から抜粋した内容となっている。</p>
+<h2 id="hw-shang-da-cheng-subekikoto">HW 上達成すべきこと</h2>
+<p><code>PIOx_BASE</code> + <code>(T|R)XFy</code> のアドレスに読み書きを行うこと。</p>
+<p>以下内容より PIO Address <code>x= (0|1)</code> と
+<code>(T|R)XFy</code> のアドレス <code>y= (0|1|2|3)</code> を組み合わせて、PIO の TX_FIFO/RX_FIFO にアクセスする。</p>
+<h3 id="piox-base"><code>PIOx_BASE</code></h3>
+<p><code>PIOx_BASE</code> は、PIO の Base Address。 2.2. Address Map にて以下定義がなされている。</p>
+<ul>
+<li><code>PIO0_BASE</code> = <code>0x50200000</code></li>
+<li><code>PIO1_BASE</code> = <code>0x50300000</code></li>
+</ul>
+<h3 id="t-r-xfy"><code>(T|R)XFy</code></h3>
+<p><code>(T|R)XFy</code> は、PIO の TX_FIFO/RX_FIFO のレジスタ。Chapter 3. PIO 3.7. List of Registers にて以下定義がなされている。</p>
+<table><thead><tr><th>Offset</th><th>Name</th></tr></thead><tbody>
+<tr><td>0x010</td><td><code>TXF0</code></td></tr>
+<tr><td>0x014</td><td><code>TXF1</code></td></tr>
+<tr><td>0x018</td><td><code>TXF2</code></td></tr>
+<tr><td>0x01C</td><td><code>TXF3</code></td></tr>
+<tr><td>0x020</td><td><code>RXF0</code></td></tr>
+<tr><td>0x024</td><td><code>RXF1</code></td></tr>
+<tr><td>0x028</td><td><code>RXF2</code></td></tr>
+<tr><td>0x02C</td><td><code>RXF3</code></td></tr>
+</tbody></table>
+<p>FIFO の空きに関連する情報は Offset 0x008 <code>FDEBUG</code> レジスタの <code>TXSTALL</code>, <code>TXOVER</code>, <code>RXUNDER</code>, <code>RXSTALL</code> 及び FLEVEL の <code>(T|R)Xy</code>から確認できる。</p>
+<h3 id="dma-niokeru-fifo-status-noque-ren">DMA における FIFO Status の確認</h3>
+<p>DMA が一方的にデータ転送しても FIFO にデータがないのに読み出したり、あるのに書き込んで溢れてしまう。これを防ぐため、ペリフェラル（ここでは PIO）のペースでデータ転送を行えるようなしくみがあり、 Data Request (DREQ) と呼ばれる設定を行う。</p>
+<p>2.5.3.1 System DREQ Table の設定があり、PIO に関連する内容は以下のようになっている。</p>
+<p><code>DREQ# = PIO# * 4 + (4 if RX else 0) + SM#</code></p>
+<table><thead><tr><th>PIO</th><th>SM</th><th>PORT</th><th>DREQ#</th><th>Description</th></tr></thead><tbody>
+<tr><td>0</td><td>0</td><td>TX</td><td>0</td><td>PIO0 SM0 TX DREQ</td></tr>
+<tr><td>0</td><td>0</td><td>TX</td><td>1</td><td>PIO0 SM1 TX DREQ</td></tr>
+<tr><td>0</td><td>0</td><td>TX</td><td>2</td><td>PIO0 SM2 TX DREQ</td></tr>
+<tr><td>0</td><td>0</td><td>TX</td><td>3</td><td>PIO0 SM3 TX DREQ</td></tr>
+<tr><td>0</td><td>0</td><td>RX</td><td>4</td><td>PIO0 SM0 RX DREQ</td></tr>
+<tr><td>0</td><td>0</td><td>RX</td><td>5</td><td>PIO0 SM1 RX DREQ</td></tr>
+<tr><td>0</td><td>0</td><td>RX</td><td>6</td><td>PIO0 SM2 RX DREQ</td></tr>
+<tr><td>0</td><td>0</td><td>RX</td><td>7</td><td>PIO0 SM3 RX DREQ</td></tr>
+<tr><td>1</td><td>0</td><td>TX</td><td>8</td><td>PIO1 SM0 TX DREQ</td></tr>
+<tr><td>1</td><td>0</td><td>TX</td><td>9</td><td>PIO1 SM1 TX DREQ</td></tr>
+<tr><td>1</td><td>0</td><td>TX</td><td>10</td><td>PIO1 SM2 TX DREQ</td></tr>
+<tr><td>1</td><td>0</td><td>TX</td><td>11</td><td>PIO1 SM3 TX DREQ</td></tr>
+<tr><td>1</td><td>0</td><td>RX</td><td>12</td><td>PIO1 SM0 RX DREQ</td></tr>
+<tr><td>1</td><td>0</td><td>RX</td><td>13</td><td>PIO1 SM1 RX DREQ</td></tr>
+<tr><td>1</td><td>0</td><td>RX</td><td>14</td><td>PIO1 SM2 RX DREQ</td></tr>
+<tr><td>1</td><td>0</td><td>RX</td><td>15</td><td>PIO1 SM3 RX DREQ</td></tr>
+</tbody></table>
+<h2 id="micropython-denoshi-zhuang">MicroPython での実装</h2>
+<p>DMA class, PIO class, StateMachine class を使って、PIO の TX_FIFO/RX_FIFO に DMA 転送を行う。</p>
+<p>入力されたデータを Echo する PIO プログラムを実行し、TX_FIFO と RX_FIFO の両方に DMA 転送を行う例を示す。</p>
+<pre data-lang="python" style="background-color:#2b303b;color:#c0c5ce;" class="language-python "><code class="language-python" data-lang="python"><span style="color:#65737e;"># 送受信するデータ
+</span><span>tx_data = array.</span><span style="color:#bf616a;">array</span><span>(&quot;</span><span style="color:#a3be8c;">I</span><span>&quot;, [</span><span style="color:#d08770;">0x12345678</span><span>, </span><span style="color:#d08770;">0x9ABCDEF0</span><span>, </span><span style="color:#d08770;">0xDEADBEEF</span><span>, </span><span style="color:#d08770;">0xFEEDFACE</span><span>]) </span><span style="color:#65737e;"># test data
+</span><span>rx_data = array.</span><span style="color:#bf616a;">array</span><span>(&quot;</span><span style="color:#a3be8c;">I</span><span>&quot;, [</span><span style="color:#d08770;">0</span><span>] * </span><span style="color:#96b5b4;">len</span><span>(tx_data))
+</span><span>
+</span><span>
+</span><span style="color:#65737e;"># PIO プログラムの定義
+</span><span>@rp2.</span><span style="color:#bf616a;">asm_pio</span><span>(
+</span><span>    </span><span style="color:#65737e;"># out, sideset, shift方向, autopush等の設定がここで行える
+</span><span>)
+</span><span style="color:#b48ead;">def </span><span style="color:#8fa1b3;">pio_echoback</span><span>():
+</span><span>    </span><span style="color:#65737e;"># PIO asm本体。ここではTX_FIFOの内容をRX_FIFOにそのまま返す
+</span><span>    </span><span style="color:#bf616a;">wrap_target</span><span>()
+</span><span>    </span><span style="color:#bf616a;">pull</span><span>(block)
+</span><span>    </span><span style="color:#bf616a;">out</span><span>(x, </span><span style="color:#d08770;">32</span><span>)
+</span><span>    </span><span style="color:#bf616a;">in_</span><span>(x, </span><span style="color:#d08770;">32</span><span>)
+</span><span>    </span><span style="color:#bf616a;">push</span><span>(block)
+</span><span>    </span><span style="color:#bf616a;">wrap</span><span>()
+</span><span>
+</span><span style="color:#65737e;"># PIO0 State Machine 0を起動
+</span><span>sm0 = rp2.</span><span style="color:#bf616a;">StateMachine</span><span>(</span><span style="color:#d08770;">0</span><span>)
+</span><span>sm0.</span><span style="color:#bf616a;">init</span><span>(
+</span><span>    </span><span style="color:#bf616a;">prog</span><span>=pio_echoback,
+</span><span>    </span><span style="color:#bf616a;">freq</span><span>=</span><span style="color:#d08770;">125_000_000</span><span>,  </span><span style="color:#65737e;"># 125MHz
+</span><span>    </span><span style="color:#65737e;"># pin設定, 周波数設定等の設定が行える
+</span><span>)
+</span><span>sm0.</span><span style="color:#bf616a;">active</span><span>(</span><span style="color:#d08770;">1</span><span>)
+</span><span>
+</span><span>
+</span><span style="color:#65737e;"># Setup TX DMA
+</span><span>tx_dma0 = rp2.</span><span style="color:#bf616a;">DMA</span><span>()
+</span><span>tx_dma0_ctrl = tx_dma0.</span><span style="color:#bf616a;">pack_ctrl</span><span>(
+</span><span>    </span><span style="color:#bf616a;">size</span><span>=</span><span style="color:#d08770;">2</span><span>,  </span><span style="color:#65737e;"># 0=1byte, 1=2byte, 2=4byte転送
+</span><span>    </span><span style="color:#bf616a;">inc_read</span><span>=</span><span style="color:#d08770;">True</span><span>,
+</span><span>    </span><span style="color:#bf616a;">inc_write</span><span>=</span><span style="color:#d08770;">False</span><span>,  </span><span style="color:#65737e;"># PIO0 TXF0は場所固定なのでincrementしない
+</span><span>    </span><span style="color:#bf616a;">treq_sel</span><span>=</span><span style="color:#d08770;">0</span><span>,  </span><span style="color:#65737e;"># PIO0 SM0 TX DREQ
+</span><span>)
+</span><span>tx_dma0.</span><span style="color:#bf616a;">config</span><span>(
+</span><span>    </span><span style="color:#bf616a;">read</span><span>=tx_data,  </span><span style="color:#65737e;"># 転送元データをそのまま渡す
+</span><span>    </span><span style="color:#bf616a;">write</span><span>=sm0,  </span><span style="color:#65737e;"># state machine をそのまま渡す
+</span><span>    </span><span style="color:#bf616a;">count</span><span>=</span><span style="color:#96b5b4;">len</span><span>(
+</span><span>        tx_data
+</span><span>    ),  </span><span style="color:#65737e;"># 転送byte数ではなく、pack_ctrlのsizeで指定した単位での転送数なので注意
+</span><span>    </span><span style="color:#bf616a;">ctrl</span><span>=tx_dma0_ctrl,
+</span><span>    </span><span style="color:#bf616a;">trigger</span><span>=</span><span style="color:#d08770;">True</span><span>,  </span><span style="color:#65737e;"># 開始
+</span><span>)
+</span><span>
+</span><span style="color:#65737e;"># Setup RX DMA
+</span><span>rx_dma0 = rp2.</span><span style="color:#bf616a;">DMA</span><span>()
+</span><span>rx_dma0_ctrl = rx_dma0.</span><span style="color:#bf616a;">pack_ctrl</span><span>(
+</span><span>    </span><span style="color:#bf616a;">size</span><span>=</span><span style="color:#d08770;">2</span><span>,  </span><span style="color:#65737e;"># 0=1byte, 1=2byte, 2=4byte転送
+</span><span>    </span><span style="color:#bf616a;">inc_read</span><span>=</span><span style="color:#d08770;">False</span><span>,  </span><span style="color:#65737e;"># PIO0 RXF0は場所固定なのでincrementしない
+</span><span>    </span><span style="color:#bf616a;">inc_write</span><span>=</span><span style="color:#d08770;">True</span><span>,
+</span><span>    </span><span style="color:#bf616a;">treq_sel</span><span>=</span><span style="color:#d08770;">4</span><span>,  </span><span style="color:#65737e;"># PIO0 SM0 RX DREQ
+</span><span>)
+</span><span>rx_dma0.</span><span style="color:#bf616a;">config</span><span>(
+</span><span>    </span><span style="color:#bf616a;">read</span><span>=sm0,  </span><span style="color:#65737e;"># state machine をそのまま渡す
+</span><span>    </span><span style="color:#bf616a;">write</span><span>=rx_data,  </span><span style="color:#65737e;"># 転送先データをそのまま渡す
+</span><span>    </span><span style="color:#bf616a;">count</span><span>=</span><span style="color:#96b5b4;">len</span><span>(
+</span><span>        tx_data
+</span><span>    ),  </span><span style="color:#65737e;"># 転送byte数ではなく、pack_ctrlのsizeで指定した単位での転送数なので注意
+</span><span>    </span><span style="color:#bf616a;">ctrl</span><span>=rx_dma0_ctrl,
+</span><span>    </span><span style="color:#bf616a;">trigger</span><span>=</span><span style="color:#d08770;">True</span><span>,
+</span><span>)
+</span><span>
+</span><span style="color:#65737e;"># 転送完了待ち
+</span><span style="color:#b48ead;">while </span><span>rx_dma0.</span><span style="color:#bf616a;">active</span><span>():
+</span><span>    </span><span style="color:#b48ead;">pass
+</span><span>
+</span><span style="color:#65737e;"># 結果確認
+</span><span style="color:#b48ead;">for </span><span>i </span><span style="color:#b48ead;">in </span><span style="color:#96b5b4;">range</span><span>(</span><span style="color:#96b5b4;">len</span><span>(rx_data)):
+</span><span>    </span><span style="color:#96b5b4;">print</span><span>(</span><span style="color:#b48ead;">f</span><span>&quot;</span><span style="color:#a3be8c;">TX Data[</span><span>{i}</span><span style="color:#a3be8c;">]: </span><span>{tx_data[i]</span><span style="color:#d08770;">:#010x</span><span>}</span><span style="color:#a3be8c;">, RX Data[</span><span>{i}</span><span style="color:#a3be8c;">]: </span><span>{rx_data[i]</span><span style="color:#d08770;">:#010x</span><span>}&quot;)
+</span><span>    </span><span style="color:#b48ead;">assert </span><span>tx_data[i] == rx_data[i], (
+</span><span>        </span><span style="color:#b48ead;">f</span><span>&quot;</span><span style="color:#a3be8c;">Data mismatch at index </span><span>{i}</span><span style="color:#a3be8c;">: </span><span>{tx_data[i]</span><span style="color:#d08770;">:#010x</span><span>}</span><span style="color:#a3be8c;"> != </span><span>{rx_data[i]</span><span style="color:#d08770;">:#010x</span><span>}&quot;
+</span><span>    )
+</span><span>
+</span><span style="color:#65737e;"># 終了処理
+</span><span>sm0.</span><span style="color:#bf616a;">active</span><span>(</span><span style="color:#d08770;">0</span><span>)
+</span><span>tx_dma0.</span><span style="color:#bf616a;">close</span><span>()
+</span><span>rx_dma0.</span><span style="color:#bf616a;">close</span><span>()
+</span></code></pre>
+<p>出力</p>
+<pre data-lang="log" style="background-color:#2b303b;color:#c0c5ce;" class="language-log "><code class="language-log" data-lang="log"><span>TX Data[0]: 0x12345678, RX Data[0]: 0x12345678
+</span><span>TX Data[1]: 0x9abcdef0, RX Data[1]: 0x9abcdef0
+</span><span>TX Data[2]: 0xdeadbeef, RX Data[2]: 0xdeadbeef
+</span><span>TX Data[3]: 0xfeedface, RX Data[3]: 0xfeedface
+</span></code></pre>
+<h2 id="tips">Tips</h2>
+<h3 id="byteswap-sitai">byteswap したい</h3>
+<p>pio program 中でエンディアンが入れ替わってしまうケースなどを想定。BSWAP option があり、これは DMA の設定で行える</p>
+<pre data-lang="python" style="background-color:#2b303b;color:#c0c5ce;" class="language-python "><code class="language-python" data-lang="python"><span style="color:#65737e;"># Setup RX DMA
+</span><span>rx_dma0 = rp2.</span><span style="color:#bf616a;">DMA</span><span>()
+</span><span>rx_dma0_ctrl = rx_dma0.</span><span style="color:#bf616a;">pack_ctrl</span><span>(
+</span><span>    </span><span style="color:#bf616a;">size</span><span>=</span><span style="color:#d08770;">2</span><span>,  </span><span style="color:#65737e;"># 0=1byte, 1=2byte, 2=4byte転送
+</span><span>    </span><span style="color:#bf616a;">inc_read</span><span>=</span><span style="color:#d08770;">False</span><span>,  </span><span style="color:#65737e;"># PIO0 RXF0は場所固定なのでincrementしない
+</span><span>    </span><span style="color:#bf616a;">inc_write</span><span>=</span><span style="color:#d08770;">True</span><span>,
+</span><span>    </span><span style="color:#bf616a;">bswap</span><span>=</span><span style="color:#d08770;">True</span><span>,  </span><span style="color:#65737e;"># 受信データはBig Endianなので、バイトオーダーを反転
+</span><span>    </span><span style="color:#bf616a;">treq_sel</span><span>=</span><span style="color:#d08770;">4</span><span>,  </span><span style="color:#65737e;"># PIO0 SM0 RX DREQ
+</span><span>)
+</span></code></pre>
+<p>実行結果</p>
+<pre data-lang="log" style="background-color:#2b303b;color:#c0c5ce;" class="language-log "><code class="language-log" data-lang="log"><span>TX Data[0]: 0x12345678, RX Data[0]: 0x78563412
+</span><span>Traceback (most recent call last):
+</span><span>  File &quot;&lt;stdin&gt;&quot;, line 444, in &lt;module&gt;
+</span><span>AssertionError: Data mismatch at index 0: 0x12345678 != 0x78563412
+</span></code></pre>
+<h3 id="1byte-zutuzhuan-song-sitai">1byte ずつ転送したい</h3>
+<p><code>size=0</code> を指定することで、1byte ずつ転送できる。転送カウント数に注意</p>
+<pre data-lang="python" style="background-color:#2b303b;color:#c0c5ce;" class="language-python "><code class="language-python" data-lang="python"><span style="color:#65737e;"># Setup TX DMA
+</span><span>tx_dma0 = rp2.</span><span style="color:#bf616a;">DMA</span><span>()
+</span><span>tx_dma0_ctrl = tx_dma0.</span><span style="color:#bf616a;">pack_ctrl</span><span>(
+</span><span>    </span><span style="color:#bf616a;">size</span><span>=</span><span style="color:#d08770;">0</span><span>,  </span><span style="color:#65737e;"># 0=1byte, 1=2byte, 2=4byte転送
+</span><span>    </span><span style="color:#bf616a;">inc_read</span><span>=</span><span style="color:#d08770;">True</span><span>,
+</span><span>    </span><span style="color:#bf616a;">inc_write</span><span>=</span><span style="color:#d08770;">False</span><span>,  </span><span style="color:#65737e;"># PIO0 TXF0は場所固定なのでincrementしない
+</span><span>    </span><span style="color:#bf616a;">treq_sel</span><span>=</span><span style="color:#d08770;">0</span><span>,  </span><span style="color:#65737e;"># PIO0 SM0 TX DREQ
+</span><span>)
+</span><span>tx_dma0.</span><span style="color:#bf616a;">config</span><span>(
+</span><span>    </span><span style="color:#bf616a;">read</span><span>=tx_data,  </span><span style="color:#65737e;"># 転送元データをそのまま渡す
+</span><span>    </span><span style="color:#bf616a;">write</span><span>=sm0,  </span><span style="color:#65737e;"># state machine をそのまま渡す
+</span><span>    </span><span style="color:#bf616a;">count</span><span>=</span><span style="color:#96b5b4;">len</span><span>(tx_data) * </span><span style="color:#d08770;">4</span><span>,  </span><span style="color:#65737e;"># 転送byte数ではなく、pack_ctrlのsizeで指定した単位での転送数なので注意
+</span><span>    </span><span style="color:#bf616a;">ctrl</span><span>=tx_dma0_ctrl,
+</span><span>    </span><span style="color:#bf616a;">trigger</span><span>=</span><span style="color:#d08770;">True</span><span>,  </span><span style="color:#65737e;"># 開始
+</span><span>)
+</span><span>
+</span><span style="color:#65737e;"># RX側も同様に修正
+</span></code></pre>
+<p>結果</p>
+<pre data-lang="log" style="background-color:#2b303b;color:#c0c5ce;" class="language-log "><code class="language-log" data-lang="log"><span>TX Data[0]: 0x12345678, RX Data[0]: 0x12345678
+</span><span>TX Data[1]: 0x9abcdef0, RX Data[1]: 0x9abcdef0
+</span><span>TX Data[2]: 0xdeadbeef, RX Data[2]: 0xdeadbeef
+</span><span>TX Data[3]: 0xfeedface, RX Data[3]: 0xfeedface
+</span></code></pre>
+<h3 id="sniff-sitai-chain-sitai">sniff したい、chain したい、...</h3>
+<p><code>DMA.pack_ctrl()</code> や園周辺を読むと概ねやりたいことは記載があるはず。先に示した例を下に改造・改良していくことを推奨。</p>
+<p><a href="https://micropython-docs-ja.readthedocs.io/ja/latest/library/rp2.DMA.html#rp2.DMA.pack_ctrl">MicroPython library - rp2.DMA</a></p>
+<h2 id="zhong-warini">終わりに</h2>
+<p><code>DMA.config</code> の <code>read</code>, <code>write</code> に Peripheral が来るケースでの指定がいまいち読み取りづらかったので書き残した。</p>
+<h2 id="reference">Reference</h2>
+<ul>
+<li><a href="https://micropython-docs-ja.readthedocs.io/ja/latest/library/rp2.html">MicroPython library - rp2</a></li>
+<li><a href="https://datasheets.raspberrypi.com/rp2040/rp2040-datasheet.pdf">RP2040 Datasheet</a></li>
+</ul>
+</section>
+
+  <hr />
+
+  <!-- Post Taxonomies -->
+  
+<footer class="mt-12 flex flex-col">
+  <!---->
+  <!---->
+  <!---->
+  <!---->
+  
+  <div class="mb-2 flex flex-wrap">
+    <span class="block-bg mr-1.5 mb-1.5 rounded-lg px-5 py-1.5">Tags </span>
+    
+    <a
+      class="block-bg block-hover mr-1.5 mb-1.5 rounded-lg px-5 py-1.5 no-underline"
+      href="https://blog.wipeseals.me/tags/raspberrypi/"
+      >raspberrypi</a
+    >
+    
+    <a
+      class="block-bg block-hover mr-1.5 mb-1.5 rounded-lg px-5 py-1.5 no-underline"
+      href="https://blog.wipeseals.me/tags/micropython/"
+      >micropython</a
+    >
+    
+    <a
+      class="block-bg block-hover mr-1.5 mb-1.5 rounded-lg px-5 py-1.5 no-underline"
+      href="https://blog.wipeseals.me/tags/pio/"
+      >pio</a
+    >
+    
+    <a
+      class="block-bg block-hover mr-1.5 mb-1.5 rounded-lg px-5 py-1.5 no-underline"
+      href="https://blog.wipeseals.me/tags/dma/"
+      >dma</a
+    >
+    
+    <a
+      class="block-bg block-hover mr-1.5 mb-1.5 rounded-lg px-5 py-1.5 no-underline"
+      href="https://blog.wipeseals.me/tags/embedded/"
+      >embedded</a
+    >
+    
+  </div>
+  
+</footer>
+
+<!---->
+
+  <!-- Post Nav -->
+  
+<nav class="block-bg mt-12 flex flex-wrap rounded-lg text-lg">
+  
+  <a
+    class="block-hover-mask flex min-w-[50%] grow items-center rounded-l-md p-6 pr-3 font-semibold no-underline"
+    href="https:&#x2F;&#x2F;blog.wipeseals.me&#x2F;blog&#x2F;2025&#x2F;build-riscv-tests-on-docker&#x2F;"
+    ><span class="mr-1.5">←</span><span>Docker で riscv-tests をビルドする</span></a
+  >
+  <!---->
+  
+</nav>
+
+<!---->
+
+  <!-- Comment -->
+  
+
+  <!-- Page End inject -->
+  
+</article>
+
+    </main>
+
+    <footer class="mx-auto flex max-w-3xl flex-wrap items-center px-8 py-4 text-sm opacity-60">
+  <div class="mr-auto basis-full lg:basis-1/2">
+    <!---->
+    <!---->
+    &copy; 2024 - 2025<!---->
+    
+    <a class="link" href="https://blog.wipeseals.me">
+      wipeseals
+    </a>
+    
+  </div>
+  <div class="flex basis-full lg:basis-1/2 lg:justify-end">
+    <a class="link mr-6 lg:ml-6" href="https://www.getzola.org/" rel="noopener" target="_blank">
+      Powered by Zola
+    </a>
+    <a class="link" href="https://github.com/st1020/kita" rel="noopener" target="_blank">✎ Kita</a>
+  </div>
+  <!-- Footer inject -->
+  
+</footer>
+
+
+    <!-- Body End inject -->
+    
+  </body>
+</html>
