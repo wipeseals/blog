@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom" xml:lang="en">
+    <title>blog.wipeseals.me - Driver</title>
+    <subtitle>Miscellaneous logs...</subtitle>
+    <link rel="self" type="application/atom+xml" href="https://blog.wipeseals.me/tags/driver/atom.xml"/>
+    <link rel="alternate" type="text/html" href="https://blog.wipeseals.me"/>
+    <generator uri="https://www.getzola.org/">Zola</generator>
+    <updated>2024-10-30T00:00:00+00:00</updated>
+    <id>https://blog.wipeseals.me/tags/driver/atom.xml</id>
+    <entry xml:lang="en">
+        <title>Raspberry PI PIO で NANDアクセスを高速化する</title>
+        <published>2024-10-30T00:00:00+00:00</published>
+        <updated>2024-10-30T00:00:00+00:00</updated>
+        
+        <author>
+          <name>
+            
+              Unknown
+            
+          </name>
+        </author>
+        
+        <link rel="alternate" type="text/html" href="https://blog.wipeseals.me/blog/2024/rpi-pio-nand/"/>
+        <id>https://blog.wipeseals.me/blog/2024/rpi-pio-nand/</id>
+        
+        <summary type="html">&lt;p&gt;登壇する機会があったのでその際の資料。RP2040 に搭載されている Programmable IO を用いて、Parallel Command I&#x2F;F である NAND IC へのアクセスを高速化検討した話。&lt;&#x2F;p&gt;
+&lt;p&gt;&lt;a href=&quot;&#x2F;2024&#x2F;rpi-pio-nand&#x2F;rpi-pio-nand.pdf&quot;&gt;rpi-pio-nand.pdf&lt;&#x2F;a&gt;&lt;&#x2F;p&gt;
+&lt;p&gt;資料は marp を使用して作成したので、以後は元になった資料の markdown 移植版&lt;&#x2F;p&gt;
+&lt;h2 id=&quot;bei-jing&quot;&gt;背景&lt;&#x2F;h2&gt;
+&lt;p&gt;最近 SSD 自作キット JISC-SSD で &lt;del&gt;時折放置してますが&lt;&#x2F;del&gt; 遊んでいます。
+途中まで C++で書いていましたが、気まぐれで Rust 再実装中...&lt;&#x2F;p&gt;
+&lt;p&gt;RPi Pico: RP2040 Cortex-M0+ DualCore @133MHz
+NAND Flash: KIOXIA TC58NVG0S3HTA00 1Gbit SLC ECC なし&lt;&#x2F;p&gt;
+&lt;table&gt;&lt;thead&gt;&lt;tr&gt;&lt;th&gt;外観&lt;&#x2F;th&gt;&lt;th&gt;回路図抜粋&lt;&#x2F;th&gt;&lt;th&gt;RP2040 Block Diagram&lt;&#x2F;th&gt;&lt;&#x2F;tr&gt;&lt;&#x2F;thead&gt;&lt;tbody&gt;
+&lt;tr&gt;&lt;td&gt;&lt;img src=&quot;&#x2F;2024&#x2F;rpi-pio-nand&#x2F;sashie01-scaled.jpg&quot; alt=&quot;width:400px&quot; &#x2F;&gt;&lt;&#x2F;td&gt;&lt;td&gt;&lt;img src=&quot;&#x2F;2024&#x2F;rpi-pio-nand&#x2F;jisc-ssd-schema.png&quot; alt=&quot;width:700px&quot; &#x2F;&gt;&lt;&#x2F;td&gt;&lt;td&gt;&lt;img src=&quot;&#x2F;2024&#x2F;rpi-pio-nand&#x2F;rp2040-diagram.png&quot; alt=&quot;width:600px&quot; &#x2F;&gt;&lt;&#x2F;td&gt;&lt;&#x2F;tr&gt;
+&lt;tr&gt;&lt;td&gt;&lt;&#x2F;td&gt;&lt;td&gt;GPIO で NAND と直結&lt;&#x2F;td&gt;&lt;td&gt;&lt;&#x2F;td&gt;&lt;&#x2F;tr&gt;
+&lt;&#x2F;tbody&gt;&lt;&#x2F;table&gt;
+</summary>
+        
+    </entry>
+    <entry xml:lang="en">
+        <title>RustでUSB Mass Storage Class Bulk-Only Transportを実装する</title>
+        <published>2024-09-17T00:00:00+00:00</published>
+        <updated>2024-09-17T00:00:00+00:00</updated>
+        
+        <author>
+          <name>
+            
+              Unknown
+            
+          </name>
+        </author>
+        
+        <link rel="alternate" type="text/html" href="https://blog.wipeseals.me/blog/2024/usbmsc/"/>
+        <id>https://blog.wipeseals.me/blog/2024/usbmsc/</id>
+        
+        <summary type="html">&lt;p&gt;掲題の通り Rust で USB Mass Storage Class (MSC) Bulk-Only Transport を実装した。
+RAM 上の値を Disk Drive に見せかけたデバイスとして Windows から認識できるようになったので要所を書き残す。&lt;&#x2F;p&gt;
+&lt;p&gt;実装には Rust を使用し、 Raspberry pi pico (rp2040) 上で動作確認を行っている。実装の Framework には &lt;a href=&quot;https:&#x2F;&#x2F;github.com&#x2F;embassy-rs&#x2F;embassy&quot;&gt;embassy-rs&lt;&#x2F;a&gt; を使用した。&lt;&#x2F;p&gt;
+&lt;h2 id=&quot;usb-tong-xin-nogou-cheng-she-ding&quot;&gt;USB 通信の構成・設定&lt;&#x2F;h2&gt;
+&lt;p&gt;&lt;a href=&quot;https:&#x2F;&#x2F;www.usb.org&#x2F;sites&#x2F;default&#x2F;files&#x2F;usbmassbulk_10.pdf&quot;&gt;Mass Storage Bulk Only 1.0 - usb.org&lt;&#x2F;a&gt; に基づいて実装する。具体的に以下の通信を行う。&lt;&#x2F;p&gt;
+&lt;p&gt;&lt;img src=&quot;&#x2F;2024&#x2F;usbmsc&#x2F;usb-config.png&quot; alt=&quot;usb-config.png&quot; &#x2F;&gt;&lt;&#x2F;p&gt;
+&lt;h3 id=&quot;descriptor-gou-cheng&quot;&gt;Descriptor 構成&lt;&#x2F;h3&gt;
+&lt;ul&gt;
+&lt;li&gt;USB Device
+&lt;ul&gt;
+&lt;li&gt;Device Descriptor (MSC Bulk Only Transport)&lt;&#x2F;li&gt;
+&lt;li&gt;Configuration Descriptor
+&lt;ul&gt;
+&lt;li&gt;Interface Descriptor0 (MSC Bulk Only Transport)
+&lt;ul&gt;
+&lt;li&gt;Endpoint Descriptor1: Bulk out&lt;&#x2F;li&gt;
+&lt;li&gt;Endpoint Descriptor2: Bulk in&lt;&#x2F;li&gt;
+&lt;&#x2F;ul&gt;
+&lt;&#x2F;li&gt;
+&lt;&#x2F;ul&gt;
+&lt;&#x2F;li&gt;
+&lt;&#x2F;ul&gt;
+&lt;&#x2F;li&gt;
+&lt;&#x2F;ul&gt;
+&lt;h3 id=&quot;usb-mass-storage-class&quot;&gt;USB Mass Storage Class&lt;&#x2F;h3&gt;
+&lt;p&gt;USB（に限らない話だが）を用いた通信は Host&#x2F;Device 双方の FW で共通のプロトコル定義に基づいた実装が必要だが、一般的に使われる機能については USB の仕様としてクラス定義されている。&lt;&#x2F;p&gt;
+&lt;p&gt;例: キーボード・マウス等入力デバイス定義 &lt;a href=&quot;https:&#x2F;&#x2F;usb.org&#x2F;sites&#x2F;default&#x2F;files&#x2F;hid1_11.pdf&quot;&gt;Device Class Definition for Human Interface Devices(HID)&lt;&#x2F;a&gt;&lt;&#x2F;p&gt;
+&lt;p&gt;今日使われている OS で USB が使える環境にあれば、Host 側のドライバ実装は多くの場合用意されているので、独自のドライバ作成と署名・インストールの手順を省くことができる。
+開発者は Device 側の FW を定義に基づいて実装するだけで良い。&lt;&#x2F;p&gt;
+&lt;p&gt;このクラス定義のうち、外付け記憶装置を制御するための 1 つとして MSC がある。&lt;&#x2F;p&gt;
+</summary>
+        
+    </entry>
+</feed>

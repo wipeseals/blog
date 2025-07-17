@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom" xml:lang="en">
+    <title>blog.wipeseals.me - diary</title>
+    <subtitle>Miscellaneous logs...</subtitle>
+    <link rel="self" type="application/atom+xml" href="https://blog.wipeseals.me/tags/diary/atom.xml"/>
+    <link rel="alternate" type="text/html" href="https://blog.wipeseals.me"/>
+    <generator uri="https://www.getzola.org/">Zola</generator>
+    <updated>2024-11-10T00:00:00+00:00</updated>
+    <id>https://blog.wipeseals.me/tags/diary/atom.xml</id>
+    <entry xml:lang="en">
+        <title>Blog を作る</title>
+        <published>2024-11-10T00:00:00+00:00</published>
+        <updated>2024-11-10T00:00:00+00:00</updated>
+        
+        <author>
+          <name>
+            
+              Unknown
+            
+          </name>
+        </author>
+        
+        <link rel="alternate" type="text/html" href="https://blog.wipeseals.me/blog/2024/create-blog/"/>
+        <id>https://blog.wipeseals.me/blog/2024/create-blog/</id>
+        
+        <content type="html" xml:base="https://blog.wipeseals.me/blog/2024/create-blog/">&lt;p&gt;何度目かはわからないがまだ懲りずにテックブログを作った。
+今年に入ってネット隠居やめつつあることや、技術以外の微妙なものの書き置き場所としては自分の置き場が欲しい背景がある...と、
+新型コロナウイルス感染症になっている間にぐるぐる考えていて、ちょうどいま病み上がりの今机に座る練習がてら作ってみた。
+まだ結構倦怠感があるのとおそらく後遺症ぽいがやたら疲れる。弊はリモートではないのでもう一日大事で休んだほうが良いかもしれない。&lt;&#x2F;p&gt;
+&lt;p&gt;ここ数年はあまりアウトプットこそしていなかったが、技術私生活ともにまとめておきたい事柄はあるので、気を見てぼちぼち更新していきたい。&lt;&#x2F;p&gt;
+</content>
+        
+    </entry>
+</feed>

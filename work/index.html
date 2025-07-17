@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>My Works | blog.wipeseals.me</title>
+    
+    <meta http-equiv="content-type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+    <meta name="robots" content="noodp"/>
+
+    <link rel="stylesheet" href="https://blog.wipeseals.me/style.css">
+    <link rel="stylesheet" href="https://blog.wipeseals.me/color/blue-light.css">
+
+        <link rel="stylesheet" href="https://blog.wipeseals.me/color/background_light.css">
+    
+    <link rel="stylesheet" href="https://blog.wipeseals.me/font-hack.css">
+
+    <meta name="description" content="">
+
+    <meta property="og:description" content="">
+    <meta property="og:title" content="My Works | blog.wipeseals.me">
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="https://blog.wipeseals.me/work/">
+
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:description" content="">
+    <meta name="twitter:title" content="My Works | blog.wipeseals.me">
+    <meta property="twitter:domain" content="blog.wipeseals.me">
+    <meta property="twitter:url" content="https://blog.wipeseals.me/work/">
+
+        <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico">
+    
+    </head>
+
+<body class="">
+<div class="container">
+    
+    <header class="header">
+        <div class="header__inner">
+            <div class="header__logo">
+                    
+                <a href="/" style="text-decoration: none;">
+                    <div class="logo">
+                      
+                            blog.wipeseals.me
+                        
+                    </div>
+                </a>
+            </div>
+        </div>
+
+        
+        <nav class="menu">
+            <ul class="menu__inner">
+                <li><a href="https://blog.wipeseals.me">blog</a></li>
+            
+                <li><a href="https://blog.wipeseals.me/tags">tags</a></li>
+            
+                <li><a href="https://blog.wipeseals.me/archive">archive</a></li>
+            
+                <li class="active"><a href="https://blog.wipeseals.me/work">work</a></li>
+            
+                <li><a href="https://wipeseals.me">about</a></li>
+            
+                <li><a href="https://github.com/wipeseals" target="_blank" rel="noopener noreferrer">github</a></li>
+            </ul>
+        </nav>
+    
+    
+        
+    </header>
+    
+
+    <div class="content">
+        
+    <div class="post">
+        
+    <h1 class="post-title"><a href="https://blog.wipeseals.me/work/">My Works</a></h1>
+    <div class="post-meta-inline">
+        
+    <span class="post-date"></span>
+
+    </div>
+
+    
+
+        <div class="post-content">
+            <p>Last updated: 2025/07/07</p>
+<h2 id="nandio-pio">nandio.pio</h2>
+<p>A project that accelerates NAND Flash communication using the Raspberry Pi Pico's PIO (Programmable I/O).</p>
+<p><img src="https://github.com/wipeseals/nandio.pio/raw/master/misc/PioNandCommander-ProgramPage-Core125MHz-Pio125MHz.png" alt="img" /></p>
+<ul>
+<li>Online Simulation Report: <a href="https://wipeseals.github.io/nandio.pio/">https://wipeseals.github.io/nandio.pio/</a></li>
+<li>GitHub: <a href="https://github.com/wipeseals/nandio.pio">https://github.com/wipeseals/nandio.pio</a></li>
+</ul>
+<hr />
+<h2 id="udonknucklebones">UdonKnucklebones</h2>
+<p>This is a playable implementation of the dice game "Knucklebones" designed for the social VR platform, VRChat.</p>
+<p><img src="https://github.com/wipeseals/UdonKnucklebones/raw/main/Docs~/screenshot/asset-preview.png" alt="img" /></p>
+<ul>
+<li>GitHub: <a href="https://github.com/wipeseals/UdonKnucklebones">https://github.com/wipeseals/UdonKnucklebones</a></li>
+<li>BOOTH: <a href="https://wipeseals.booth.pm/items/6278798">https://wipeseals.booth.pm/items/6278798</a></li>
+<li>Demo World: <a href="https://vrchat.com/home/launch?worldId=wrld_1cfea318-1c43-4093-a077-38ca6bcf8491">https://vrchat.com/home/launch?worldId=wrld_1cfea318-1c43-4093-a077-38ca6bcf8491</a></li>
+</ul>
+<hr />
+<h2 id="nvme-bar0-viewer">nvme-bar0-viewer</h2>
+<p>A parser and validator for binary dumps of NVMe (Non-Volatile Memory Express) Controller Registers, specifically over PCIe BAR0.</p>
+<pre data-lang="bash" style="background-color:#ffffff;color:#010101;" class="language-bash "><code class="language-bash" data-lang="bash"><span style="color:#696989;">❯</span><span> echo </span><span style="color:#009f78;">&quot;00000000: ff ff 03 3c 30 00 00 00 00 04 01 00 00 00 00 00
+</span><span style="color:#009f78;">        00000010: 00 00 00 00 01 40 46 00 00 00 00 00 09 00 00 00
+</span><span style="color:#009f78;">        00000020: 00 00 00 00 1f 00 1f 00 00 c0 a4 ff 00 00 00 00
+</span><span style="color:#009f78;">        00000030: 00 d0 a4 ff 00 00 00 00 00 00 00 00 00 00 00 00&quot; </span><span style="color:#016692;">| </span><span style="color:#696989;">npx</span><span> nvme-bar0-viewer</span><span style="color:#696989;"> --json
+</span><span>{
+</span><span>  </span><span style="color:#009f78;">&quot;registers&quot;</span><span style="color:#696989;">:</span><span> [
+</span><span>    {
+</span><span>      </span><span style="color:#009f78;">&quot;offset&quot;</span><span style="color:#696989;">:</span><span> 0,
+</span><span>      </span><span style="color:#009f78;">&quot;size&quot;</span><span style="color:#696989;">:</span><span> 8,
+</span><span>      </span><span style="color:#009f78;">&quot;name&quot;</span><span style="color:#696989;">: </span><span style="color:#009f78;">&quot;CAP&quot;</span><span>,
+</span><span>      </span><span style="color:#009f78;">&quot;value&quot;</span><span style="color:#696989;">: </span><span style="color:#009f78;">&quot;207165325311&quot;</span><span>,
+</span><span>      </span><span style="color:#009f78;">&quot;description&quot;</span><span style="color:#696989;">: </span><span style="color:#009f78;">&quot;Controller Capabilities&quot;</span><span>,
+</span><span>      </span><span style="color:#009f78;">&quot;fields&quot;</span><span style="color:#696989;">:</span><span> [
+</span><span>(</span><span style="color:#696989;">snipped</span><span>)
+</span></code></pre>
+<ul>
+<li>Viewer: <a href="https://wipeseals.github.io/nvme-bar0-viewer">https://wipeseals.github.io/nvme-bar0-viewer/</a></li>
+<li>GitHub: <a href="https://github.com/wipeseals/nvme-bar0-viewer">https://github.com/wipeseals/nvme-bar0-viewer</a></li>
+<li>NPM: <a href="https://www.npmjs.com/package/nvme-bar0-viewer">https://www.npmjs.com/package/nvme-bar0-viewer</a></li>
+</ul>
+<hr />
+<h2 id="litex-multibinary-combiner">litex-multibinary-combiner</h2>
+<p>A utility designed to merge multiple LiteX binaries into a single, combined binary file.</p>
+<pre data-lang="bash" style="background-color:#ffffff;color:#010101;" class="language-bash "><code class="language-bash" data-lang="bash"><span style="color:#696989;">$</span><span> python main.py /path/to/boot.json
+</span><span style="color:#696989;">[17:52:18]</span><span> INFO     Boot JSON Path: D:</span><span style="color:#333366;">\D</span><span>ata</span><span style="color:#333366;">\D</span><span>ownloads</span><span style="color:#333366;">\l</span><span>inux_2022_03_23</span><span style="color:#333366;">\b</span><span>oot.json                                                         main.py:68
+</span><span>           </span><span style="color:#696989;">INFO</span><span>     Output File: D:</span><span style="color:#333366;">\D</span><span>ata</span><span style="color:#333366;">\D</span><span>ownloads</span><span style="color:#333366;">\l</span><span>inux_2022_03_23</span><span style="color:#333366;">\C</span><span>ombined.bin                                                         main.py:69
+</span><span>           </span><span style="color:#696989;">INFO</span><span>     Initial Value: 0                                                                                                     main.py:70
+</span><span>           </span><span style="color:#696989;">INFO</span><span>     Start Address: 0x0000000040000000                                                                                    main.py:71
+</span><span>           </span><span style="color:#696989;">INFO</span><span>     End Address: 0x000000004139b400                                                                                      main.py:72
+</span><span>           </span><span style="color:#696989;">INFO</span><span>     Total Size: 20558848 bytes                                                                                           main.py:73
+</span><span>           </span><span style="color:#696989;">INFO</span><span>     0x0000000040000000 - 0x000000004072ebcc: 7531468 bytes  Image                                                        main.py:89
+</span><span>           </span><span style="color:#696989;">INFO</span><span>     0x000000004072ebcc - 0x0000000040ef0000: 8131636 bytes  Fill with 0x00                                               main.py:83
+</span><span>           </span><span style="color:#696989;">INFO</span><span>     0x0000000040ef0000 - 0x0000000040ef07cf: 1999 bytes     rv32.dtb                                                     main.py:89
+</span><span>           </span><span style="color:#696989;">INFO</span><span>     0x0000000040ef07cf - 0x0000000040f00000: 63537 bytes    Fill with 0x00                                               main.py:83
+</span><span>           </span><span style="color:#696989;">INFO</span><span>     0x0000000040f00000 - 0x0000000040f0d188: 53640 bytes    opensbi.bin                                                  main.py:89
+</span><span>           </span><span style="color:#696989;">INFO</span><span>     0x0000000040f0d188 - 0x0000000041000000: 994936 bytes   Fill with 0x00                                               main.py:83
+</span><span>           </span><span style="color:#696989;">INFO</span><span>     0x0000000041000000 - 0x000000004139b400: 3781632 bytes  rootfs.cpio                                                  main.py:89
+</span><span>           </span><span style="color:#696989;">INFO</span><span>     Done. Output: D:</span><span style="color:#333366;">\D</span><span>ata</span><span style="color:#333366;">\D</span><span>ownloads</span><span style="color:#333366;">\l</span><span>inux_2022_03_23</span><span style="color:#333366;">\C</span><span>ombined.bin                                                        main.py:95
+</span></code></pre>
+<ul>
+<li>GitHub: <a href="https://github.com/wipeseals/litex-multibinary-combiner">https://github.com/wipeseals/litex-multibinary-combiner</a></li>
+</ul>
+<hr />
+<h2 id="riscv-inst-viewer">riscv-inst-viewer</h2>
+<p>A tool that allows you to search and decode the RISC-V instruction set.</p>
+<p>input</p>
+<pre data-lang="text" style="background-color:#ffffff;color:#010101;" class="language-text "><code class="language-text" data-lang="text"><span>0x0010051b
+</span></code></pre>
+<p>output</p>
+<pre data-lang="text" style="background-color:#ffffff;color:#010101;" class="language-text "><code class="language-text" data-lang="text"><span>ADDIW x10, x0, 1
+</span><span>Instruction: ADDIW (Add Immediate Word)
+</span><span>Format: I-Type (I / RV64)
+</span><span>Opcode: 0011011
+</span><span>rd: x10 (val: 10)
+</span><span>funct3: 000
+</span><span>rs1: x0 (val: 0)
+</span><span>rs2: x1 (val: 1)
+</span><span>funct7: 0000000
+</span><span>Immediate: 1 (0x1)
+</span></code></pre>
+<ul>
+<li>Viewer: <a href="https://wipeseals.github.io/riscv-inst-viewer/">https://wipeseals.github.io/riscv-inst-viewer/</a></li>
+<li>GitHub: <a href="https://github.com/wipeseals/riscv-inst-viewer">https://github.com/wipeseals/riscv-inst-viewer</a></li>
+</ul>
+<hr />
+<h2 id="asciidrom">asciidrom</h2>
+<p>A converter that transforms Wavedrom JSON timing diagrams into ASCII art suitable for embedding in source code comments.</p>
+<p>input</p>
+<pre data-lang="js" style="background-color:#ffffff;color:#010101;" class="language-js "><code class="language-js" data-lang="js"><span>{ </span><span style="color:#a15001;">signal</span><span>: [
+</span><span>  { name: </span><span style="color:#009f78;">&quot;clk&quot;</span><span>, wave: </span><span style="color:#009f78;">&quot;p..P..p..P..p&quot; </span><span>},
+</span><span>  { name: </span><span style="color:#009f78;">&quot;req&quot;</span><span>, wave: </span><span style="color:#009f78;">&quot;0.1..0....10.&quot; </span><span>},
+</span><span>  { name: </span><span style="color:#009f78;">&quot;bus&quot;</span><span>, wave: </span><span style="color:#009f78;">&quot;x.22.333.4.x.5x&quot;</span><span>, data: [</span><span style="color:#009f78;">&quot;A&quot;</span><span>, </span><span style="color:#009f78;">&quot;B&quot;</span><span>, </span><span style="color:#009f78;">&quot;C&quot;</span><span>, </span><span style="color:#009f78;">&quot;D&quot;</span><span>] },
+</span><span>  {}, </span><span style="color:#898989;">// spacer
+</span><span>  [</span><span style="color:#009f78;">&quot;Group Name&quot;</span><span>,
+</span><span>    { name: </span><span style="color:#009f78;">&quot;ack&quot;</span><span>, wave: </span><span style="color:#009f78;">&quot;0..1..0..1.0.&quot; </span><span>},
+</span><span>    { name: </span><span style="color:#009f78;">&quot;data&quot;</span><span>, wave: </span><span style="color:#009f78;">&quot;x..2..x..3.x.&quot;</span><span>, data: [</span><span style="color:#009f78;">&quot;d1&quot;</span><span>, </span><span style="color:#009f78;">&quot;d2&quot;</span><span>] }
+</span><span>  ]
+</span><span>],
+</span><span>}
+</span></code></pre>
+<p>output</p>
+<pre data-lang="text" style="background-color:#ffffff;color:#010101;" class="language-text "><code class="language-text" data-lang="text"><span>clk        | _/¯¯\__/¯_/¯¯\__/¯_/¯¯\__/¯_/¯¯\__/¯_/¯¯\__/¯
+</span><span>req        | _______/¯¯¯¯¯¯¯¯\______________/¯¯\__________
+</span><span>bus        | xxxxxx=A==B=====C==D===========xxxxxx==xxx
+</span><span>           |
+</span><span>Group Name
+</span><span>  ack      | __________/¯¯¯¯¯¯¯¯\________/¯¯¯¯¯\__________
+</span><span>  data     | xxxxxxxxx=d=======xxxxxxxxx=d====xxxxxxxxxxxx
+</span></code></pre>
+<ul>
+<li>Viewer: <a href="https://wipeseals.github.io/asciidrom/">https://wipeseals.github.io/asciidrom/</a></li>
+<li>GitHub: <a href="https://github.com/wipeseals/asciidrom">https://github.com/wipeseals/asciidrom</a></li>
+</ul>
+<hr />
+<h2 id="dot-illust-converter">dot-illust-converter</h2>
+<p>An image converter that transforms pictures into a retro, pixel-art game style.</p>
+<ul>
+<li>Online: <a href="https://wipeseals.github.io/dot-illust-converter/">https://wipeseals.github.io/dot-illust-converter/</a></li>
+<li>GitHub: <a href="https://github.com/wipeseals/dot-illust-converter">https://github.com/wipeseals/dot-illust-converter</a></li>
+</ul>
+
+        </div>
+
+        
+    </div>
+
+    </div>
+
+    
+    <footer class="footer">
+        <div class="footer__inner">
+                <div class="copyright copyright--user">Copyright &copy; 2025 wipeseals</div>
+            </div>
+    </footer>
+    
+
+</div>
+</body>
+
+</html>

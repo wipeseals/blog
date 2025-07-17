@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>LiteX を Ubuntu 24.04 on WSL2 で使用し、 Demo Applicationを動作させる | blog.wipeseals.me</title>
+    
+    <meta http-equiv="content-type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+    <meta name="robots" content="noodp"/>
+
+    <link rel="stylesheet" href="https://blog.wipeseals.me/style.css">
+    <link rel="stylesheet" href="https://blog.wipeseals.me/color/blue-light.css">
+
+        <link rel="stylesheet" href="https://blog.wipeseals.me/color/background_light.css">
+    
+    <link rel="stylesheet" href="https://blog.wipeseals.me/font-hack.css">
+
+    <meta name="description" content="">
+
+    <meta property="og:description" content="">
+    <meta property="og:title" content="LiteX を Ubuntu 24.04 on WSL2 で使用し、 Demo Applicationを動作させる | blog.wipeseals.me">
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="https://blog.wipeseals.me/blog/2025/setup-litex/">
+
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:description" content="">
+    <meta name="twitter:title" content="LiteX を Ubuntu 24.04 on WSL2 で使用し、 Demo Applicationを動作させる | blog.wipeseals.me">
+    <meta property="twitter:domain" content="blog.wipeseals.me">
+    <meta property="twitter:url" content="https://blog.wipeseals.me/blog/2025/setup-litex/">
+
+        <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico">
+    
+    </head>
+
+<body class="">
+<div class="container">
+    
+    <header class="header">
+        <div class="header__inner">
+            <div class="header__logo">
+                    
+                <a href="/" style="text-decoration: none;">
+                    <div class="logo">
+                      
+                            blog.wipeseals.me
+                        
+                    </div>
+                </a>
+            </div>
+        </div>
+
+        
+        
+                <nav class="menu">
+            <ul class="menu__inner">
+                <li class="active"><a href="https://blog.wipeseals.me">blog</a></li>
+            
+                <li><a href="https://blog.wipeseals.me/tags">tags</a></li>
+            
+                <li><a href="https://blog.wipeseals.me/archive">archive</a></li>
+            
+                <li><a href="https://blog.wipeseals.me/work">work</a></li>
+            
+                <li><a href="https://wipeseals.me">about</a></li>
+            
+                <li><a href="https://github.com/wipeseals" target="_blank" rel="noopener noreferrer">github</a></li>
+            </ul>
+        </nav>
+    
+    
+        
+    </header>
+    
+
+    <div class="content">
+        
+    <div class="post">
+        
+    <h1 class="post-title"><a href="https://blog.wipeseals.me/blog/2025/setup-litex/">LiteX を Ubuntu 24.04 on WSL2 で使用し、 Demo Applicationを動作させる</a></h1>
+    <div class="post-meta-inline">
+        
+    <span class="post-date">
+            2025-02-24
+        </span>
+
+    </div>
+
+    
+        <span class="post-tags-inline">
+                :: tags:&nbsp;
+                <a class="post-tag" href="https://blog.wipeseals.me/tags/embedded/">#Embedded</a>&nbsp;
+                <a class="post-tag" href="https://blog.wipeseals.me/tags/linux/">#Linux</a>&nbsp;
+                <a class="post-tag" href="https://blog.wipeseals.me/tags/fpga/">#fpga</a>&nbsp;
+                <a class="post-tag" href="https://blog.wipeseals.me/tags/litex/">#litex</a>&nbsp;
+                <a class="post-tag" href="https://blog.wipeseals.me/tags/riscv/">#riscv</a>&nbsp;
+                <a class="post-tag" href="https://blog.wipeseals.me/tags/tech/">#tech</a></span>
+    
+
+        <div class="post-content">
+            <p>LiteX を Windows 環境で使用したく、試していたときの備忘録。以下の通り無事 demo app の動作確認までたどり着けたので書き残す。</p>
+<p><img src="/2025/setup-litex/vexriscv-donut.mp4.gif" alt="movie gif" /></p>
+<hr />
+<h2 id="shou-shun-matome">手順まとめ</h2>
+<p>時系列順に実行した内容のまとめを先に記載する。細かいトラブルシューティングは後半に記載。</p>
+<h3 id="huan-jing-gou-zhu">環境構築</h3>
+<p>基本手順は<a href="https://github.com/enjoy-digital/litex?tab=readme-ov-file#quick-start-guide">公式ドキュメントの Quick Start Guide</a>に従い、WSL2 上にインストールした Ubuntu 24.04 で行う。
+要点は以下。</p>
+<ul>
+<li>virtualenv を作成し、Python 仮想環境中で実行する</li>
+<li>virtualenv 中で user install を実行するとエラーになるため、 <code>--user</code> オプションを使用しない</li>
+<li>litex の repo ごと取得した状態で <code>litex_setup.py</code> を実行しない</li>
+</ul>
+<pre data-lang="sh" style="background-color:#ffffff;color:#010101;" class="language-sh "><code class="language-sh" data-lang="sh"><span style="color:#898989;"># verilator導入
+</span><span style="color:#696989;">$</span><span> sudo apt install verilator
+</span><span>
+</span><span style="color:#898989;"># litexの取得
+</span><span style="color:#696989;">$</span><span> wget https://raw.githubusercontent.com/enjoy-digital/litex/master/litex_setup.py
+</span><span style="color:#696989;">$</span><span> chmod +x litex_setup.py
+</span><span>
+</span><span style="color:#898989;"># venv導入
+</span><span style="color:#696989;">$</span><span> sudo apt install python3-venv
+</span><span style="color:#898989;"># 仮想環境作成 + activate
+</span><span style="color:#696989;">$</span><span> python3</span><span style="color:#696989;"> -m</span><span> venv .venv
+</span><span style="color:#696989;">$</span><span> source .venv/bin/activate
+</span><span>
+</span><span style="color:#898989;"># litex_setup.py の実行
+</span><span style="color:#696989;">$</span><span> python3 ./litex_setup.py</span><span style="color:#696989;"> --init --install --config</span><span style="color:#016692;">=</span><span>full
+</span><span>
+</span><span style="color:#898989;"># RSC-V toolchain の導入 (binutils-riscv* 等が導入されるので管理者権限必要)
+</span><span style="color:#696989;">$</span><span> pip3 install meson ninja
+</span><span style="color:#696989;">$</span><span> sudo ./litex_setup.py</span><span style="color:#696989;"> --gcc</span><span style="color:#016692;">=</span><span>riscv
+</span></code></pre>
+<h3 id="shi-ji-wu-sidenotesuto">実機無しでのテスト</h3>
+<p>ハマりポイントは特になし。verilator があれば動くはず。</p>
+<span id="continue-reading"></span><pre data-lang="bash" style="background-color:#ffffff;color:#010101;" class="language-bash "><code class="language-bash" data-lang="bash"><span style="color:#898989;"># sim に必要なPackage導入
+</span><span style="color:#696989;">$</span><span> sudo apt install libevent-dev libjson-c-dev verilator
+</span><span style="color:#696989;">$</span><span> litex_sim</span><span style="color:#696989;"> --cpu-type</span><span style="color:#016692;">=</span><span>vexriscv
+</span><span>
+</span><span style="color:#696989;">...
+</span><span style="color:#696989;">[ethernet]</span><span> loaded (0x55b1423482f0)
+</span><span style="color:#696989;">[jtagremote]</span><span> loaded (0x55b1423482f0)
+</span><span style="color:#696989;">[spdeeprom]</span><span> loaded (addr = 0x0)
+</span><span style="color:#696989;">[serial2tcp]</span><span> loaded (0x55b1423482f0)
+</span><span style="color:#696989;">[gmii_ethernet]</span><span> loaded (0x55b1423482f0)
+</span><span style="color:#696989;">[xgmii_ethernet]</span><span> loaded (0x55b1423482f0)
+</span><span style="color:#696989;">[serial2console]</span><span> loaded (0x55b1423482f0)
+</span><span style="color:#696989;">[clocker]</span><span> loaded
+</span><span style="color:#696989;">[clocker]</span><span> sys_clk: freq_hz=1000000, phase_deg=0
+</span><span>
+</span><span>        </span><span style="color:#696989;">__</span><span>   _ __      _  __
+</span><span>       </span><span style="color:#696989;">/</span><span> /  (_) </span><span style="color:#696989;">/____ </span><span style="color:#016692;">| |</span><span style="color:#696989;">/_/
+</span><span>      </span><span style="color:#696989;">/</span><span> /__/ / __/</span><span style="color:#696989;"> -_</span><span>)</span><span style="color:#016692;">&gt;  &lt;
+</span><span>     </span><span style="color:#696989;">/____/_/</span><span style="color:#333366;">\_</span><span style="color:#696989;">_/</span><span style="color:#333366;">\_</span><span style="color:#696989;">_/_/</span><span style="color:#016692;">|</span><span style="color:#696989;">_</span><span style="color:#016692;">|
+</span><span>   </span><span style="color:#696989;">Build</span><span> your hardware, easily!
+</span><span>
+</span><span> (</span><span style="color:#696989;">c</span><span>) Copyright 2012-2024 Enjoy-Digital
+</span><span> (</span><span style="color:#696989;">c</span><span>) Copyright 2007-2015 M-Labs
+</span><span>
+</span><span> </span><span style="color:#696989;">BIOS</span><span> built on Feb 24 2025 13:45:02
+</span><span> </span><span style="color:#696989;">BIOS</span><span> CRC passed (1cf8ec0e)
+</span><span>
+</span><span> </span><span style="color:#696989;">LiteX</span><span> git sha1: dd54d77db
+</span><span>
+</span><span style="color:#696989;">-</span><span style="color:#016692;">-=</span><span style="color:#009f78;">============== </span><span style="color:#696989;">SoC</span><span> ==================--
+</span><span style="color:#696989;">CPU:</span><span>            VexRiscv @ 1MHz
+</span><span style="color:#696989;">BUS:</span><span>            wishbone 32-bit @ 4GiB
+</span><span style="color:#696989;">CSR:</span><span>            32-bit data
+</span><span style="color:#696989;">ROM:</span><span>            128.0KiB
+</span><span style="color:#696989;">SRAM:</span><span>           8.0KiB
+</span><span>
+</span><span>
+</span><span style="color:#696989;">-</span><span style="color:#016692;">-=</span><span style="color:#009f78;">============= </span><span style="color:#696989;">Boot</span><span> ==================--
+</span><span style="color:#696989;">Booting</span><span> from serial...
+</span><span style="color:#696989;">Press</span><span> Q or ESC to abort boot completely.
+</span><span style="color:#696989;">sL5DdSMmkekro
+</span><span style="color:#696989;">Timeout
+</span><span style="color:#696989;">No</span><span> boot medium found
+</span><span>
+</span><span style="color:#696989;">-</span><span style="color:#016692;">-=</span><span style="color:#009f78;">============ </span><span style="color:#696989;">Console</span><span> ================--
+</span><span>
+</span><span style="color:#696989;">litex</span><span style="color:#016692;">&gt;
+</span></code></pre>
+<h3 id="arty-xiang-kenibirudo">Arty 向けにビルド</h3>
+<p>要点</p>
+<ul>
+<li>vivado 導入前に locale の設定が必要 (en_US.UTF-8 に設定)</li>
+<li>WSL2 であること。もしくは何らかの X11 forwading 環境があること (Vivado install 時の GUI 表示に必要)</li>
+<li>vivado の path を通すこと</li>
+</ul>
+<h4 id="vivado-dao-ru">Vivado 導入</h4>
+<p>Offline installer を取得し、WSL 上で展開。WSL2 は GUI の画面転送を公式サポートしているので installer の GUI はそのまま表示される。GUI 上でセットアップを進める。</p>
+<pre data-lang="bash" style="background-color:#ffffff;color:#010101;" class="language-bash "><code class="language-bash" data-lang="bash"><span style="color:#696989;">$</span><span> tar</span><span style="color:#696989;"> -xvf</span><span> /path/to/FPGAs_AdaptiveSoCs_Unified_2024.2_1113_1001.tar
+</span><span style="color:#696989;">FPGAs_AdaptiveSoCs_Unified_2024.2_1113_1001/payload/rdi_0006_2024.2_1113_1001.xz
+</span><span style="color:#696989;">FPGAs_AdaptiveSoCs_Unified_2024.2_1113_1001/payload/rdi_0380_2024.2_1113_1001.xz
+</span><span style="color:#696989;">FPGAs_AdaptiveSoCs_Unified_2024.2_1113_1001/payload/rdi_0035_2024.2_1113_1001.xz
+</span><span style="color:#696989;">FPGAs_AdaptiveSoCs_Unified_2024.2_1113_1001/payload/sdnet_0001_2024.2_1113_1001.xz
+</span><span style="color:#696989;">FPGAs_AdaptiveSoCs_Unified_2024.2_1113_1001/payload/rdi_0729_2024.2_1113_1001.xz
+</span><span style="color:#696989;">...
+</span><span>
+</span><span style="color:#898989;"># locale の設定をしておく
+</span><span style="color:#696989;">$</span><span> sudo locale-gen </span><span style="color:#009f78;">&quot;en_US.UTF-8&quot;
+</span><span style="color:#696989;">$</span><span> sudo update-locale LANG=en_US.UTF-8
+</span><span>
+</span><span style="color:#898989;"># setup dir に権限必要なケースあるので sudo
+</span><span style="color:#696989;">$</span><span> cd FPGAs_AdaptiveSoCs_Unified_2024.2_1113_1001
+</span><span style="color:#696989;">$</span><span> sudo ./xsetup
+</span><span>
+</span><span style="color:#898989;"># 以後 GUI Setup
+</span><span>
+</span><span style="color:#898989;"># bashrc にて環境変数設定
+</span><span style="color:#696989;">$</span><span> echo </span><span style="color:#009f78;">&#39;source /tools/Xilinx/Vivado/2024.2/settings64.sh&#39; </span><span style="color:#016692;">&gt;&gt; </span><span style="color:#696989;">~</span><span>/.bashrc
+</span><span>
+</span></code></pre>
+<h4 id="lun-li-he-cheng">論理合成</h4>
+<p>vivado に path が通っていれば、Vivado を使う FPGA の合成が通るはず。</p>
+<p><code>litex-boards/litex_boards/targets/</code> にボード定義があるのでこれの help を見てみると、build,load,flash など合成及び書き込みに関する情報と、ボード上の HW (usb/ethernet/....) の有効無効切り替え、CPU の設定等々がある。
+WSL 上からの直接書き込みは hw_server を Host 側で立てればいけるはずだが、今回の主目的は LiteX 立ち上げなので、 Windows 側の Vivado で書き込むことにする。</p>
+<pre data-lang="bash" style="background-color:#ffffff;color:#010101;" class="language-bash "><code class="language-bash" data-lang="bash"><span style="color:#696989;">$</span><span> python litex-boards/litex_boards/targets/digilent_arty.py</span><span style="color:#696989;"> --build
+</span><span style="color:#696989;">...
+</span><span style="color:#696989;">Creating</span><span> config memory files...
+</span><span style="color:#696989;">Creating</span><span> bitstream load up from address 0x00000000
+</span><span style="color:#696989;">Loading</span><span> bitfile digilent_arty.bit
+</span><span style="color:#696989;">Writing</span><span> file ./digilent_arty.bin
+</span><span style="color:#696989;">Writing</span><span> log file ./digilent_arty.prm
+</span><span style="color:#016692;">=</span><span style="color:#009f78;">==================================
+</span><span style="color:#696989;">Configuration</span><span> Memory information
+</span><span style="color:#016692;">=</span><span style="color:#009f78;">==================================
+</span><span style="color:#696989;">File</span><span> Format        BIN
+</span><span style="color:#696989;">Interface</span><span>          SPIX4
+</span><span style="color:#696989;">Size</span><span>               16M
+</span><span style="color:#696989;">Start</span><span> Address      0x00000000
+</span><span style="color:#696989;">End</span><span> Address        0x00FFFFFF
+</span><span>
+</span><span style="color:#696989;">Addr1</span><span>         Addr2         Date                    File(s)
+</span><span style="color:#696989;">0x00000000</span><span>    0x0021728B    Feb 24 16:20:10 2025    digilent_arty.bit
+</span><span style="color:#696989;">0</span><span> Infos, 0 Warnings, 0 Critical Warnings and 0 Errors encountered.
+</span><span style="color:#696989;">write_cfgmem</span><span> completed successfully
+</span><span style="color:#898989;"># quit
+</span><span style="color:#696989;">INFO: </span><span style="color:#016692;">[</span><span>Common 17</span><span style="color:#016692;">-</span><span>206</span><span style="color:#016692;">]</span><span> Exiting Vivado at Mon Feb 24 16:20:11 2025...
+</span></code></pre>
+<h4 id="shu-kiip-mi-bitstream">書き込み (bitstream)</h4>
+<p><code>\build\digilent_arty\gateware</code> に Vivado の Project 一式があるので、Windows 側の Vivado Hardware Manager で <code>digilent_arty.bin</code> を書き込む。</p>
+<p><img src="/2025/setup-litex/config-bitstream.png" alt="screenshot" /></p>
+<h4 id="shu-kiip-mi-spi-flash">書き込み (SPI Flash)</h4>
+<p>同ディレクトリに <code>digilent_arty.bin</code> があるので、これを SPI Flash に書き込む。
+回路図より搭載されている SPI Flash は N25Q128A13ESF40 なので、Add Configuration Memory Device でこれ (と同じ Cmd Set を持っていそうなデバイス) を指定。</p>
+<p><img src="/2025/setup-litex/config-spiflash.png" alt="screenshot" /></p>
+<p>これで FPGA の電源を入れ直しても、LiteX が起動するようになるはず。</p>
+<h3 id="sanpuruapurinobirudodong-zuo-que-ren">サンプルアプリのビルド・動作確認</h3>
+<p>自前で RISC-V toolchain を用意しビルドしても良かったが、切り分けが面倒になりそうなのでまずは Demo Application を動作させる。。
+<a href="https://github.com/enjoy-digital/litex/tree/master/litex/soc/software/demo#readme">https://github.com/enjoy-digital/litex/tree/master/litex/soc/software/demo#readme</a> の手順に従い <code>demo.bin</code> をビルドする。</p>
+<pre data-lang="bash" style="background-color:#ffffff;color:#010101;" class="language-bash "><code class="language-bash" data-lang="bash"><span style="color:#696989;">$</span><span> itex_bare_metal_demo</span><span style="color:#696989;"> --build-path</span><span style="color:#016692;">=</span><span>build/digilent_arty
+</span></code></pre>
+<ul>
+<li><a href="https://github.com/cr1901/teraterm-litex/releases">https://github.com/cr1901/teraterm-litex/releases</a> から install</li>
+<li>teraterm の転送オプションに追加された <code>litex</code> を使用し、<code>demo.bin</code> を 0x40000000 に転送する設定 + Acitve=true に設定
+<ul>
+<li><img src="/2025/setup-litex/teraterm-litex-2.png" alt="screenshot" /></li>
+</ul>
+</li>
+<li>VexRiscv を再起動するか、Terminal 中で <code>serialboot</code> を入力し、 <code>L5DdSMmkekro</code> が表示されたら転送が開始される</li>
+<li>無事に demo app が起動したら、 <code>donut</code> を入力して無事動作確認 OK
+<ul>
+<li><img src="/2025/setup-litex/teraterm-litex-3.png" alt="screenshot" /></li>
+</ul>
+</li>
+</ul>
+<hr />
+<h2 id="troubleshooting">Troubleshooting</h2>
+<p>戦術の内容を実行した際の経緯等々。</p>
+<h3 id="migen-dao-ru-shi-no-python-m-pip-install-gatong-ranai">migen 導入時の <code>python -m pip install</code> が通らない</h3>
+<p>PEP 668 に従い、システムパッケージを破壊するリスクがあるため弾かれている。</p>
+<pre data-lang="sh" style="background-color:#ffffff;color:#010101;" class="language-sh "><code class="language-sh" data-lang="sh"><span style="color:#696989;">$</span><span> python3 ./litex_setup.py</span><span style="color:#696989;"> --init --install --user --config</span><span style="color:#016692;">=</span><span>full
+</span><span style="color:#696989;">...
+</span><span>
+</span><span style="color:#7a7025;">[</span><span>   0.451] Installing migen Git repository...
+</span><span>
+</span><span style="color:#696989;">error:</span><span> externally-managed-environment
+</span><span>
+</span><span style="color:#696989;">×</span><span> This environment is externally managed
+</span><span style="color:#696989;">╰─</span><span style="color:#016692;">&gt;</span><span> To install Python packages system-wide, try apt install
+</span><span>    </span><span style="color:#696989;">python3-xyz,</span><span> where xyz is the package you are trying to
+</span><span>    </span><span style="color:#696989;">install.
+</span><span>
+</span><span>    </span><span style="color:#696989;">If</span><span> you wish to install a non-Debian-packaged Python package,
+</span><span>    </span><span style="color:#696989;">create</span><span> a virtual environment using python3</span><span style="color:#696989;"> -m</span><span> venv path/to/venv.
+</span><span>    </span><span style="color:#696989;">Then</span><span> use path/to/venv/bin/python and path/to/venv/bin/pip. Make
+</span><span>    </span><span style="color:#696989;">sure</span><span> you have python3-full installed.
+</span><span>
+</span><span>    </span><span style="color:#696989;">If</span><span> you wish to install a non-Debian packaged Python application,
+</span><span>    </span><span style="color:#696989;">it</span><span> may be easiest to use pipx install xyz, which will manage a
+</span><span>    </span><span style="color:#696989;">virtual</span><span> environment for you. Make sure you have pipx installed.
+</span><span>
+</span><span>    </span><span style="color:#696989;">See</span><span> /usr/share/doc/python3.12/README.venv for more information.
+</span><span>
+</span><span style="color:#696989;">note:</span><span> If you believe this is a mistake, please contact your Python installation or OS distribution provider. You can override this, at the risk of breaking your Python installation or OS, by passing</span><span style="color:#696989;"> --break-system-packages</span><span>.
+</span><span style="color:#696989;">hint:</span><span> See PEP 668 for the detailed specification.
+</span><span style="color:#696989;">Traceback</span><span> (most recent call last)</span><span style="color:#7a7025;">:
+</span><span>  </span><span style="color:#696989;">File </span><span style="color:#009f78;">&quot;/mnt/e/repos/litex/./litex_setup.py&quot;</span><span>, line 497, in </span><span style="color:#016692;">&lt;</span><span>module</span><span style="color:#016692;">&gt;
+</span><span>    </span><span style="color:#a15001;">main</span><span>()
+</span><span>  File &quot;/mnt/e/repos/litex/./litex_setup.py&quot;, line 477, in main
+</span><span>    litex_setup_install_repos(</span><span style="color:#696989;">config</span><span style="color:#016692;">=</span><span style="color:#009f78;">args.config, </span><span style="color:#696989;">user_mode</span><span style="color:#016692;">=</span><span style="color:#009f78;">args.user</span><span>)
+</span><span>  </span><span style="color:#696989;">File </span><span style="color:#009f78;">&quot;/mnt/e/repos/litex/./litex_setup.py&quot;</span><span>, line 290, in litex_setup_install_repos
+</span><span>    </span><span style="color:#696989;">subprocess.check_call</span><span>(</span><span style="color:#009f78;">&quot;</span><span style="color:#00ff00;">\&quot;</span><span style="color:#009f78;">{python3}</span><span style="color:#00ff00;">\&quot;</span><span style="color:#009f78;"> -m pip install {editable} . {options}&quot;</span><span>.format(
+</span><span>  </span><span style="color:#696989;">File </span><span style="color:#009f78;">&quot;/usr/lib/python3.12/subprocess.py&quot;</span><span>, line 413, in check_call
+</span><span>    </span><span style="color:#696989;">raise</span><span> CalledProcessError(retcode, cmd)
+</span></code></pre>
+<p>エラー記載のとおり仮想環境で実行する</p>
+<pre data-lang="sh" style="background-color:#ffffff;color:#010101;" class="language-sh "><code class="language-sh" data-lang="sh"><span style="color:#898989;"># venv導入
+</span><span style="color:#696989;">$</span><span> sudo apt install python3-venv
+</span><span style="color:#898989;"># 仮想環境作成 + activate
+</span><span style="color:#696989;">$</span><span> python3</span><span style="color:#696989;"> -m</span><span> venv .venv
+</span><span style="color:#696989;">$</span><span> source .venv/bin/activate
+</span><span style="color:#898989;"># 再実行
+</span><span style="color:#696989;">$</span><span> python3 ./litex_setup.py</span><span style="color:#696989;"> --init --install --user --config</span><span style="color:#016692;">=</span><span>full
+</span></code></pre>
+<h3 id="shang-ji-dui-ying-sitahou-ni-user-no-pip-install-gatong-ranai">上記対応した後に <code>--user</code> の pip install が通らない</h3>
+<pre data-lang="sh" style="background-color:#ffffff;color:#010101;" class="language-sh "><code class="language-sh" data-lang="sh"><span style="color:#7a7025;">[</span><span>   0.065] Installing migen Git repository...
+</span><span style="color:#696989;">ERROR:</span><span> Can not perform a </span><span style="color:#009f78;">&#39;--user&#39;</span><span> install. User site-packages are not visible in this virtualenv.
+</span><span style="color:#696989;">Traceback</span><span> (most recent call last)</span><span style="color:#7a7025;">:
+</span><span>  </span><span style="color:#696989;">File </span><span style="color:#009f78;">&quot;/mnt/e/repos/litex/./litex_setup.py&quot;</span><span>, line 497, in </span><span style="color:#016692;">&lt;</span><span>module</span><span style="color:#016692;">&gt;
+</span><span>    </span><span style="color:#a15001;">main</span><span>()
+</span><span>  File &quot;/mnt/e/repos/litex/./litex_setup.py&quot;, line 477, in main
+</span><span>    litex_setup_install_repos(</span><span style="color:#696989;">config</span><span style="color:#016692;">=</span><span style="color:#009f78;">args.config, </span><span style="color:#696989;">user_mode</span><span style="color:#016692;">=</span><span style="color:#009f78;">args.user</span><span>)
+</span><span>  </span><span style="color:#696989;">File </span><span style="color:#009f78;">&quot;/mnt/e/repos/litex/./litex_setup.py&quot;</span><span>, line 290, in litex_setup_install_repos
+</span><span>    </span><span style="color:#696989;">subprocess.check_call</span><span>(</span><span style="color:#009f78;">&quot;</span><span style="color:#00ff00;">\&quot;</span><span style="color:#009f78;">{python3}</span><span style="color:#00ff00;">\&quot;</span><span style="color:#009f78;"> -m pip install {editable} . {options}&quot;</span><span>.format(
+</span><span>  </span><span style="color:#696989;">File </span><span style="color:#009f78;">&quot;/usr/lib/python3.12/subprocess.py&quot;</span><span>, line 413, in check_call
+</span><span>    </span><span style="color:#696989;">raise</span><span> CalledProcessError(retcode, cmd)
+</span><span style="color:#696989;">subprocess.CalledProcessError:</span><span> Command </span><span style="color:#009f78;">&#39;&quot;/mnt/e/repos/litex/.venv/bin/python3&quot; -m pip install  . --user&#39;</span><span> returned non-zero exit status 1.
+</span></code></pre>
+<p>pip の install 先は global, user, virtualenv の 3 段階ある。
+<code>litex_setup.py</code> の <code>--user</code> option を外せばよいがこれは global になるので避けたい。</p>
+<p>今回のエラーは user install を virtualenv 上で実行しようとしているために起きている。</p>
+<p>ややこしいので表にまとめる。現在遭遇しているケースが 4 に該当する。</p>
+<table><thead><tr><th>#</th><th>仮想環境</th><th><code>--user</code></th><th>install 先</th><th>location</th></tr></thead><tbody>
+<tr><td>1</td><td>なし</td><td>なし</td><td>System</td><td><code>/usr/local/lib/python3.12/dist-packages</code></td></tr>
+<tr><td>2</td><td>なし</td><td>あり</td><td>User</td><td><code>~/.local/lib/python3.12/site-packages</code></td></tr>
+<tr><td>3</td><td>あり</td><td>なし</td><td>Virtualenv</td><td><code>.venv/lib/python3.12/site-packages</code></td></tr>
+<tr><td>4</td><td>あり</td><td>あり</td><td>User (w/ <code>include-system-site-packages=true</code>)</td><td><code>~/.local/lib/python3.12/site-packages</code></td></tr>
+</tbody></table>
+<p><code>.venv/pyvenv.cfg</code> に <code>include-system-site-packages = false</code> がある場合は 4 はエラーになるが、 <code>true</code> に設定すると User install が実行される。User install で構わないのであればこれも解決策ではある。 (venv を切った意味は無さそう)</p>
+<p>今回は、 3. を選択することにし、 <code>litex_setup.py</code> から <code>--user</code> を外して実行する。</p>
+<pre data-lang="bash" style="background-color:#ffffff;color:#010101;" class="language-bash "><code class="language-bash" data-lang="bash"><span style="color:#696989;">$</span><span> source .venv/bin/activate
+</span><span style="color:#696989;">$</span><span> python3 ./litex_setup.py</span><span style="color:#696989;"> --init --install  --user --config</span><span style="color:#016692;">=</span><span>full
+</span></code></pre>
+<h3 id="shang-wei-deirekutorini-subrepo-wobaramaiteiruyounijian-eru">上位ディレクトリに subrepo をばらまいているように見える</h3>
+<p><code>litex_setup.py</code> を実行すると、 通常同一ディレクトリに他のリポジトリが展開される。
+litex の git repo ごと取得して実行していたが、実行箇所が git repo の場合は上位ディレクトリに展開されるようだった。</p>
+<p>Quick Start Guide 通り、 <code>litex_setup.py</code> のみを取得して実行するように修正。</p>
+<h3 id="vivado-setutoatupushi-shi-xing-shi-ni-locale-noera">vivado セットアップ時・実行時に locale のエラー</h3>
+<p>以下表示でセットアップ失敗。vivado 自体はあるので実行できるが同様にエラーになる。</p>
+<pre data-lang="bash" style="background-color:#ffffff;color:#010101;" class="language-bash "><code class="language-bash" data-lang="bash"><span style="color:#898989;">######## Execution of Pre/Post Installation Tasks Failed ########
+</span><span style="color:#696989;">Warning:</span><span> AMD software was installed successfully, but an unexpected status was returned from the following post installation task(s) </span><span style="color:#696989;">/tools/Xilinx/Vivado/2024.2/bin/rdiArgs.sh:</span><span> line 37: warning: setlocale: LC_ALL: cannot change locale (en_US.UTF-8)</span><span style="color:#7a7025;">:</span><span> No such file or directory /bin/bash: warning: setlocale: LC_ALL: cannot change locale (en_US.UTF-8) </span><span style="color:#696989;">terminate</span><span> called after throwing an instance of </span><span style="color:#009f78;">&#39;std::runtime_error&#39;</span><span> what()</span><span style="color:#7a7025;">:</span><span> locale::facet::_S_create_c_locale name not valid /tools/Xilinx/Vivado/2024.2/bin/rdiArgs.sh: line 421: 74809 Aborted </span><span style="color:#009f78;">&quot;$</span><span style="color:#756565;">RDI_PROG</span><span style="color:#009f78;">&quot; &quot;$</span><span style="color:#756565;">@</span><span style="color:#009f78;">&quot;</span><span> /tools/Xilinx/Vivado/2024.2/bin/rdiArgs.sh: line 37: warning: setlocale: LC_ALL: cannot change locale (en_US.UTF-8)</span><span style="color:#7a7025;">:</span><span> No such file or directory /bin/bash: warning: setlocale: LC_ALL: cannot change locale (en_US.UTF-8) </span><span style="color:#696989;">terminate</span><span> called after throwing an instance of </span><span style="color:#009f78;">&#39;std::runtime_error&#39;</span><span> what()</span><span style="color:#7a7025;">:</span><span> locale::facet::_S_create_c_locale name not valid /tools/Xilinx/Vivado/2024.2/bin/rdiArgs.sh: line 421: 74902 Aborted </span><span style="color:#009f78;">&quot;$</span><span style="color:#756565;">RDI_PROG</span><span style="color:#009f78;">&quot; &quot;$</span><span style="color:#756565;">@</span><span style="color:#009f78;">&quot;
+</span></code></pre>
+<p>en_US.UTF-8 の locale を設定する。</p>
+<p>参考: <a href="https://adaptivesupport.amd.com/s/question/0D54U00006FYojlSAD/vivado-20222-on-ubuntu-with-error-lcall-cannot-change-locale-enusutf8?language=ja">https://adaptivesupport.amd.com/s/question/0D54U00006FYojlSAD/vivado-20222-on-ubuntu-with-error-lcall-cannot-change-locale-enusutf8?language=ja</a></p>
+<pre data-lang="bash" style="background-color:#ffffff;color:#010101;" class="language-bash "><code class="language-bash" data-lang="bash"><span style="color:#696989;">$</span><span> sudo locale-gen </span><span style="color:#009f78;">&quot;en_US.UTF-8&quot;
+</span><span style="color:#696989;">$</span><span> sudo update-locale LANG=en_US.UTF-8
+</span></code></pre>
+
+        </div>
+
+        
+            <div class="pagination">
+                <div class="pagination__title">
+                    <span class="pagination__title-h">Read more</span>
+                    <hr />
+                </div>
+                <div class="pagination__buttons">
+                        <span class="button previous">
+                            <a href="https://blog.wipeseals.me/blog/2024/create-vrchat-game/">
+                                <span class="button__icon">←</span>&nbsp;
+                                <span class="button__text">VRChatで動くボードゲームを作る</span>
+                            </a>
+                        </span>
+                    
+                    
+                        <span class="button next">
+                            <a href="https://blog.wipeseals.me/blog/2025/build-riscv-tests-on-docker/">
+                                <span class="button__text">Docker で riscv-tests をビルドする</span>&nbsp;
+                                <span class="button__icon">→</span>
+                            </a>
+                        </span>
+                    </div>
+            </div>
+        
+    </div>
+
+    </div>
+
+    
+    <footer class="footer">
+        <div class="footer__inner">
+                <div class="copyright copyright--user">Copyright &copy; 2025 wipeseals</div>
+            </div>
+    </footer>
+    
+
+</div>
+</body>
+
+</html>

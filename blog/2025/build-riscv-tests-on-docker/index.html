@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>Docker で riscv-tests をビルドする | blog.wipeseals.me</title>
+    
+    <meta http-equiv="content-type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+    <meta name="robots" content="noodp"/>
+
+    <link rel="stylesheet" href="https://blog.wipeseals.me/style.css">
+    <link rel="stylesheet" href="https://blog.wipeseals.me/color/blue-light.css">
+
+        <link rel="stylesheet" href="https://blog.wipeseals.me/color/background_light.css">
+    
+    <link rel="stylesheet" href="https://blog.wipeseals.me/font-hack.css">
+
+    <meta name="description" content="">
+
+    <meta property="og:description" content="">
+    <meta property="og:title" content="Docker で riscv-tests をビルドする | blog.wipeseals.me">
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="https://blog.wipeseals.me/blog/2025/build-riscv-tests-on-docker/">
+
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:description" content="">
+    <meta name="twitter:title" content="Docker で riscv-tests をビルドする | blog.wipeseals.me">
+    <meta property="twitter:domain" content="blog.wipeseals.me">
+    <meta property="twitter:url" content="https://blog.wipeseals.me/blog/2025/build-riscv-tests-on-docker/">
+
+        <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico">
+    
+    </head>
+
+<body class="">
+<div class="container">
+    
+    <header class="header">
+        <div class="header__inner">
+            <div class="header__logo">
+                    
+                <a href="/" style="text-decoration: none;">
+                    <div class="logo">
+                      
+                            blog.wipeseals.me
+                        
+                    </div>
+                </a>
+            </div>
+        </div>
+
+        
+        
+                <nav class="menu">
+            <ul class="menu__inner">
+                <li class="active"><a href="https://blog.wipeseals.me">blog</a></li>
+            
+                <li><a href="https://blog.wipeseals.me/tags">tags</a></li>
+            
+                <li><a href="https://blog.wipeseals.me/archive">archive</a></li>
+            
+                <li><a href="https://blog.wipeseals.me/work">work</a></li>
+            
+                <li><a href="https://wipeseals.me">about</a></li>
+            
+                <li><a href="https://github.com/wipeseals" target="_blank" rel="noopener noreferrer">github</a></li>
+            </ul>
+        </nav>
+    
+    
+        
+    </header>
+    
+
+    <div class="content">
+        
+    <div class="post">
+        
+    <h1 class="post-title"><a href="https://blog.wipeseals.me/blog/2025/build-riscv-tests-on-docker/">Docker で riscv-tests をビルドする</a></h1>
+    <div class="post-meta-inline">
+        
+    <span class="post-date">
+            2025-02-26
+        </span>
+
+    </div>
+
+    
+        <span class="post-tags-inline">
+                :: tags:&nbsp;
+                <a class="post-tag" href="https://blog.wipeseals.me/tags/docker/">#Docker</a>&nbsp;
+                <a class="post-tag" href="https://blog.wipeseals.me/tags/riscv/">#riscv</a>&nbsp;
+                <a class="post-tag" href="https://blog.wipeseals.me/tags/tech/">#tech</a></span>
+    
+
+        <div class="post-content">
+            <p>(ビルドが長くて) 地味に時間がかかったので、今後時間を溶かさないように書き残す。</p>
+<h2 id="shou-shun">手順</h2>
+<h3 id="dockerfile-de-riscv-gnu-toolchain-huan-jing-woyong-yi">Dockerfile で riscv-gnu-toolchain 環境を用意</h3>
+<p>これはほぼ公式手順を Dockerfile に書き起こすだけで良い。<code>ARCH</code>, <code>ABI</code> などは好みのものに変更する。</p>
+<pre data-lang="Dockerfile" style="background-color:#ffffff;color:#010101;" class="language-Dockerfile "><code class="language-Dockerfile" data-lang="Dockerfile"><span style="color:#016692;">FROM</span><span> ubuntu:</span><span style="color:#a15001;">24.04
+</span><span>
+</span><span style="color:#016692;">WORKDIR </span><span>/app
+</span><span>
+</span><span style="color:#898989;"># riscv-gnu-toolchainのリポジトリを取得
+</span><span style="color:#016692;">RUN </span><span>apt update &amp;&amp; apt install -y git
+</span><span style="color:#016692;">RUN </span><span>git clone --recursive https://github.com/riscv/riscv-gnu-toolchain
+</span><span>
+</span><span style="color:#016692;">ENV </span><span>RISCV=/opt/riscv
+</span><span style="color:#016692;">ENV </span><span>ARCH=rv32ima
+</span><span style="color:#016692;">ENV </span><span>ABI=ilp32
+</span><span style="color:#016692;">ENV </span><span>PATH=$RISCV/bin:$PATH
+</span><span style="color:#016692;">ENV </span><span>TOOLCHAIN_CONFIGURE=</span><span style="color:#009f78;">&quot;--prefix=$RISCV --with-arch=$ARCH --with-abi=$ABI --enable-multilib --enable-qemu-system&quot;
+</span><span style="color:#016692;">ENV </span><span>DEBIAN_FRONTEND=noninteractive
+</span><span>
+</span><span style="color:#898989;"># 必要なパッケージをインストール
+</span><span style="color:#016692;">RUN </span><span>apt install -y \
+</span><span>    autoconf \
+</span><span>    automake \
+</span><span>    autotools-dev \
+</span><span>    curl \
+</span><span>    python3 \
+</span><span>    python3-pip \
+</span><span>    python3-tomli \
+</span><span>    libmpc-dev \
+</span><span>    libmpfr-dev \
+</span><span>    libgmp-dev \
+</span><span>    gawk \
+</span><span>    build-essential \
+</span><span>    bison \
+</span><span>    flex \
+</span><span>    texinfo \
+</span><span>    gperf \
+</span><span>    libtool \
+</span><span>    patchutils \
+</span><span>    bc \
+</span><span>    zlib1g-dev \
+</span><span>    libexpat-dev \
+</span><span>    ninja-build \
+</span><span>    git \
+</span><span>    cmake \
+</span><span>    libglib2.0-dev \
+</span><span>    libslirp-dev
+</span><span>
+</span><span style="color:#898989;"># riscv-gnu-toolchainのインストール
+</span><span style="color:#016692;">RUN </span><span>cd riscv-gnu-toolchain &amp;&amp; \
+</span><span>    ./configure $TOOLCHAIN_CONFIGURE &amp;&amp; \
+</span><span>    make -j$(nproc)
+</span><span>
+</span><span style="color:#016692;">CMD </span><span>[</span><span style="color:#009f78;">&quot;bash&quot;</span><span>]
+</span></code></pre>
+<h3 id="shang-ji-dockerfile-woshi-tute-riscv-tests-wobirudo">上記 Dockerfile を使って riscv-tests をビルド</h3>
+<p>multi-stage build で riscv-tests を行っても良かったが、単にビルドするだけであること、自分が実装した別ソースをビルドすることなどを考え先の Image を利用するだけに留めることにした。</p>
+<p>docker compose を用意し、成果物 Volume のマウント並びにビルドのワンライナーを用意する。
+実装してある内容は riscv-tests の README 通りだが、今回は rv32 を対象にしているので XLEN を設定していること、ISA テスト用に make 対象を isa に絞っている。</p>
+<pre data-lang="yaml" style="background-color:#ffffff;color:#010101;" class="language-yaml "><code class="language-yaml" data-lang="yaml"><span style="color:#00528b;">services</span><span>:
+</span><span>  </span><span style="color:#00528b;">build-riscv-tests</span><span>:
+</span><span>    </span><span style="color:#00528b;">build</span><span>:
+</span><span>      </span><span style="color:#00528b;">context</span><span>: </span><span style="color:#8c008a;">.
+</span><span>    </span><span style="color:#00528b;">volumes</span><span>:
+</span><span>      - </span><span style="color:#009f78;">./riscv-tests:/app/riscv-tests:rw
+</span><span>    </span><span style="color:#00528b;">command</span><span>: </span><span style="color:#016692;">&gt;
+</span><span style="color:#009f78;">      bash -c &quot;
+</span><span style="color:#009f78;">      cd /app/riscv-tests &amp;&amp; 
+</span><span style="color:#009f78;">      git clone --recursive https://github.com/riscv/riscv-tests &amp;&amp; 
+</span><span style="color:#009f78;">      cd riscv-tests &amp;&amp; 
+</span><span style="color:#009f78;">      autoconf &amp;&amp; 
+</span><span style="color:#009f78;">      ./configure --prefix=$RISCV/target &amp;&amp; 
+</span><span style="color:#009f78;">      make XLEN=32 isa
+</span><span style="color:#009f78;">      &quot;
+</span></code></pre>
+<p>使い方</p>
+<pre data-lang="bash" style="background-color:#ffffff;color:#010101;" class="language-bash "><code class="language-bash" data-lang="bash"><span style="color:#696989;">docker</span><span> compose run build-riscv-tests
+</span></code></pre>
+<h2 id="sonota">その他</h2>
+<h3 id="riscv-gnu-toolchain-nosonota-noturuwoshi-itai">riscv-gnu-toolchain のその他のツールを使いたい</h3>
+<p><code>docker compose run build-riscv-tests bash</code> で入った環境であれば、他のツールも使える。</p>
+<pre data-lang="bash" style="background-color:#ffffff;color:#010101;" class="language-bash "><code class="language-bash" data-lang="bash"><span style="color:#696989;">$</span><span> docker compose run build-riscv-tests bash
+</span><span style="color:#696989;">root@460560b02bb5:/app#</span><span> riscv32-unknown-elf-readelf</span><span style="color:#696989;"> -e -W</span><span> riscv-tests/isa/rv32ui-p-addi
+</span><span style="color:#696989;">ELF</span><span> Header:
+</span><span>  </span><span style="color:#696989;">Magic:</span><span>   7f 45 4c 46 01 01 01 00 00 00 00 00 00 00 00 00
+</span><span>  </span><span style="color:#696989;">Class:</span><span>                             ELF32
+</span><span>  </span><span style="color:#696989;">Data:</span><span>                              2</span><span style="color:#009f78;">&#39;s complement, little endian
+</span><span style="color:#009f78;">  Version:                           1 (current)
+</span><span style="color:#009f78;">  OS/ABI:                            UNIX - System V
+</span><span style="color:#009f78;">  ABI Version:                       0
+</span><span style="color:#009f78;">  Type:                              EXEC (Executable file)
+</span><span style="color:#009f78;">  Machine:                           RISC-V
+</span><span style="color:#009f78;">  Version:                           0x1
+</span><span style="color:#009f78;">  Entry point address:               0x80000000
+</span><span style="color:#009f78;">  Start of program headers:          52 (bytes into file)
+</span><span style="color:#009f78;">  Start of section headers:          9524 (bytes into file)
+</span><span style="color:#009f78;">  Flags:                             0x0
+</span><span style="color:#009f78;">  Size of this header:               52 (bytes)
+</span><span style="color:#009f78;">  Size of program headers:           32 (bytes)
+</span><span style="color:#009f78;">  Number of program headers:         3
+</span><span style="color:#009f78;">  Size of section headers:           40 (bytes)
+</span><span style="color:#009f78;">  Number of section headers:         7
+</span><span style="color:#009f78;">  Section header string table index: 6
+</span><span style="color:#009f78;">
+</span><span style="color:#009f78;">Section Headers:
+</span><span style="color:#009f78;">  [Nr] Name              Type            Addr     Off    Size   ES Flg Lk Inf Al
+</span><span style="color:#009f78;">  [ 0]                   NULL            00000000 000000 000000 00      0   0  0
+</span><span style="color:#009f78;">  [ 1] .text.init        PROGBITS        80000000 001000 00047c 00  AX  0   0 64
+</span><span style="color:#009f78;">  [ 2] .tohost           PROGBITS        80001000 002000 000048 00  WA  0   0 64
+</span><span style="color:#009f78;">  [ 3] .riscv.attributes RISCV_ATTRIBUTES 00000000 002048 000063 00      0   0  1
+</span><span style="color:#009f78;">  [ 4] .symtab           SYMTAB          00000000 0020ac 0002b0 10      5  37  4
+</span><span style="color:#009f78;">  [ 5] .strtab           STRTAB          00000000 00235c 000198 00      0   0  1
+</span><span style="color:#009f78;">  [ 6] .shstrtab         STRTAB          00000000 0024f4 000040 00      0   0  1
+</span><span style="color:#009f78;">Key to Flags:
+</span><span style="color:#009f78;">  W (write), A (alloc), X (execute), M (merge), S (strings), I (info),
+</span><span style="color:#009f78;">  L (link order), O (extra OS processing required), G (group), T (TLS),
+</span><span style="color:#009f78;">  C (compressed), x (unknown), o (OS specific), E (exclude),
+</span><span style="color:#009f78;">  D (mbind), p (processor specific)
+</span><span style="color:#009f78;">
+</span><span style="color:#009f78;">Program Headers:
+</span><span style="color:#009f78;">  Type           Offset   VirtAddr   PhysAddr   FileSiz MemSiz  Flg Align
+</span><span style="color:#009f78;">  RISCV_ATTRIBUT 0x002048 0x00000000 0x00000000 0x00063 0x00000 R   0x1
+</span><span style="color:#009f78;">  LOAD           0x001000 0x80000000 0x80000000 0x0047c 0x0047c R E 0x1000
+</span><span style="color:#009f78;">  LOAD           0x002000 0x80001000 0x80001000 0x00048 0x00048 RW  0x1000
+</span><span style="color:#009f78;">
+</span><span style="color:#009f78;"> Section to Segment mapping:
+</span><span style="color:#009f78;">  Segment Sections...
+</span><span style="color:#009f78;">   00     .riscv.attributes
+</span><span style="color:#009f78;">   01     .text.init
+</span><span style="color:#009f78;">   02     .tohost
+</span></code></pre>
+<h3 id="rv64-32-noxuan-ze">RV64/32 の選択</h3>
+<ul>
+<li>Dockerfile の <code>ARCH</code> と <code>ABI</code> を変更する</li>
+<li>make 時の <code>XLEN</code> を変更する
+<ul>
+<li>riscv-tests のデフォルトは <code>XLEN=64</code> を使おうとしているので、rv32 向けの toolchain だと gcc などが見つからずエラーになる</li>
+</ul>
+</li>
+</ul>
+<h3 id="linker-script-noxiu-zheng">Linker script の修正</h3>
+<p><a href="https://github.com/riscv/riscv-test-env">riscv-tests/env が更に submodule になっており</a>、ここを修正することで対応できる。
+例えば <code>p/link.ld</code> は以下の具合</p>
+<pre data-lang="ld" style="background-color:#ffffff;color:#010101;" class="language-ld "><code class="language-ld" data-lang="ld"><span style="color:#696989;">OUTPUT_ARCH</span><span>( </span><span style="color:#696989;">&quot;riscv&quot;</span><span> )
+</span><span style="color:#016692;">ENTRY</span><span>(</span><span style="color:#696989;">_start</span><span>)
+</span><span>
+</span><span style="color:#016692;">SECTIONS
+</span><span>{
+</span><span>  </span><span style="color:#696989;">.</span><span> = </span><span style="color:#8c008a;">0x80000000</span><span>;
+</span><span>  </span><span style="color:#696989;">.text.init</span><span> : { *(</span><span style="color:#696989;">.text.init</span><span>) }
+</span><span>  </span><span style="color:#696989;">.</span><span> = </span><span style="color:#016692;">ALIGN</span><span>(</span><span style="color:#8c008a;">0x1000</span><span>);
+</span><span>  </span><span style="color:#696989;">.tohost</span><span> : { *(</span><span style="color:#696989;">.tohost</span><span>) }
+</span><span>  </span><span style="color:#696989;">.</span><span> = </span><span style="color:#016692;">ALIGN</span><span>(</span><span style="color:#8c008a;">0x1000</span><span>);
+</span><span>  </span><span style="color:#696989;">.text</span><span> : { *(</span><span style="color:#696989;">.text</span><span>) }
+</span><span>  </span><span style="color:#696989;">.</span><span> = </span><span style="color:#016692;">ALIGN</span><span>(</span><span style="color:#8c008a;">0x1000</span><span>);
+</span><span>  </span><span style="color:#696989;">.data</span><span> : { *(</span><span style="color:#696989;">.data</span><span>) }
+</span><span>  </span><span style="color:#696989;">.bss</span><span> : { *(</span><span style="color:#696989;">.bss</span><span>) }
+</span><span>  </span><span style="color:#696989;">_end</span><span> = </span><span style="color:#696989;">.</span><span>;
+</span><span>}
+</span></code></pre>
+<p>この他にも <code>riscv_test.h</code> にテストの各マクロの定義があるので、動作確認向けに変更することもできる。
+例えば Pass/Fail は、Pass の場合</p>
+<pre data-lang="c" style="background-color:#ffffff;color:#010101;" class="language-c "><code class="language-c" data-lang="c"><span style="color:#898989;">//-----------------------------------------------------------------------
+</span><span style="color:#898989;">// Pass/Fail Macro
+</span><span style="color:#898989;">//-----------------------------------------------------------------------
+</span><span>
+</span><span style="color:#016692;">#define </span><span style="color:#a15001;">RVTEST_PASS                                                     </span><span>\
+</span><span>        fence;                                                          \
+</span><span>        li TESTNUM, </span><span style="color:#8c008a;">1</span><span>;                                                  \
+</span><span>        li a7, </span><span style="color:#8c008a;">93</span><span>;                                                      \
+</span><span>        li a0, </span><span style="color:#8c008a;">0</span><span>;                                                       \
+</span><span>        ecall
+</span><span>
+</span><span style="color:#016692;">#define </span><span style="color:#a15001;">TESTNUM</span><span> gp
+</span><span style="color:#016692;">#define </span><span style="color:#a15001;">RVTEST_FAIL                                                     </span><span>\
+</span><span>        fence;                                                          \
+</span><span style="color:#8c008a;">1</span><span style="color:#016692;">:</span><span>      beqz TESTNUM, </span><span style="color:#8c008a;">1</span><span style="background-color:#df68d9bf;color:#a00294;">b</span><span>;                                               \
+</span><span>        sll TESTNUM, TESTNUM, </span><span style="color:#8c008a;">1</span><span>;                                        \
+</span><span>        or TESTNUM, TESTNUM, </span><span style="color:#8c008a;">1</span><span>;                                         \
+</span><span>        li a7, </span><span style="color:#8c008a;">93</span><span>;                                                      \
+</span><span>        addi a0, TESTNUM, </span><span style="color:#8c008a;">0</span><span>;                                            \
+</span><span>        ecall
+</span></code></pre>
+<h3 id="disassemble-gajian-tai">disassemble が見たい</h3>
+<p>付属ツールで disasm 出力しても良かったが、make 時に一緒に生成されていた。 <code>&lt;elf binary&gt;.dump</code> がそれにあたる。</p>
+<p><code>rv32ui-p-addi.dump</code></p>
+<pre data-lang="asm" style="background-color:#ffffff;color:#010101;" class="language-asm "><code class="language-asm" data-lang="asm"><span style="color:#a15001;">rv32ui</span><span>-</span><span style="color:#a15001;">p</span><span>-</span><span style="color:#a15001;">addi:     file form</span><span style="color:#7a7025;">at </span><span style="color:#a15001;">elf32</span><span>-</span><span style="color:#a15001;">littleriscv
+</span><span>
+</span><span>
+</span><span style="color:#a15001;">Disassembly of </span><span style="color:#7a7025;">section </span><span style="color:#a15001;">.text.init:
+</span><span>
+</span><span style="color:#333366;">80000000 </span><span style="color:#a15001;">&lt;_start&gt;:
+</span><span style="color:#333366;">80000000</span><span style="color:#a15001;">:	0500006f          	j	</span><span style="color:#333366;">80000050 </span><span style="color:#a15001;">&lt;reset_vector&gt;
+</span><span>
+</span><span style="color:#333366;">80000004 </span><span style="color:#a15001;">&lt;trap_vector&gt;:
+</span><span style="color:#333366;">80000004</span><span style="color:#a15001;">:	34202f73          	csrr	t5</span><span>,</span><span style="color:#a15001;">mcause
+</span><span style="color:#333366;">80000008</span><span style="color:#a15001;">:	00800f93          	li	t6</span><span>,</span><span style="color:#333366;">8
+</span><span style="color:#a15001;">8000000c:	03ff0863          	beq	t5</span><span>,</span><span style="color:#a15001;">t6</span><span>,</span><span style="color:#a15001;">8000003c &lt;write_tohost&gt;
+</span><span>
+</span><span style="color:#a15001;">...
+</span><span>
+</span><span>
+</span><span style="color:#a15001;">800003fc &lt;test_25&gt;:
+</span><span style="color:#a15001;">800003fc:	</span><span style="color:#333366;">01900193          	</span><span style="color:#a15001;">li	gp</span><span>,</span><span style="color:#333366;">25
+</span><span style="color:#333366;">80000400</span><span style="color:#a15001;">:	</span><span style="color:#333366;">02100093          	</span><span style="color:#a15001;">li	ra</span><span>,</span><span style="color:#333366;">33
+</span><span style="color:#333366;">80000404</span><span style="color:#a15001;">:	</span><span style="color:#333366;">03208013          	</span><span style="color:#a15001;">addi	zero</span><span>,</span><span style="color:#a15001;">ra</span><span>,</span><span style="color:#333366;">50
+</span><span style="color:#333366;">80000408</span><span style="color:#a15001;">:	</span><span style="color:#333366;">00000393          	</span><span style="color:#a15001;">li	t2</span><span>,</span><span style="color:#333366;">0
+</span><span style="color:#a15001;">8000040c:	</span><span style="color:#333366;">00701463          	</span><span style="color:#a15001;">bne	zero</span><span>,</span><span style="color:#a15001;">t2</span><span>,</span><span style="color:#333366;">80000414 </span><span style="color:#a15001;">&lt;fail&gt;
+</span><span style="color:#333366;">80000410</span><span style="color:#a15001;">:	</span><span style="color:#333366;">02301063          	</span><span style="color:#a15001;">bne	zero</span><span>,</span><span style="color:#a15001;">gp</span><span>,</span><span style="color:#333366;">80000430 </span><span style="color:#a15001;">&lt;pass&gt;
+</span><span>
+</span><span style="color:#333366;">80000414 </span><span style="color:#a15001;">&lt;fail&gt;:
+</span><span style="color:#333366;">80000414</span><span style="color:#a15001;">:	0ff0000f          	fence
+</span><span style="color:#333366;">80000418</span><span style="color:#a15001;">:	</span><span style="color:#333366;">00018063          	</span><span style="color:#a15001;">beqz	gp</span><span>,</span><span style="color:#333366;">80000418 </span><span style="color:#a15001;">&lt;fail</span><span>+</span><span style="color:#333366;">0x4</span><span style="color:#a15001;">&gt;
+</span><span style="color:#a15001;">8000041c:	</span><span style="color:#333366;">00119193          	</span><span style="color:#a15001;">slli	gp</span><span>,</span><span style="color:#a15001;">gp</span><span>,</span><span style="color:#333366;">0x1
+</span><span style="color:#333366;">80000420</span><span style="color:#a15001;">:	0011e193          	ori	gp</span><span>,</span><span style="color:#a15001;">gp</span><span>,</span><span style="color:#333366;">1
+</span><span style="color:#333366;">80000424</span><span style="color:#a15001;">:	05d00893          	li	a7</span><span>,</span><span style="color:#333366;">93
+</span><span style="color:#333366;">80000428</span><span style="color:#a15001;">:	</span><span style="color:#333366;">00018513          	</span><span style="color:#a15001;">mv	a0</span><span>,</span><span style="color:#a15001;">gp
+</span><span style="color:#a15001;">8000042c:	</span><span style="color:#333366;">00000073          	</span><span style="color:#a15001;">ecall
+</span><span>
+</span><span style="color:#333366;">80000430 </span><span style="color:#a15001;">&lt;pass&gt;:
+</span><span style="color:#333366;">80000430</span><span style="color:#a15001;">:	0ff0000f          	fence
+</span><span style="color:#333366;">80000434</span><span style="color:#a15001;">:	</span><span style="color:#333366;">00100193          	</span><span style="color:#a15001;">li	gp</span><span>,</span><span style="color:#333366;">1
+</span><span style="color:#333366;">80000438</span><span style="color:#a15001;">:	05d00893          	li	a7</span><span>,</span><span style="color:#333366;">93
+</span><span style="color:#a15001;">8000043c:	</span><span style="color:#333366;">00000513          	</span><span style="color:#a15001;">li	a0</span><span>,</span><span style="color:#333366;">0
+</span><span style="color:#333366;">80000440</span><span style="color:#a15001;">:	</span><span style="color:#333366;">00000073          	</span><span style="color:#a15001;">ecall
+</span><span style="color:#333366;">80000444</span><span style="color:#a15001;">:	c0001073          	unimp
+</span><span style="color:#333366;">80000448</span><span style="color:#a15001;">:	</span><span style="color:#333366;">0000                	</span><span style="color:#a15001;">.insn	</span><span style="color:#333366;">2</span><span>, </span><span style="color:#a15001;">0x
+</span><span style="color:#a15001;">8000044a:	</span><span style="color:#333366;">0000                	</span><span style="color:#a15001;">.insn	</span><span style="color:#333366;">2</span><span>, </span><span style="color:#a15001;">0x
+</span><span style="color:#a15001;">8000044c:	</span><span style="color:#333366;">0000                	</span><span style="color:#a15001;">.insn	</span><span style="color:#333366;">2</span><span>, </span><span style="color:#a15001;">0x
+</span><span style="color:#a15001;">8000044e:	</span><span style="color:#333366;">0000                	</span><span style="color:#a15001;">.insn	</span><span style="color:#333366;">2</span><span>, </span><span style="color:#a15001;">0x
+</span><span style="color:#333366;">80000450</span><span style="color:#a15001;">:	</span><span style="color:#333366;">0000                	</span><span style="color:#a15001;">.insn	</span><span style="color:#333366;">2</span><span>, </span><span style="color:#a15001;">0x
+</span><span style="color:#333366;">80000452</span><span style="color:#a15001;">:	</span><span style="color:#333366;">0000                	</span><span style="color:#a15001;">.insn	</span><span style="color:#333366;">2</span><span>, </span><span style="color:#a15001;">0x
+</span><span style="color:#333366;">80000454</span><span style="color:#a15001;">:	</span><span style="color:#333366;">0000                	</span><span style="color:#a15001;">.insn	</span><span style="color:#333366;">2</span><span>, </span><span style="color:#a15001;">0x
+</span><span style="color:#333366;">80000456</span><span style="color:#a15001;">:	</span><span style="color:#333366;">0000                	</span><span style="color:#a15001;">.insn	</span><span style="color:#333366;">2</span><span>, </span><span style="color:#a15001;">0x
+</span><span style="color:#333366;">80000458</span><span style="color:#a15001;">:	</span><span style="color:#333366;">0000                	</span><span style="color:#a15001;">.insn	</span><span style="color:#333366;">2</span><span>, </span><span style="color:#a15001;">0x
+</span><span style="color:#a15001;">8000045a:	</span><span style="color:#333366;">0000                	</span><span style="color:#a15001;">.insn	</span><span style="color:#333366;">2</span><span>, </span><span style="color:#a15001;">0x
+</span><span style="color:#a15001;">8000045c:	</span><span style="color:#333366;">0000                	</span><span style="color:#a15001;">.insn	</span><span style="color:#333366;">2</span><span>, </span><span style="color:#a15001;">0x
+</span><span style="color:#a15001;">8000045e:	</span><span style="color:#333366;">0000                	</span><span style="color:#a15001;">.insn	</span><span style="color:#333366;">2</span><span>, </span><span style="color:#a15001;">0x
+</span><span style="color:#333366;">80000460</span><span style="color:#a15001;">:	</span><span style="color:#333366;">0000                	</span><span style="color:#a15001;">.insn	</span><span style="color:#333366;">2</span><span>, </span><span style="color:#a15001;">0x
+</span><span style="color:#333366;">80000462</span><span style="color:#a15001;">:	</span><span style="color:#333366;">0000                	</span><span style="color:#a15001;">.insn	</span><span style="color:#333366;">2</span><span>, </span><span style="color:#a15001;">0x
+</span><span style="color:#333366;">80000464</span><span style="color:#a15001;">:	</span><span style="color:#333366;">0000                	</span><span style="color:#a15001;">.insn	</span><span style="color:#333366;">2</span><span>, </span><span style="color:#a15001;">0x
+</span><span style="color:#333366;">80000466</span><span style="color:#a15001;">:	</span><span style="color:#333366;">0000                	</span><span style="color:#a15001;">.insn	</span><span style="color:#333366;">2</span><span>, </span><span style="color:#a15001;">0x
+</span><span style="color:#333366;">80000468</span><span style="color:#a15001;">:	</span><span style="color:#333366;">0000                	</span><span style="color:#a15001;">.insn	</span><span style="color:#333366;">2</span><span>, </span><span style="color:#a15001;">0x
+</span><span style="color:#a15001;">8000046a:	</span><span style="color:#333366;">0000                	</span><span style="color:#a15001;">.insn	</span><span style="color:#333366;">2</span><span>, </span><span style="color:#a15001;">0x
+</span><span style="color:#a15001;">8000046c:	</span><span style="color:#333366;">0000                	</span><span style="color:#a15001;">.insn	</span><span style="color:#333366;">2</span><span>, </span><span style="color:#a15001;">0x
+</span><span style="color:#a15001;">8000046e:	</span><span style="color:#333366;">0000                	</span><span style="color:#a15001;">.insn	</span><span style="color:#333366;">2</span><span>, </span><span style="color:#a15001;">0x
+</span><span style="color:#333366;">80000470</span><span style="color:#a15001;">:	</span><span style="color:#333366;">0000                	</span><span style="color:#a15001;">.insn	</span><span style="color:#333366;">2</span><span>, </span><span style="color:#a15001;">0x
+</span><span style="color:#333366;">80000472</span><span style="color:#a15001;">:	</span><span style="color:#333366;">0000                	</span><span style="color:#a15001;">.insn	</span><span style="color:#333366;">2</span><span>, </span><span style="color:#a15001;">0x
+</span><span style="color:#333366;">80000474</span><span style="color:#a15001;">:	</span><span style="color:#333366;">0000                	</span><span style="color:#a15001;">.insn	</span><span style="color:#333366;">2</span><span>, </span><span style="color:#a15001;">0x
+</span><span style="color:#333366;">80000476</span><span style="color:#a15001;">:	</span><span style="color:#333366;">0000                	</span><span style="color:#a15001;">.insn	</span><span style="color:#333366;">2</span><span>, </span><span style="color:#a15001;">0x
+</span><span style="color:#333366;">80000478</span><span style="color:#a15001;">:	</span><span style="color:#333366;">0000                	</span><span style="color:#a15001;">.insn	</span><span style="color:#333366;">2</span><span>, </span><span style="color:#a15001;">0x
+</span><span style="color:#a15001;">8000047a:	</span><span style="color:#333366;">0000                	</span><span style="color:#a15001;">.insn	</span><span style="color:#333366;">2</span><span>, </span><span style="color:#a15001;">0x
+</span></code></pre>
+
+        </div>
+
+        
+            <div class="pagination">
+                <div class="pagination__title">
+                    <span class="pagination__title-h">Read more</span>
+                    <hr />
+                </div>
+                <div class="pagination__buttons">
+                        <span class="button previous">
+                            <a href="https://blog.wipeseals.me/blog/2025/setup-litex/">
+                                <span class="button__icon">←</span>&nbsp;
+                                <span class="button__text">LiteX を Ubuntu 24.04 on WSL2 で使用し、 Demo Applicationを動作させる</span>
+                            </a>
+                        </span>
+                    
+                    
+                        <span class="button next">
+                            <a href="https://blog.wipeseals.me/blog/2025/rpi-pico-pio-dma/">
+                                <span class="button__text">RPi Pico PIO + DMA 転送覚書 (MicroPython 版)</span>&nbsp;
+                                <span class="button__icon">→</span>
+                            </a>
+                        </span>
+                    </div>
+            </div>
+        
+    </div>
+
+    </div>
+
+    
+    <footer class="footer">
+        <div class="footer__inner">
+                <div class="copyright copyright--user">Copyright &copy; 2025 wipeseals</div>
+            </div>
+    </footer>
+    
+
+</div>
+</body>
+
+</html>

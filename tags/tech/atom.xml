@@ -1,0 +1,555 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom" xml:lang="en">
+    <title>blog.wipeseals.me - tech</title>
+    <subtitle>Miscellaneous logs...</subtitle>
+    <link rel="self" type="application/atom+xml" href="https://blog.wipeseals.me/tags/tech/atom.xml"/>
+    <link rel="alternate" type="text/html" href="https://blog.wipeseals.me"/>
+    <generator uri="https://www.getzola.org/">Zola</generator>
+    <updated>2025-02-26T00:00:00+00:00</updated>
+    <id>https://blog.wipeseals.me/tags/tech/atom.xml</id>
+    <entry xml:lang="en">
+        <title>Docker で riscv-tests をビルドする</title>
+        <published>2025-02-26T00:00:00+00:00</published>
+        <updated>2025-02-26T00:00:00+00:00</updated>
+        
+        <author>
+          <name>
+            
+              Unknown
+            
+          </name>
+        </author>
+        
+        <link rel="alternate" type="text/html" href="https://blog.wipeseals.me/blog/2025/build-riscv-tests-on-docker/"/>
+        <id>https://blog.wipeseals.me/blog/2025/build-riscv-tests-on-docker/</id>
+        
+        <content type="html" xml:base="https://blog.wipeseals.me/blog/2025/build-riscv-tests-on-docker/">&lt;p&gt;(ビルドが長くて) 地味に時間がかかったので、今後時間を溶かさないように書き残す。&lt;&#x2F;p&gt;
+&lt;h2 id=&quot;shou-shun&quot;&gt;手順&lt;&#x2F;h2&gt;
+&lt;h3 id=&quot;dockerfile-de-riscv-gnu-toolchain-huan-jing-woyong-yi&quot;&gt;Dockerfile で riscv-gnu-toolchain 環境を用意&lt;&#x2F;h3&gt;
+&lt;p&gt;これはほぼ公式手順を Dockerfile に書き起こすだけで良い。&lt;code&gt;ARCH&lt;&#x2F;code&gt;, &lt;code&gt;ABI&lt;&#x2F;code&gt; などは好みのものに変更する。&lt;&#x2F;p&gt;
+&lt;pre data-lang=&quot;Dockerfile&quot; style=&quot;background-color:#ffffff;color:#010101;&quot; class=&quot;language-Dockerfile &quot;&gt;&lt;code class=&quot;language-Dockerfile&quot; data-lang=&quot;Dockerfile&quot;&gt;&lt;span style=&quot;color:#016692;&quot;&gt;FROM&lt;&#x2F;span&gt;&lt;span&gt; ubuntu:&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;24.04
+&lt;&#x2F;span&gt;&lt;span&gt;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#016692;&quot;&gt;WORKDIR &lt;&#x2F;span&gt;&lt;span&gt;&#x2F;app
+&lt;&#x2F;span&gt;&lt;span&gt;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#898989;&quot;&gt;# riscv-gnu-toolchainのリポジトリを取得
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#016692;&quot;&gt;RUN &lt;&#x2F;span&gt;&lt;span&gt;apt update &amp;amp;&amp;amp; apt install -y git
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#016692;&quot;&gt;RUN &lt;&#x2F;span&gt;&lt;span&gt;git clone --recursive https:&#x2F;&#x2F;github.com&#x2F;riscv&#x2F;riscv-gnu-toolchain
+&lt;&#x2F;span&gt;&lt;span&gt;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#016692;&quot;&gt;ENV &lt;&#x2F;span&gt;&lt;span&gt;RISCV=&#x2F;opt&#x2F;riscv
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#016692;&quot;&gt;ENV &lt;&#x2F;span&gt;&lt;span&gt;ARCH=rv32ima
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#016692;&quot;&gt;ENV &lt;&#x2F;span&gt;&lt;span&gt;ABI=ilp32
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#016692;&quot;&gt;ENV &lt;&#x2F;span&gt;&lt;span&gt;PATH=$RISCV&#x2F;bin:$PATH
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#016692;&quot;&gt;ENV &lt;&#x2F;span&gt;&lt;span&gt;TOOLCHAIN_CONFIGURE=&lt;&#x2F;span&gt;&lt;span style=&quot;color:#009f78;&quot;&gt;&amp;quot;--prefix=$RISCV --with-arch=$ARCH --with-abi=$ABI --enable-multilib --enable-qemu-system&amp;quot;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#016692;&quot;&gt;ENV &lt;&#x2F;span&gt;&lt;span&gt;DEBIAN_FRONTEND=noninteractive
+&lt;&#x2F;span&gt;&lt;span&gt;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#898989;&quot;&gt;# 必要なパッケージをインストール
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#016692;&quot;&gt;RUN &lt;&#x2F;span&gt;&lt;span&gt;apt install -y \
+&lt;&#x2F;span&gt;&lt;span&gt;    autoconf \
+&lt;&#x2F;span&gt;&lt;span&gt;    automake \
+&lt;&#x2F;span&gt;&lt;span&gt;    autotools-dev \
+&lt;&#x2F;span&gt;&lt;span&gt;    curl \
+&lt;&#x2F;span&gt;&lt;span&gt;    python3 \
+&lt;&#x2F;span&gt;&lt;span&gt;    python3-pip \
+&lt;&#x2F;span&gt;&lt;span&gt;    python3-tomli \
+&lt;&#x2F;span&gt;&lt;span&gt;    libmpc-dev \
+&lt;&#x2F;span&gt;&lt;span&gt;    libmpfr-dev \
+&lt;&#x2F;span&gt;&lt;span&gt;    libgmp-dev \
+&lt;&#x2F;span&gt;&lt;span&gt;    gawk \
+&lt;&#x2F;span&gt;&lt;span&gt;    build-essential \
+&lt;&#x2F;span&gt;&lt;span&gt;    bison \
+&lt;&#x2F;span&gt;&lt;span&gt;    flex \
+&lt;&#x2F;span&gt;&lt;span&gt;    texinfo \
+&lt;&#x2F;span&gt;&lt;span&gt;    gperf \
+&lt;&#x2F;span&gt;&lt;span&gt;    libtool \
+&lt;&#x2F;span&gt;&lt;span&gt;    patchutils \
+&lt;&#x2F;span&gt;&lt;span&gt;    bc \
+&lt;&#x2F;span&gt;&lt;span&gt;    zlib1g-dev \
+&lt;&#x2F;span&gt;&lt;span&gt;    libexpat-dev \
+&lt;&#x2F;span&gt;&lt;span&gt;    ninja-build \
+&lt;&#x2F;span&gt;&lt;span&gt;    git \
+&lt;&#x2F;span&gt;&lt;span&gt;    cmake \
+&lt;&#x2F;span&gt;&lt;span&gt;    libglib2.0-dev \
+&lt;&#x2F;span&gt;&lt;span&gt;    libslirp-dev
+&lt;&#x2F;span&gt;&lt;span&gt;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#898989;&quot;&gt;# riscv-gnu-toolchainのインストール
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#016692;&quot;&gt;RUN &lt;&#x2F;span&gt;&lt;span&gt;cd riscv-gnu-toolchain &amp;amp;&amp;amp; \
+&lt;&#x2F;span&gt;&lt;span&gt;    .&#x2F;configure $TOOLCHAIN_CONFIGURE &amp;amp;&amp;amp; \
+&lt;&#x2F;span&gt;&lt;span&gt;    make -j$(nproc)
+&lt;&#x2F;span&gt;&lt;span&gt;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#016692;&quot;&gt;CMD &lt;&#x2F;span&gt;&lt;span&gt;[&lt;&#x2F;span&gt;&lt;span style=&quot;color:#009f78;&quot;&gt;&amp;quot;bash&amp;quot;&lt;&#x2F;span&gt;&lt;span&gt;]
+&lt;&#x2F;span&gt;&lt;&#x2F;code&gt;&lt;&#x2F;pre&gt;
+&lt;h3 id=&quot;shang-ji-dockerfile-woshi-tute-riscv-tests-wobirudo&quot;&gt;上記 Dockerfile を使って riscv-tests をビルド&lt;&#x2F;h3&gt;
+&lt;p&gt;multi-stage build で riscv-tests を行っても良かったが、単にビルドするだけであること、自分が実装した別ソースをビルドすることなどを考え先の Image を利用するだけに留めることにした。&lt;&#x2F;p&gt;
+&lt;p&gt;docker compose を用意し、成果物 Volume のマウント並びにビルドのワンライナーを用意する。
+実装してある内容は riscv-tests の README 通りだが、今回は rv32 を対象にしているので XLEN を設定していること、ISA テスト用に make 対象を isa に絞っている。&lt;&#x2F;p&gt;
+&lt;pre data-lang=&quot;yaml&quot; style=&quot;background-color:#ffffff;color:#010101;&quot; class=&quot;language-yaml &quot;&gt;&lt;code class=&quot;language-yaml&quot; data-lang=&quot;yaml&quot;&gt;&lt;span style=&quot;color:#00528b;&quot;&gt;services&lt;&#x2F;span&gt;&lt;span&gt;:
+&lt;&#x2F;span&gt;&lt;span&gt;  &lt;&#x2F;span&gt;&lt;span style=&quot;color:#00528b;&quot;&gt;build-riscv-tests&lt;&#x2F;span&gt;&lt;span&gt;:
+&lt;&#x2F;span&gt;&lt;span&gt;    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#00528b;&quot;&gt;build&lt;&#x2F;span&gt;&lt;span&gt;:
+&lt;&#x2F;span&gt;&lt;span&gt;      &lt;&#x2F;span&gt;&lt;span style=&quot;color:#00528b;&quot;&gt;context&lt;&#x2F;span&gt;&lt;span&gt;: &lt;&#x2F;span&gt;&lt;span style=&quot;color:#8c008a;&quot;&gt;.
+&lt;&#x2F;span&gt;&lt;span&gt;    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#00528b;&quot;&gt;volumes&lt;&#x2F;span&gt;&lt;span&gt;:
+&lt;&#x2F;span&gt;&lt;span&gt;      - &lt;&#x2F;span&gt;&lt;span style=&quot;color:#009f78;&quot;&gt;.&#x2F;riscv-tests:&#x2F;app&#x2F;riscv-tests:rw
+&lt;&#x2F;span&gt;&lt;span&gt;    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#00528b;&quot;&gt;command&lt;&#x2F;span&gt;&lt;span&gt;: &lt;&#x2F;span&gt;&lt;span style=&quot;color:#016692;&quot;&gt;&amp;gt;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#009f78;&quot;&gt;      bash -c &amp;quot;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#009f78;&quot;&gt;      cd &#x2F;app&#x2F;riscv-tests &amp;amp;&amp;amp; 
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#009f78;&quot;&gt;      git clone --recursive https:&#x2F;&#x2F;github.com&#x2F;riscv&#x2F;riscv-tests &amp;amp;&amp;amp; 
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#009f78;&quot;&gt;      cd riscv-tests &amp;amp;&amp;amp; 
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#009f78;&quot;&gt;      autoconf &amp;amp;&amp;amp; 
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#009f78;&quot;&gt;      .&#x2F;configure --prefix=$RISCV&#x2F;target &amp;amp;&amp;amp; 
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#009f78;&quot;&gt;      make XLEN=32 isa
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#009f78;&quot;&gt;      &amp;quot;
+&lt;&#x2F;span&gt;&lt;&#x2F;code&gt;&lt;&#x2F;pre&gt;
+&lt;p&gt;使い方&lt;&#x2F;p&gt;
+&lt;pre data-lang=&quot;bash&quot; style=&quot;background-color:#ffffff;color:#010101;&quot; class=&quot;language-bash &quot;&gt;&lt;code class=&quot;language-bash&quot; data-lang=&quot;bash&quot;&gt;&lt;span style=&quot;color:#696989;&quot;&gt;docker&lt;&#x2F;span&gt;&lt;span&gt; compose run build-riscv-tests
+&lt;&#x2F;span&gt;&lt;&#x2F;code&gt;&lt;&#x2F;pre&gt;
+&lt;h2 id=&quot;sonota&quot;&gt;その他&lt;&#x2F;h2&gt;
+&lt;h3 id=&quot;riscv-gnu-toolchain-nosonota-noturuwoshi-itai&quot;&gt;riscv-gnu-toolchain のその他のツールを使いたい&lt;&#x2F;h3&gt;
+&lt;p&gt;&lt;code&gt;docker compose run build-riscv-tests bash&lt;&#x2F;code&gt; で入った環境であれば、他のツールも使える。&lt;&#x2F;p&gt;
+&lt;pre data-lang=&quot;bash&quot; style=&quot;background-color:#ffffff;color:#010101;&quot; class=&quot;language-bash &quot;&gt;&lt;code class=&quot;language-bash&quot; data-lang=&quot;bash&quot;&gt;&lt;span style=&quot;color:#696989;&quot;&gt;$&lt;&#x2F;span&gt;&lt;span&gt; docker compose run build-riscv-tests bash
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#696989;&quot;&gt;root@460560b02bb5:&#x2F;app#&lt;&#x2F;span&gt;&lt;span&gt; riscv32-unknown-elf-readelf&lt;&#x2F;span&gt;&lt;span style=&quot;color:#696989;&quot;&gt; -e -W&lt;&#x2F;span&gt;&lt;span&gt; riscv-tests&#x2F;isa&#x2F;rv32ui-p-addi
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#696989;&quot;&gt;ELF&lt;&#x2F;span&gt;&lt;span&gt; Header:
+&lt;&#x2F;span&gt;&lt;span&gt;  &lt;&#x2F;span&gt;&lt;span style=&quot;color:#696989;&quot;&gt;Magic:&lt;&#x2F;span&gt;&lt;span&gt;   7f 45 4c 46 01 01 01 00 00 00 00 00 00 00 00 00
+&lt;&#x2F;span&gt;&lt;span&gt;  &lt;&#x2F;span&gt;&lt;span style=&quot;color:#696989;&quot;&gt;Class:&lt;&#x2F;span&gt;&lt;span&gt;                             ELF32
+&lt;&#x2F;span&gt;&lt;span&gt;  &lt;&#x2F;span&gt;&lt;span style=&quot;color:#696989;&quot;&gt;Data:&lt;&#x2F;span&gt;&lt;span&gt;                              2&lt;&#x2F;span&gt;&lt;span style=&quot;color:#009f78;&quot;&gt;&amp;#39;s complement, little endian
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#009f78;&quot;&gt;  Version:                           1 (current)
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#009f78;&quot;&gt;  OS&#x2F;ABI:                            UNIX - System V
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#009f78;&quot;&gt;  ABI Version:                       0
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#009f78;&quot;&gt;  Type:                              EXEC (Executable file)
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#009f78;&quot;&gt;  Machine:                           RISC-V
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#009f78;&quot;&gt;  Version:                           0x1
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#009f78;&quot;&gt;  Entry point address:               0x80000000
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#009f78;&quot;&gt;  Start of program headers:          52 (bytes into file)
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#009f78;&quot;&gt;  Start of section headers:          9524 (bytes into file)
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#009f78;&quot;&gt;  Flags:                             0x0
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#009f78;&quot;&gt;  Size of this header:               52 (bytes)
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#009f78;&quot;&gt;  Size of program headers:           32 (bytes)
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#009f78;&quot;&gt;  Number of program headers:         3
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#009f78;&quot;&gt;  Size of section headers:           40 (bytes)
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#009f78;&quot;&gt;  Number of section headers:         7
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#009f78;&quot;&gt;  Section header string table index: 6
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#009f78;&quot;&gt;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#009f78;&quot;&gt;Section Headers:
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#009f78;&quot;&gt;  [Nr] Name              Type            Addr     Off    Size   ES Flg Lk Inf Al
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#009f78;&quot;&gt;  [ 0]                   NULL            00000000 000000 000000 00      0   0  0
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#009f78;&quot;&gt;  [ 1] .text.init        PROGBITS        80000000 001000 00047c 00  AX  0   0 64
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#009f78;&quot;&gt;  [ 2] .tohost           PROGBITS        80001000 002000 000048 00  WA  0   0 64
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#009f78;&quot;&gt;  [ 3] .riscv.attributes RISCV_ATTRIBUTES 00000000 002048 000063 00      0   0  1
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#009f78;&quot;&gt;  [ 4] .symtab           SYMTAB          00000000 0020ac 0002b0 10      5  37  4
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#009f78;&quot;&gt;  [ 5] .strtab           STRTAB          00000000 00235c 000198 00      0   0  1
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#009f78;&quot;&gt;  [ 6] .shstrtab         STRTAB          00000000 0024f4 000040 00      0   0  1
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#009f78;&quot;&gt;Key to Flags:
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#009f78;&quot;&gt;  W (write), A (alloc), X (execute), M (merge), S (strings), I (info),
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#009f78;&quot;&gt;  L (link order), O (extra OS processing required), G (group), T (TLS),
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#009f78;&quot;&gt;  C (compressed), x (unknown), o (OS specific), E (exclude),
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#009f78;&quot;&gt;  D (mbind), p (processor specific)
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#009f78;&quot;&gt;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#009f78;&quot;&gt;Program Headers:
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#009f78;&quot;&gt;  Type           Offset   VirtAddr   PhysAddr   FileSiz MemSiz  Flg Align
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#009f78;&quot;&gt;  RISCV_ATTRIBUT 0x002048 0x00000000 0x00000000 0x00063 0x00000 R   0x1
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#009f78;&quot;&gt;  LOAD           0x001000 0x80000000 0x80000000 0x0047c 0x0047c R E 0x1000
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#009f78;&quot;&gt;  LOAD           0x002000 0x80001000 0x80001000 0x00048 0x00048 RW  0x1000
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#009f78;&quot;&gt;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#009f78;&quot;&gt; Section to Segment mapping:
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#009f78;&quot;&gt;  Segment Sections...
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#009f78;&quot;&gt;   00     .riscv.attributes
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#009f78;&quot;&gt;   01     .text.init
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#009f78;&quot;&gt;   02     .tohost
+&lt;&#x2F;span&gt;&lt;&#x2F;code&gt;&lt;&#x2F;pre&gt;
+&lt;h3 id=&quot;rv64-32-noxuan-ze&quot;&gt;RV64&#x2F;32 の選択&lt;&#x2F;h3&gt;
+&lt;ul&gt;
+&lt;li&gt;Dockerfile の &lt;code&gt;ARCH&lt;&#x2F;code&gt; と &lt;code&gt;ABI&lt;&#x2F;code&gt; を変更する&lt;&#x2F;li&gt;
+&lt;li&gt;make 時の &lt;code&gt;XLEN&lt;&#x2F;code&gt; を変更する
+&lt;ul&gt;
+&lt;li&gt;riscv-tests のデフォルトは &lt;code&gt;XLEN=64&lt;&#x2F;code&gt; を使おうとしているので、rv32 向けの toolchain だと gcc などが見つからずエラーになる&lt;&#x2F;li&gt;
+&lt;&#x2F;ul&gt;
+&lt;&#x2F;li&gt;
+&lt;&#x2F;ul&gt;
+&lt;h3 id=&quot;linker-script-noxiu-zheng&quot;&gt;Linker script の修正&lt;&#x2F;h3&gt;
+&lt;p&gt;&lt;a href=&quot;https:&#x2F;&#x2F;github.com&#x2F;riscv&#x2F;riscv-test-env&quot;&gt;riscv-tests&#x2F;env が更に submodule になっており&lt;&#x2F;a&gt;、ここを修正することで対応できる。
+例えば &lt;code&gt;p&#x2F;link.ld&lt;&#x2F;code&gt; は以下の具合&lt;&#x2F;p&gt;
+&lt;pre data-lang=&quot;ld&quot; style=&quot;background-color:#ffffff;color:#010101;&quot; class=&quot;language-ld &quot;&gt;&lt;code class=&quot;language-ld&quot; data-lang=&quot;ld&quot;&gt;&lt;span style=&quot;color:#696989;&quot;&gt;OUTPUT_ARCH&lt;&#x2F;span&gt;&lt;span&gt;( &lt;&#x2F;span&gt;&lt;span style=&quot;color:#696989;&quot;&gt;&amp;quot;riscv&amp;quot;&lt;&#x2F;span&gt;&lt;span&gt; )
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#016692;&quot;&gt;ENTRY&lt;&#x2F;span&gt;&lt;span&gt;(&lt;&#x2F;span&gt;&lt;span style=&quot;color:#696989;&quot;&gt;_start&lt;&#x2F;span&gt;&lt;span&gt;)
+&lt;&#x2F;span&gt;&lt;span&gt;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#016692;&quot;&gt;SECTIONS
+&lt;&#x2F;span&gt;&lt;span&gt;{
+&lt;&#x2F;span&gt;&lt;span&gt;  &lt;&#x2F;span&gt;&lt;span style=&quot;color:#696989;&quot;&gt;.&lt;&#x2F;span&gt;&lt;span&gt; = &lt;&#x2F;span&gt;&lt;span style=&quot;color:#8c008a;&quot;&gt;0x80000000&lt;&#x2F;span&gt;&lt;span&gt;;
+&lt;&#x2F;span&gt;&lt;span&gt;  &lt;&#x2F;span&gt;&lt;span style=&quot;color:#696989;&quot;&gt;.text.init&lt;&#x2F;span&gt;&lt;span&gt; : { *(&lt;&#x2F;span&gt;&lt;span style=&quot;color:#696989;&quot;&gt;.text.init&lt;&#x2F;span&gt;&lt;span&gt;) }
+&lt;&#x2F;span&gt;&lt;span&gt;  &lt;&#x2F;span&gt;&lt;span style=&quot;color:#696989;&quot;&gt;.&lt;&#x2F;span&gt;&lt;span&gt; = &lt;&#x2F;span&gt;&lt;span style=&quot;color:#016692;&quot;&gt;ALIGN&lt;&#x2F;span&gt;&lt;span&gt;(&lt;&#x2F;span&gt;&lt;span style=&quot;color:#8c008a;&quot;&gt;0x1000&lt;&#x2F;span&gt;&lt;span&gt;);
+&lt;&#x2F;span&gt;&lt;span&gt;  &lt;&#x2F;span&gt;&lt;span style=&quot;color:#696989;&quot;&gt;.tohost&lt;&#x2F;span&gt;&lt;span&gt; : { *(&lt;&#x2F;span&gt;&lt;span style=&quot;color:#696989;&quot;&gt;.tohost&lt;&#x2F;span&gt;&lt;span&gt;) }
+&lt;&#x2F;span&gt;&lt;span&gt;  &lt;&#x2F;span&gt;&lt;span style=&quot;color:#696989;&quot;&gt;.&lt;&#x2F;span&gt;&lt;span&gt; = &lt;&#x2F;span&gt;&lt;span style=&quot;color:#016692;&quot;&gt;ALIGN&lt;&#x2F;span&gt;&lt;span&gt;(&lt;&#x2F;span&gt;&lt;span style=&quot;color:#8c008a;&quot;&gt;0x1000&lt;&#x2F;span&gt;&lt;span&gt;);
+&lt;&#x2F;span&gt;&lt;span&gt;  &lt;&#x2F;span&gt;&lt;span style=&quot;color:#696989;&quot;&gt;.text&lt;&#x2F;span&gt;&lt;span&gt; : { *(&lt;&#x2F;span&gt;&lt;span style=&quot;color:#696989;&quot;&gt;.text&lt;&#x2F;span&gt;&lt;span&gt;) }
+&lt;&#x2F;span&gt;&lt;span&gt;  &lt;&#x2F;span&gt;&lt;span style=&quot;color:#696989;&quot;&gt;.&lt;&#x2F;span&gt;&lt;span&gt; = &lt;&#x2F;span&gt;&lt;span style=&quot;color:#016692;&quot;&gt;ALIGN&lt;&#x2F;span&gt;&lt;span&gt;(&lt;&#x2F;span&gt;&lt;span style=&quot;color:#8c008a;&quot;&gt;0x1000&lt;&#x2F;span&gt;&lt;span&gt;);
+&lt;&#x2F;span&gt;&lt;span&gt;  &lt;&#x2F;span&gt;&lt;span style=&quot;color:#696989;&quot;&gt;.data&lt;&#x2F;span&gt;&lt;span&gt; : { *(&lt;&#x2F;span&gt;&lt;span style=&quot;color:#696989;&quot;&gt;.data&lt;&#x2F;span&gt;&lt;span&gt;) }
+&lt;&#x2F;span&gt;&lt;span&gt;  &lt;&#x2F;span&gt;&lt;span style=&quot;color:#696989;&quot;&gt;.bss&lt;&#x2F;span&gt;&lt;span&gt; : { *(&lt;&#x2F;span&gt;&lt;span style=&quot;color:#696989;&quot;&gt;.bss&lt;&#x2F;span&gt;&lt;span&gt;) }
+&lt;&#x2F;span&gt;&lt;span&gt;  &lt;&#x2F;span&gt;&lt;span style=&quot;color:#696989;&quot;&gt;_end&lt;&#x2F;span&gt;&lt;span&gt; = &lt;&#x2F;span&gt;&lt;span style=&quot;color:#696989;&quot;&gt;.&lt;&#x2F;span&gt;&lt;span&gt;;
+&lt;&#x2F;span&gt;&lt;span&gt;}
+&lt;&#x2F;span&gt;&lt;&#x2F;code&gt;&lt;&#x2F;pre&gt;
+&lt;p&gt;この他にも &lt;code&gt;riscv_test.h&lt;&#x2F;code&gt; にテストの各マクロの定義があるので、動作確認向けに変更することもできる。
+例えば Pass&#x2F;Fail は、Pass の場合&lt;&#x2F;p&gt;
+&lt;pre data-lang=&quot;c&quot; style=&quot;background-color:#ffffff;color:#010101;&quot; class=&quot;language-c &quot;&gt;&lt;code class=&quot;language-c&quot; data-lang=&quot;c&quot;&gt;&lt;span style=&quot;color:#898989;&quot;&gt;&#x2F;&#x2F;-----------------------------------------------------------------------
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#898989;&quot;&gt;&#x2F;&#x2F; Pass&#x2F;Fail Macro
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#898989;&quot;&gt;&#x2F;&#x2F;-----------------------------------------------------------------------
+&lt;&#x2F;span&gt;&lt;span&gt;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#016692;&quot;&gt;#define &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;RVTEST_PASS                                                     &lt;&#x2F;span&gt;&lt;span&gt;\
+&lt;&#x2F;span&gt;&lt;span&gt;        fence;                                                          \
+&lt;&#x2F;span&gt;&lt;span&gt;        li TESTNUM, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#8c008a;&quot;&gt;1&lt;&#x2F;span&gt;&lt;span&gt;;                                                  \
+&lt;&#x2F;span&gt;&lt;span&gt;        li a7, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#8c008a;&quot;&gt;93&lt;&#x2F;span&gt;&lt;span&gt;;                                                      \
+&lt;&#x2F;span&gt;&lt;span&gt;        li a0, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#8c008a;&quot;&gt;0&lt;&#x2F;span&gt;&lt;span&gt;;                                                       \
+&lt;&#x2F;span&gt;&lt;span&gt;        ecall
+&lt;&#x2F;span&gt;&lt;span&gt;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#016692;&quot;&gt;#define &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;TESTNUM&lt;&#x2F;span&gt;&lt;span&gt; gp
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#016692;&quot;&gt;#define &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;RVTEST_FAIL                                                     &lt;&#x2F;span&gt;&lt;span&gt;\
+&lt;&#x2F;span&gt;&lt;span&gt;        fence;                                                          \
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#8c008a;&quot;&gt;1&lt;&#x2F;span&gt;&lt;span style=&quot;color:#016692;&quot;&gt;:&lt;&#x2F;span&gt;&lt;span&gt;      beqz TESTNUM, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#8c008a;&quot;&gt;1&lt;&#x2F;span&gt;&lt;span style=&quot;background-color:#df68d9bf;color:#a00294;&quot;&gt;b&lt;&#x2F;span&gt;&lt;span&gt;;                                               \
+&lt;&#x2F;span&gt;&lt;span&gt;        sll TESTNUM, TESTNUM, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#8c008a;&quot;&gt;1&lt;&#x2F;span&gt;&lt;span&gt;;                                        \
+&lt;&#x2F;span&gt;&lt;span&gt;        or TESTNUM, TESTNUM, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#8c008a;&quot;&gt;1&lt;&#x2F;span&gt;&lt;span&gt;;                                         \
+&lt;&#x2F;span&gt;&lt;span&gt;        li a7, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#8c008a;&quot;&gt;93&lt;&#x2F;span&gt;&lt;span&gt;;                                                      \
+&lt;&#x2F;span&gt;&lt;span&gt;        addi a0, TESTNUM, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#8c008a;&quot;&gt;0&lt;&#x2F;span&gt;&lt;span&gt;;                                            \
+&lt;&#x2F;span&gt;&lt;span&gt;        ecall
+&lt;&#x2F;span&gt;&lt;&#x2F;code&gt;&lt;&#x2F;pre&gt;
+&lt;h3 id=&quot;disassemble-gajian-tai&quot;&gt;disassemble が見たい&lt;&#x2F;h3&gt;
+&lt;p&gt;付属ツールで disasm 出力しても良かったが、make 時に一緒に生成されていた。 &lt;code&gt;&amp;lt;elf binary&amp;gt;.dump&lt;&#x2F;code&gt; がそれにあたる。&lt;&#x2F;p&gt;
+&lt;p&gt;&lt;code&gt;rv32ui-p-addi.dump&lt;&#x2F;code&gt;&lt;&#x2F;p&gt;
+&lt;pre data-lang=&quot;asm&quot; style=&quot;background-color:#ffffff;color:#010101;&quot; class=&quot;language-asm &quot;&gt;&lt;code class=&quot;language-asm&quot; data-lang=&quot;asm&quot;&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;rv32ui&lt;&#x2F;span&gt;&lt;span&gt;-&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;p&lt;&#x2F;span&gt;&lt;span&gt;-&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;addi:     file form&lt;&#x2F;span&gt;&lt;span style=&quot;color:#7a7025;&quot;&gt;at &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;elf32&lt;&#x2F;span&gt;&lt;span&gt;-&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;littleriscv
+&lt;&#x2F;span&gt;&lt;span&gt;
+&lt;&#x2F;span&gt;&lt;span&gt;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;Disassembly of &lt;&#x2F;span&gt;&lt;span style=&quot;color:#7a7025;&quot;&gt;section &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;.text.init:
+&lt;&#x2F;span&gt;&lt;span&gt;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;80000000 &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;&amp;lt;_start&amp;gt;:
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;80000000&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;:	0500006f          	j	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;80000050 &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;&amp;lt;reset_vector&amp;gt;
+&lt;&#x2F;span&gt;&lt;span&gt;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;80000004 &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;&amp;lt;trap_vector&amp;gt;:
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;80000004&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;:	34202f73          	csrr	t5&lt;&#x2F;span&gt;&lt;span&gt;,&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;mcause
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;80000008&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;:	00800f93          	li	t6&lt;&#x2F;span&gt;&lt;span&gt;,&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;8
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;8000000c:	03ff0863          	beq	t5&lt;&#x2F;span&gt;&lt;span&gt;,&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;t6&lt;&#x2F;span&gt;&lt;span&gt;,&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;8000003c &amp;lt;write_tohost&amp;gt;
+&lt;&#x2F;span&gt;&lt;span&gt;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;...
+&lt;&#x2F;span&gt;&lt;span&gt;
+&lt;&#x2F;span&gt;&lt;span&gt;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;800003fc &amp;lt;test_25&amp;gt;:
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;800003fc:	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;01900193          	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;li	gp&lt;&#x2F;span&gt;&lt;span&gt;,&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;25
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;80000400&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;:	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;02100093          	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;li	ra&lt;&#x2F;span&gt;&lt;span&gt;,&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;33
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;80000404&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;:	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;03208013          	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;addi	zero&lt;&#x2F;span&gt;&lt;span&gt;,&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;ra&lt;&#x2F;span&gt;&lt;span&gt;,&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;50
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;80000408&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;:	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;00000393          	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;li	t2&lt;&#x2F;span&gt;&lt;span&gt;,&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;0
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;8000040c:	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;00701463          	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;bne	zero&lt;&#x2F;span&gt;&lt;span&gt;,&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;t2&lt;&#x2F;span&gt;&lt;span&gt;,&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;80000414 &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;&amp;lt;fail&amp;gt;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;80000410&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;:	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;02301063          	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;bne	zero&lt;&#x2F;span&gt;&lt;span&gt;,&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;gp&lt;&#x2F;span&gt;&lt;span&gt;,&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;80000430 &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;&amp;lt;pass&amp;gt;
+&lt;&#x2F;span&gt;&lt;span&gt;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;80000414 &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;&amp;lt;fail&amp;gt;:
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;80000414&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;:	0ff0000f          	fence
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;80000418&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;:	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;00018063          	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;beqz	gp&lt;&#x2F;span&gt;&lt;span&gt;,&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;80000418 &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;&amp;lt;fail&lt;&#x2F;span&gt;&lt;span&gt;+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;0x4&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;&amp;gt;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;8000041c:	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;00119193          	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;slli	gp&lt;&#x2F;span&gt;&lt;span&gt;,&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;gp&lt;&#x2F;span&gt;&lt;span&gt;,&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;0x1
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;80000420&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;:	0011e193          	ori	gp&lt;&#x2F;span&gt;&lt;span&gt;,&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;gp&lt;&#x2F;span&gt;&lt;span&gt;,&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;1
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;80000424&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;:	05d00893          	li	a7&lt;&#x2F;span&gt;&lt;span&gt;,&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;93
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;80000428&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;:	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;00018513          	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;mv	a0&lt;&#x2F;span&gt;&lt;span&gt;,&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;gp
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;8000042c:	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;00000073          	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;ecall
+&lt;&#x2F;span&gt;&lt;span&gt;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;80000430 &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;&amp;lt;pass&amp;gt;:
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;80000430&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;:	0ff0000f          	fence
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;80000434&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;:	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;00100193          	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;li	gp&lt;&#x2F;span&gt;&lt;span&gt;,&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;1
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;80000438&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;:	05d00893          	li	a7&lt;&#x2F;span&gt;&lt;span&gt;,&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;93
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;8000043c:	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;00000513          	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;li	a0&lt;&#x2F;span&gt;&lt;span&gt;,&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;0
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;80000440&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;:	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;00000073          	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;ecall
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;80000444&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;:	c0001073          	unimp
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;80000448&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;:	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;0000                	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;.insn	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;2&lt;&#x2F;span&gt;&lt;span&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;0x
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;8000044a:	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;0000                	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;.insn	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;2&lt;&#x2F;span&gt;&lt;span&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;0x
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;8000044c:	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;0000                	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;.insn	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;2&lt;&#x2F;span&gt;&lt;span&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;0x
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;8000044e:	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;0000                	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;.insn	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;2&lt;&#x2F;span&gt;&lt;span&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;0x
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;80000450&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;:	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;0000                	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;.insn	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;2&lt;&#x2F;span&gt;&lt;span&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;0x
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;80000452&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;:	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;0000                	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;.insn	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;2&lt;&#x2F;span&gt;&lt;span&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;0x
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;80000454&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;:	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;0000                	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;.insn	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;2&lt;&#x2F;span&gt;&lt;span&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;0x
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;80000456&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;:	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;0000                	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;.insn	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;2&lt;&#x2F;span&gt;&lt;span&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;0x
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;80000458&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;:	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;0000                	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;.insn	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;2&lt;&#x2F;span&gt;&lt;span&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;0x
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;8000045a:	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;0000                	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;.insn	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;2&lt;&#x2F;span&gt;&lt;span&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;0x
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;8000045c:	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;0000                	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;.insn	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;2&lt;&#x2F;span&gt;&lt;span&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;0x
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;8000045e:	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;0000                	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;.insn	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;2&lt;&#x2F;span&gt;&lt;span&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;0x
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;80000460&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;:	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;0000                	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;.insn	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;2&lt;&#x2F;span&gt;&lt;span&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;0x
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;80000462&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;:	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;0000                	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;.insn	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;2&lt;&#x2F;span&gt;&lt;span&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;0x
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;80000464&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;:	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;0000                	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;.insn	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;2&lt;&#x2F;span&gt;&lt;span&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;0x
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;80000466&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;:	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;0000                	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;.insn	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;2&lt;&#x2F;span&gt;&lt;span&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;0x
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;80000468&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;:	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;0000                	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;.insn	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;2&lt;&#x2F;span&gt;&lt;span&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;0x
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;8000046a:	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;0000                	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;.insn	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;2&lt;&#x2F;span&gt;&lt;span&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;0x
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;8000046c:	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;0000                	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;.insn	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;2&lt;&#x2F;span&gt;&lt;span&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;0x
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;8000046e:	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;0000                	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;.insn	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;2&lt;&#x2F;span&gt;&lt;span&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;0x
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;80000470&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;:	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;0000                	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;.insn	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;2&lt;&#x2F;span&gt;&lt;span&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;0x
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;80000472&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;:	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;0000                	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;.insn	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;2&lt;&#x2F;span&gt;&lt;span&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;0x
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;80000474&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;:	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;0000                	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;.insn	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;2&lt;&#x2F;span&gt;&lt;span&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;0x
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;80000476&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;:	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;0000                	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;.insn	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;2&lt;&#x2F;span&gt;&lt;span&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;0x
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;80000478&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;:	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;0000                	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;.insn	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;2&lt;&#x2F;span&gt;&lt;span&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;0x
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;8000047a:	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;0000                	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;.insn	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;2&lt;&#x2F;span&gt;&lt;span&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;0x
+&lt;&#x2F;span&gt;&lt;&#x2F;code&gt;&lt;&#x2F;pre&gt;
+</content>
+        
+    </entry>
+    <entry xml:lang="en">
+        <title>LiteX を Ubuntu 24.04 on WSL2 で使用し、 Demo Applicationを動作させる</title>
+        <published>2025-02-24T00:00:00+00:00</published>
+        <updated>2025-02-24T00:00:00+00:00</updated>
+        
+        <author>
+          <name>
+            
+              Unknown
+            
+          </name>
+        </author>
+        
+        <link rel="alternate" type="text/html" href="https://blog.wipeseals.me/blog/2025/setup-litex/"/>
+        <id>https://blog.wipeseals.me/blog/2025/setup-litex/</id>
+        
+        <summary type="html">&lt;p&gt;LiteX を Windows 環境で使用したく、試していたときの備忘録。以下の通り無事 demo app の動作確認までたどり着けたので書き残す。&lt;&#x2F;p&gt;
+&lt;p&gt;&lt;img src=&quot;&#x2F;2025&#x2F;setup-litex&#x2F;vexriscv-donut.mp4.gif&quot; alt=&quot;movie gif&quot; &#x2F;&gt;&lt;&#x2F;p&gt;
+&lt;hr &#x2F;&gt;
+&lt;h2 id=&quot;shou-shun-matome&quot;&gt;手順まとめ&lt;&#x2F;h2&gt;
+&lt;p&gt;時系列順に実行した内容のまとめを先に記載する。細かいトラブルシューティングは後半に記載。&lt;&#x2F;p&gt;
+&lt;h3 id=&quot;huan-jing-gou-zhu&quot;&gt;環境構築&lt;&#x2F;h3&gt;
+&lt;p&gt;基本手順は&lt;a href=&quot;https:&#x2F;&#x2F;github.com&#x2F;enjoy-digital&#x2F;litex?tab=readme-ov-file#quick-start-guide&quot;&gt;公式ドキュメントの Quick Start Guide&lt;&#x2F;a&gt;に従い、WSL2 上にインストールした Ubuntu 24.04 で行う。
+要点は以下。&lt;&#x2F;p&gt;
+&lt;ul&gt;
+&lt;li&gt;virtualenv を作成し、Python 仮想環境中で実行する&lt;&#x2F;li&gt;
+&lt;li&gt;virtualenv 中で user install を実行するとエラーになるため、 &lt;code&gt;--user&lt;&#x2F;code&gt; オプションを使用しない&lt;&#x2F;li&gt;
+&lt;li&gt;litex の repo ごと取得した状態で &lt;code&gt;litex_setup.py&lt;&#x2F;code&gt; を実行しない&lt;&#x2F;li&gt;
+&lt;&#x2F;ul&gt;
+&lt;pre data-lang=&quot;sh&quot; style=&quot;background-color:#ffffff;color:#010101;&quot; class=&quot;language-sh &quot;&gt;&lt;code class=&quot;language-sh&quot; data-lang=&quot;sh&quot;&gt;&lt;span style=&quot;color:#898989;&quot;&gt;# verilator導入
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#696989;&quot;&gt;$&lt;&#x2F;span&gt;&lt;span&gt; sudo apt install verilator
+&lt;&#x2F;span&gt;&lt;span&gt;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#898989;&quot;&gt;# litexの取得
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#696989;&quot;&gt;$&lt;&#x2F;span&gt;&lt;span&gt; wget https:&#x2F;&#x2F;raw.githubusercontent.com&#x2F;enjoy-digital&#x2F;litex&#x2F;master&#x2F;litex_setup.py
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#696989;&quot;&gt;$&lt;&#x2F;span&gt;&lt;span&gt; chmod +x litex_setup.py
+&lt;&#x2F;span&gt;&lt;span&gt;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#898989;&quot;&gt;# venv導入
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#696989;&quot;&gt;$&lt;&#x2F;span&gt;&lt;span&gt; sudo apt install python3-venv
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#898989;&quot;&gt;# 仮想環境作成 + activate
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#696989;&quot;&gt;$&lt;&#x2F;span&gt;&lt;span&gt; python3&lt;&#x2F;span&gt;&lt;span style=&quot;color:#696989;&quot;&gt; -m&lt;&#x2F;span&gt;&lt;span&gt; venv .venv
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#696989;&quot;&gt;$&lt;&#x2F;span&gt;&lt;span&gt; source .venv&#x2F;bin&#x2F;activate
+&lt;&#x2F;span&gt;&lt;span&gt;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#898989;&quot;&gt;# litex_setup.py の実行
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#696989;&quot;&gt;$&lt;&#x2F;span&gt;&lt;span&gt; python3 .&#x2F;litex_setup.py&lt;&#x2F;span&gt;&lt;span style=&quot;color:#696989;&quot;&gt; --init --install --config&lt;&#x2F;span&gt;&lt;span style=&quot;color:#016692;&quot;&gt;=&lt;&#x2F;span&gt;&lt;span&gt;full
+&lt;&#x2F;span&gt;&lt;span&gt;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#898989;&quot;&gt;# RSC-V toolchain の導入 (binutils-riscv* 等が導入されるので管理者権限必要)
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#696989;&quot;&gt;$&lt;&#x2F;span&gt;&lt;span&gt; pip3 install meson ninja
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#696989;&quot;&gt;$&lt;&#x2F;span&gt;&lt;span&gt; sudo .&#x2F;litex_setup.py&lt;&#x2F;span&gt;&lt;span style=&quot;color:#696989;&quot;&gt; --gcc&lt;&#x2F;span&gt;&lt;span style=&quot;color:#016692;&quot;&gt;=&lt;&#x2F;span&gt;&lt;span&gt;riscv
+&lt;&#x2F;span&gt;&lt;&#x2F;code&gt;&lt;&#x2F;pre&gt;
+&lt;h3 id=&quot;shi-ji-wu-sidenotesuto&quot;&gt;実機無しでのテスト&lt;&#x2F;h3&gt;
+&lt;p&gt;ハマりポイントは特になし。verilator があれば動くはず。&lt;&#x2F;p&gt;
+</summary>
+        
+    </entry>
+    <entry xml:lang="en">
+        <title>VRChatで動くボードゲームを作る</title>
+        <published>2024-11-14T00:00:00+00:00</published>
+        <updated>2024-11-14T00:00:00+00:00</updated>
+        
+        <author>
+          <name>
+            
+              Unknown
+            
+          </name>
+        </author>
+        
+        <link rel="alternate" type="text/html" href="https://blog.wipeseals.me/blog/2024/create-vrchat-game/"/>
+        <id>https://blog.wipeseals.me/blog/2024/create-vrchat-game/</id>
+        
+        <summary type="html">&lt;p&gt;掲題の通り、VRChat 上で動作するボードゲームを先日公開した。自分自身の備忘録また同様の制作を行いたく情報を探している人向けの制作記録として機能することを願って作業記録を残すことにする。&lt;&#x2F;p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;https:&#x2F;&#x2F;wipeseals.booth.pm&#x2F;items&#x2F;6278798&quot;&gt;[無料] UdonKnucklebones [UdonChips 対応] - Booth&lt;&#x2F;a&gt;&lt;&#x2F;li&gt;
+&lt;li&gt;&lt;a href=&quot;https:&#x2F;&#x2F;github.com&#x2F;wipeseals&#x2F;UdonKnucklebones&quot;&gt;wipeseals&#x2F;UdonKnucklebones - GitHub&lt;&#x2F;a&gt;&lt;&#x2F;li&gt;
+&lt;&#x2F;ul&gt;
+&lt;p&gt;&lt;img src=&quot;&#x2F;2024&#x2F;create-vrchat-game&#x2F;2024-11-10-170028.png&quot; alt=&quot;ss&quot; &#x2F;&gt;&lt;&#x2F;p&gt;
+&lt;hr &#x2F;&gt;
+&lt;h2 id=&quot;zuo-rumono&quot;&gt;作るもの&lt;&#x2F;h2&gt;
+&lt;p&gt;Knucklebones（ナックルボーン）と呼ばれるボードゲームを作ることにした。本家は&lt;a href=&quot;https:&#x2F;&#x2F;store.steampowered.com&#x2F;app&#x2F;1313140&#x2F;Cult_of_the_Lamb&#x2F;?l=japanese&quot;&gt;Cult of the Lamb&lt;&#x2F;a&gt; 作中に登場するゲームであり、今回の制作は非公式ファンアートの位置づけである。&lt;&#x2F;p&gt;
+&lt;p&gt;サイコロを振って並べるという単純明快なルールでありながら、駆け引き要素がよくできたゲームである。（高得点を狙うほど、相手から一網打尽にされるリスクが上がっていく）
+もちろん、Knucklebones だけでなくゲーム自体の完成度もすばらしいのでぜひ遊んでみてほしい。&lt;&#x2F;p&gt;
+&lt;h2 id=&quot;zhi-zuo-shou-shun&quot;&gt;制作手順&lt;&#x2F;h2&gt;
+&lt;p&gt;おおよそ以下の手順で進めた。あくまでいち参考として見ていただけるとありがたい。&lt;&#x2F;p&gt;
+&lt;ol&gt;
+&lt;li&gt;ゲームシステム試作&lt;&#x2F;li&gt;
+&lt;li&gt;モデリング&lt;&#x2F;li&gt;
+&lt;li&gt;VCC 配布可能な Unity Project 作成&lt;&#x2F;li&gt;
+&lt;li&gt;モデルの Unity Setup&lt;&#x2F;li&gt;
+&lt;li&gt;ゲームロジック 実装&lt;&#x2F;li&gt;
+&lt;li&gt;動作確認&lt;&#x2F;li&gt;
+&lt;li&gt;サンプルワールド作成&lt;&#x2F;li&gt;
+&lt;li&gt;配布準備&lt;&#x2F;li&gt;
+&lt;&#x2F;ol&gt;
+</summary>
+        
+    </entry>
+    <entry xml:lang="en">
+        <title>Raspberry PI PIO で NANDアクセスを高速化する</title>
+        <published>2024-10-30T00:00:00+00:00</published>
+        <updated>2024-10-30T00:00:00+00:00</updated>
+        
+        <author>
+          <name>
+            
+              Unknown
+            
+          </name>
+        </author>
+        
+        <link rel="alternate" type="text/html" href="https://blog.wipeseals.me/blog/2024/rpi-pio-nand/"/>
+        <id>https://blog.wipeseals.me/blog/2024/rpi-pio-nand/</id>
+        
+        <summary type="html">&lt;p&gt;登壇する機会があったのでその際の資料。RP2040 に搭載されている Programmable IO を用いて、Parallel Command I&#x2F;F である NAND IC へのアクセスを高速化検討した話。&lt;&#x2F;p&gt;
+&lt;p&gt;&lt;a href=&quot;&#x2F;2024&#x2F;rpi-pio-nand&#x2F;rpi-pio-nand.pdf&quot;&gt;rpi-pio-nand.pdf&lt;&#x2F;a&gt;&lt;&#x2F;p&gt;
+&lt;p&gt;資料は marp を使用して作成したので、以後は元になった資料の markdown 移植版&lt;&#x2F;p&gt;
+&lt;h2 id=&quot;bei-jing&quot;&gt;背景&lt;&#x2F;h2&gt;
+&lt;p&gt;最近 SSD 自作キット JISC-SSD で &lt;del&gt;時折放置してますが&lt;&#x2F;del&gt; 遊んでいます。
+途中まで C++で書いていましたが、気まぐれで Rust 再実装中...&lt;&#x2F;p&gt;
+&lt;p&gt;RPi Pico: RP2040 Cortex-M0+ DualCore @133MHz
+NAND Flash: KIOXIA TC58NVG0S3HTA00 1Gbit SLC ECC なし&lt;&#x2F;p&gt;
+&lt;table&gt;&lt;thead&gt;&lt;tr&gt;&lt;th&gt;外観&lt;&#x2F;th&gt;&lt;th&gt;回路図抜粋&lt;&#x2F;th&gt;&lt;th&gt;RP2040 Block Diagram&lt;&#x2F;th&gt;&lt;&#x2F;tr&gt;&lt;&#x2F;thead&gt;&lt;tbody&gt;
+&lt;tr&gt;&lt;td&gt;&lt;img src=&quot;&#x2F;2024&#x2F;rpi-pio-nand&#x2F;sashie01-scaled.jpg&quot; alt=&quot;width:400px&quot; &#x2F;&gt;&lt;&#x2F;td&gt;&lt;td&gt;&lt;img src=&quot;&#x2F;2024&#x2F;rpi-pio-nand&#x2F;jisc-ssd-schema.png&quot; alt=&quot;width:700px&quot; &#x2F;&gt;&lt;&#x2F;td&gt;&lt;td&gt;&lt;img src=&quot;&#x2F;2024&#x2F;rpi-pio-nand&#x2F;rp2040-diagram.png&quot; alt=&quot;width:600px&quot; &#x2F;&gt;&lt;&#x2F;td&gt;&lt;&#x2F;tr&gt;
+&lt;tr&gt;&lt;td&gt;&lt;&#x2F;td&gt;&lt;td&gt;GPIO で NAND と直結&lt;&#x2F;td&gt;&lt;td&gt;&lt;&#x2F;td&gt;&lt;&#x2F;tr&gt;
+&lt;&#x2F;tbody&gt;&lt;&#x2F;table&gt;
+</summary>
+        
+    </entry>
+    <entry xml:lang="en">
+        <title>U# assembly definition が定義されていない旨のエラー対処</title>
+        <published>2024-10-01T00:00:00+00:00</published>
+        <updated>2024-10-01T00:00:00+00:00</updated>
+        
+        <author>
+          <name>
+            
+              Unknown
+            
+          </name>
+        </author>
+        
+        <link rel="alternate" type="text/html" href="https://blog.wipeseals.me/blog/2024/usharp-asmdef/"/>
+        <id>https://blog.wipeseals.me/blog/2024/usharp-asmdef/</id>
+        
+        <summary type="html">&lt;p&gt;公開用に &lt;code&gt;Packages&#x2F;&lt;&#x2F;code&gt; 側で U# のアプリケーションを作っているときに、以下でビルドエラーになったのでの備忘録。&lt;&#x2F;p&gt;
+&lt;pre data-lang=&quot;log&quot; style=&quot;background-color:#ffffff;color:#010101;&quot; class=&quot;language-log &quot;&gt;&lt;code class=&quot;language-log&quot; data-lang=&quot;log&quot;&gt;&lt;span&gt;&amp;#39;&#x2F;Packages&#x2F;XXX&#x2F;XXX.cs&amp;#39; does not belong to a U# assembly, have you made a U# assembly definition for the assembly the script is a part of?
+&lt;&#x2F;span&gt;&lt;&#x2F;code&gt;&lt;&#x2F;pre&gt;
+&lt;p&gt;&lt;del&gt;エラーメッセージの通りで書き残すほどでもない気はするが、U# Assembly Definition についてあまり情報がなかったので書き残す&lt;&#x2F;del&gt;&lt;&#x2F;p&gt;
+&lt;p&gt;&lt;em&gt;記事を書いている途中に公式ドキュメントを見つけました。 &lt;a href=&quot;https:&#x2F;&#x2F;udonsharp.docs.vrchat.com&#x2F;migration&#x2F;#does-not-belong-to-u-assembly&quot;&gt;https:&#x2F;&#x2F;udonsharp.docs.vrchat.com&#x2F;migration&#x2F;#does-not-belong-to-u-assembly&lt;&#x2F;a&gt;&lt;&#x2F;em&gt;&lt;&#x2F;p&gt;
+&lt;h2 id=&quot;assembly-definition-asmdef-nituite&quot;&gt;Assembly Definition (asmdef) について&lt;&#x2F;h2&gt;
+&lt;p&gt;asmdef は定義済アセンブリを明示するための設定ファイル。&lt;&#x2F;p&gt;
+&lt;p&gt;Unity C#で記述した Script がコンパイルされる際、 asmdef で定義を明示しない場合は &lt;code&gt;Assembly-CSharp*&lt;&#x2F;code&gt; にまとめられる。
+自分の書いた Script とその他無関係の Script が同一のアセンブリにビルドされるため、クラス名の衝突であったりコンパイルの時間増加等の問題につながるため、特別な理由がなければ定義しておくほうが無難。&lt;&#x2F;p&gt;
+&lt;p&gt;参考: &lt;a href=&quot;https:&#x2F;&#x2F;docs.unity3d.com&#x2F;ja&#x2F;2022.3&#x2F;Manual&#x2F;ScriptCompileOrderFolders.html&quot;&gt;特殊フォルダーとスクリプトのコンパイル順 - Unity Documentation 2022.3&lt;&#x2F;a&gt;&lt;&#x2F;p&gt;
+</summary>
+        
+    </entry>
+    <entry xml:lang="en">
+        <title>RustでUSB Mass Storage Class Bulk-Only Transportを実装する</title>
+        <published>2024-09-17T00:00:00+00:00</published>
+        <updated>2024-09-17T00:00:00+00:00</updated>
+        
+        <author>
+          <name>
+            
+              Unknown
+            
+          </name>
+        </author>
+        
+        <link rel="alternate" type="text/html" href="https://blog.wipeseals.me/blog/2024/usbmsc/"/>
+        <id>https://blog.wipeseals.me/blog/2024/usbmsc/</id>
+        
+        <summary type="html">&lt;p&gt;掲題の通り Rust で USB Mass Storage Class (MSC) Bulk-Only Transport を実装した。
+RAM 上の値を Disk Drive に見せかけたデバイスとして Windows から認識できるようになったので要所を書き残す。&lt;&#x2F;p&gt;
+&lt;p&gt;実装には Rust を使用し、 Raspberry pi pico (rp2040) 上で動作確認を行っている。実装の Framework には &lt;a href=&quot;https:&#x2F;&#x2F;github.com&#x2F;embassy-rs&#x2F;embassy&quot;&gt;embassy-rs&lt;&#x2F;a&gt; を使用した。&lt;&#x2F;p&gt;
+&lt;h2 id=&quot;usb-tong-xin-nogou-cheng-she-ding&quot;&gt;USB 通信の構成・設定&lt;&#x2F;h2&gt;
+&lt;p&gt;&lt;a href=&quot;https:&#x2F;&#x2F;www.usb.org&#x2F;sites&#x2F;default&#x2F;files&#x2F;usbmassbulk_10.pdf&quot;&gt;Mass Storage Bulk Only 1.0 - usb.org&lt;&#x2F;a&gt; に基づいて実装する。具体的に以下の通信を行う。&lt;&#x2F;p&gt;
+&lt;p&gt;&lt;img src=&quot;&#x2F;2024&#x2F;usbmsc&#x2F;usb-config.png&quot; alt=&quot;usb-config.png&quot; &#x2F;&gt;&lt;&#x2F;p&gt;
+&lt;h3 id=&quot;descriptor-gou-cheng&quot;&gt;Descriptor 構成&lt;&#x2F;h3&gt;
+&lt;ul&gt;
+&lt;li&gt;USB Device
+&lt;ul&gt;
+&lt;li&gt;Device Descriptor (MSC Bulk Only Transport)&lt;&#x2F;li&gt;
+&lt;li&gt;Configuration Descriptor
+&lt;ul&gt;
+&lt;li&gt;Interface Descriptor0 (MSC Bulk Only Transport)
+&lt;ul&gt;
+&lt;li&gt;Endpoint Descriptor1: Bulk out&lt;&#x2F;li&gt;
+&lt;li&gt;Endpoint Descriptor2: Bulk in&lt;&#x2F;li&gt;
+&lt;&#x2F;ul&gt;
+&lt;&#x2F;li&gt;
+&lt;&#x2F;ul&gt;
+&lt;&#x2F;li&gt;
+&lt;&#x2F;ul&gt;
+&lt;&#x2F;li&gt;
+&lt;&#x2F;ul&gt;
+&lt;h3 id=&quot;usb-mass-storage-class&quot;&gt;USB Mass Storage Class&lt;&#x2F;h3&gt;
+&lt;p&gt;USB（に限らない話だが）を用いた通信は Host&#x2F;Device 双方の FW で共通のプロトコル定義に基づいた実装が必要だが、一般的に使われる機能については USB の仕様としてクラス定義されている。&lt;&#x2F;p&gt;
+&lt;p&gt;例: キーボード・マウス等入力デバイス定義 &lt;a href=&quot;https:&#x2F;&#x2F;usb.org&#x2F;sites&#x2F;default&#x2F;files&#x2F;hid1_11.pdf&quot;&gt;Device Class Definition for Human Interface Devices(HID)&lt;&#x2F;a&gt;&lt;&#x2F;p&gt;
+&lt;p&gt;今日使われている OS で USB が使える環境にあれば、Host 側のドライバ実装は多くの場合用意されているので、独自のドライバ作成と署名・インストールの手順を省くことができる。
+開発者は Device 側の FW を定義に基づいて実装するだけで良い。&lt;&#x2F;p&gt;
+&lt;p&gt;このクラス定義のうち、外付け記憶装置を制御するための 1 つとして MSC がある。&lt;&#x2F;p&gt;
+</summary>
+        
+    </entry>
+    <entry xml:lang="en">
+        <title>2024年5月時点 VRChat Avatar Upload環境memo</title>
+        <published>2024-05-04T00:00:00+00:00</published>
+        <updated>2024-05-04T00:00:00+00:00</updated>
+        
+        <author>
+          <name>
+            
+              Unknown
+            
+          </name>
+        </author>
+        
+        <link rel="alternate" type="text/html" href="https://blog.wipeseals.me/blog/2024/vrchat-upload/"/>
+        <id>https://blog.wipeseals.me/blog/2024/vrchat-upload/</id>
+        
+        <summary type="html">&lt;p&gt;Zenn 執筆環境構築のテスト記事も兼ねてアバター導入環境について言及。多分もっと丁寧な記事があると思うので備忘録程度。&lt;&#x2F;p&gt;
+&lt;h2 id=&quot;bi-yao-nahuan-jing-tosonoshou-shun&quot;&gt;必要な環境とその手順&lt;&#x2F;h2&gt;
+&lt;ul&gt;
+&lt;li&gt;VRChat アカウント
+&lt;ul&gt;
+&lt;li&gt;VRChat には &lt;a href=&quot;https:&#x2F;&#x2F;docs.vrchat.com&#x2F;docs&#x2F;vrchat-safety-and-trust-system&quot;&gt;Trust Rank&lt;&#x2F;a&gt; という概念があり、作りたてのアカウントでは Visitor となっている&lt;&#x2F;li&gt;
+&lt;li&gt;やり込んで Rank を上げるか、課金することで New User 以上の権限を持つアカウントになることで Upload 可能
+&lt;blockquote&gt;
+&lt;p&gt;The transition between “Visitor” and “New User” is a special one — when a Visitor becomes a New User, they gain the ability to upload content to VRChat as long as they’re using a VRChat account. Users receive a notification when they have passed this rank, and are directed to the VRChat documentation page to get started with creating content.&lt;&#x2F;p&gt;
+&lt;&#x2F;blockquote&gt;
+&lt;&#x2F;li&gt;
+&lt;&#x2F;ul&gt;
+&lt;&#x2F;li&gt;
+&lt;li&gt;Unity Hub
+&lt;ul&gt;
+&lt;li&gt;Unity は複数バージョンを共存させることがあり、これの管理に(?)Unity Hub を使用する&lt;&#x2F;li&gt;
+&lt;li&gt;&lt;a href=&quot;https:&#x2F;&#x2F;unity.com&#x2F;ja&#x2F;download&quot;&gt;Unity.com&lt;&#x2F;a&gt; から DL してセットアップしておく、また起動後アカウントやライセンス認証を求められる場合は Unity のアカウントも取得しておく&lt;&#x2F;li&gt;
+&lt;&#x2F;ul&gt;
+&lt;&#x2F;li&gt;
+&lt;li&gt;Unity 2022.3.6f1
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;https:&#x2F;&#x2F;creators.vrchat.com&#x2F;sdk&#x2F;upgrade&#x2F;current-unity-version&#x2F;&quot;&gt;VRChat 公式によるとこのバージョンが推奨のため&lt;&#x2F;a&gt;、 Unity Hub 導入後に VRChat の現時点での最新バージョンをいれる
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;unityhub:&#x2F;&#x2F;2022.3.6f1&#x2F;b9e6e7e9fa2d&quot;&gt;unityhub:&#x2F;&#x2F;2022.3.6f1&#x2F;b9e6e7e9fa2d&lt;&#x2F;a&gt;&lt;&#x2F;li&gt;
+&lt;&#x2F;ul&gt;
+&lt;&#x2F;li&gt;
+&lt;li&gt;(筆者は 2019 を使ったことあるが 2022 が初なのでせっかくなので本記事を書き残す) &amp;gt; The current Unity version used by VRChat is 2022.3.6f1.
+If you have Unity Hub installed, you can click this link to install the correct version of Unity. 2022.3.6f1 is also available in the Unity editor release archive.&lt;&#x2F;li&gt;
+&lt;&#x2F;ul&gt;
+&lt;&#x2F;li&gt;
+&lt;li&gt;VRChat Creator Companion (VCC)
+&lt;ul&gt;
+&lt;li&gt;VRChat が Unity 向けに提供している Avatar, World 向けの SDK などを手軽に導入・管理(?)するためのツール&lt;&#x2F;li&gt;
+&lt;li&gt;VRChat アカウント取得後なら &lt;a href=&quot;https:&#x2F;&#x2F;vrchat.com&#x2F;home&#x2F;download&quot;&gt;https:&#x2F;&#x2F;vrchat.com&#x2F;home&#x2F;download&lt;&#x2F;a&gt; から DL できる&lt;&#x2F;li&gt;
+&lt;&#x2F;ul&gt;
+&lt;&#x2F;li&gt;
+&lt;li&gt;(VCC 代替) ALCOM
+&lt;ul&gt;
+&lt;li&gt;anatawa12 さんが作成している VCC 互換ツール。 &lt;a href=&quot;https:&#x2F;&#x2F;github.com&#x2F;vrc-get&#x2F;vrc-get&quot;&gt;vrc-get&#x2F;vrc-get - GitHub&lt;&#x2F;a&gt; の GUI FrontEnd&lt;&#x2F;li&gt;
+&lt;li&gt;使ってみた感じ本家よりかなり高速で快適に使用できているので、オススメしたい。以後の説明で VCC を使い箇所は ALCOM で読み替え可&lt;&#x2F;li&gt;
+&lt;li&gt;&lt;a href=&quot;https:&#x2F;&#x2F;vrc-get.anatawa12.com&#x2F;alcom&#x2F;&quot;&gt;https:&#x2F;&#x2F;vrc-get.anatawa12.com&#x2F;alcom&#x2F;&lt;&#x2F;a&gt; から DL 可能&lt;&#x2F;li&gt;
+&lt;&#x2F;ul&gt;
+&lt;&#x2F;li&gt;
+&lt;li&gt;何らかの画像エディタ
+&lt;ul&gt;
+&lt;li&gt;アバターの改変用。筆者はクリスタ常用 (だが、どちらかといえば PSD 同梱してくださる方が多い印象)&lt;&#x2F;li&gt;
+&lt;&#x2F;ul&gt;
+&lt;&#x2F;li&gt;
+&lt;&#x2F;ul&gt;
+</summary>
+        
+    </entry>
+</feed>

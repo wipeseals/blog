@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom" xml:lang="en">
+    <title>blog.wipeseals.me - Linux</title>
+    <subtitle>Miscellaneous logs...</subtitle>
+    <link rel="self" type="application/atom+xml" href="https://blog.wipeseals.me/tags/linux/atom.xml"/>
+    <link rel="alternate" type="text/html" href="https://blog.wipeseals.me"/>
+    <generator uri="https://www.getzola.org/">Zola</generator>
+    <updated>2025-02-24T00:00:00+00:00</updated>
+    <id>https://blog.wipeseals.me/tags/linux/atom.xml</id>
+    <entry xml:lang="en">
+        <title>LiteX を Ubuntu 24.04 on WSL2 で使用し、 Demo Applicationを動作させる</title>
+        <published>2025-02-24T00:00:00+00:00</published>
+        <updated>2025-02-24T00:00:00+00:00</updated>
+        
+        <author>
+          <name>
+            
+              Unknown
+            
+          </name>
+        </author>
+        
+        <link rel="alternate" type="text/html" href="https://blog.wipeseals.me/blog/2025/setup-litex/"/>
+        <id>https://blog.wipeseals.me/blog/2025/setup-litex/</id>
+        
+        <summary type="html">&lt;p&gt;LiteX を Windows 環境で使用したく、試していたときの備忘録。以下の通り無事 demo app の動作確認までたどり着けたので書き残す。&lt;&#x2F;p&gt;
+&lt;p&gt;&lt;img src=&quot;&#x2F;2025&#x2F;setup-litex&#x2F;vexriscv-donut.mp4.gif&quot; alt=&quot;movie gif&quot; &#x2F;&gt;&lt;&#x2F;p&gt;
+&lt;hr &#x2F;&gt;
+&lt;h2 id=&quot;shou-shun-matome&quot;&gt;手順まとめ&lt;&#x2F;h2&gt;
+&lt;p&gt;時系列順に実行した内容のまとめを先に記載する。細かいトラブルシューティングは後半に記載。&lt;&#x2F;p&gt;
+&lt;h3 id=&quot;huan-jing-gou-zhu&quot;&gt;環境構築&lt;&#x2F;h3&gt;
+&lt;p&gt;基本手順は&lt;a href=&quot;https:&#x2F;&#x2F;github.com&#x2F;enjoy-digital&#x2F;litex?tab=readme-ov-file#quick-start-guide&quot;&gt;公式ドキュメントの Quick Start Guide&lt;&#x2F;a&gt;に従い、WSL2 上にインストールした Ubuntu 24.04 で行う。
+要点は以下。&lt;&#x2F;p&gt;
+&lt;ul&gt;
+&lt;li&gt;virtualenv を作成し、Python 仮想環境中で実行する&lt;&#x2F;li&gt;
+&lt;li&gt;virtualenv 中で user install を実行するとエラーになるため、 &lt;code&gt;--user&lt;&#x2F;code&gt; オプションを使用しない&lt;&#x2F;li&gt;
+&lt;li&gt;litex の repo ごと取得した状態で &lt;code&gt;litex_setup.py&lt;&#x2F;code&gt; を実行しない&lt;&#x2F;li&gt;
+&lt;&#x2F;ul&gt;
+&lt;pre data-lang=&quot;sh&quot; style=&quot;background-color:#ffffff;color:#010101;&quot; class=&quot;language-sh &quot;&gt;&lt;code class=&quot;language-sh&quot; data-lang=&quot;sh&quot;&gt;&lt;span style=&quot;color:#898989;&quot;&gt;# verilator導入
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#696989;&quot;&gt;$&lt;&#x2F;span&gt;&lt;span&gt; sudo apt install verilator
+&lt;&#x2F;span&gt;&lt;span&gt;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#898989;&quot;&gt;# litexの取得
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#696989;&quot;&gt;$&lt;&#x2F;span&gt;&lt;span&gt; wget https:&#x2F;&#x2F;raw.githubusercontent.com&#x2F;enjoy-digital&#x2F;litex&#x2F;master&#x2F;litex_setup.py
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#696989;&quot;&gt;$&lt;&#x2F;span&gt;&lt;span&gt; chmod +x litex_setup.py
+&lt;&#x2F;span&gt;&lt;span&gt;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#898989;&quot;&gt;# venv導入
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#696989;&quot;&gt;$&lt;&#x2F;span&gt;&lt;span&gt; sudo apt install python3-venv
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#898989;&quot;&gt;# 仮想環境作成 + activate
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#696989;&quot;&gt;$&lt;&#x2F;span&gt;&lt;span&gt; python3&lt;&#x2F;span&gt;&lt;span style=&quot;color:#696989;&quot;&gt; -m&lt;&#x2F;span&gt;&lt;span&gt; venv .venv
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#696989;&quot;&gt;$&lt;&#x2F;span&gt;&lt;span&gt; source .venv&#x2F;bin&#x2F;activate
+&lt;&#x2F;span&gt;&lt;span&gt;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#898989;&quot;&gt;# litex_setup.py の実行
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#696989;&quot;&gt;$&lt;&#x2F;span&gt;&lt;span&gt; python3 .&#x2F;litex_setup.py&lt;&#x2F;span&gt;&lt;span style=&quot;color:#696989;&quot;&gt; --init --install --config&lt;&#x2F;span&gt;&lt;span style=&quot;color:#016692;&quot;&gt;=&lt;&#x2F;span&gt;&lt;span&gt;full
+&lt;&#x2F;span&gt;&lt;span&gt;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#898989;&quot;&gt;# RSC-V toolchain の導入 (binutils-riscv* 等が導入されるので管理者権限必要)
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#696989;&quot;&gt;$&lt;&#x2F;span&gt;&lt;span&gt; pip3 install meson ninja
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#696989;&quot;&gt;$&lt;&#x2F;span&gt;&lt;span&gt; sudo .&#x2F;litex_setup.py&lt;&#x2F;span&gt;&lt;span style=&quot;color:#696989;&quot;&gt; --gcc&lt;&#x2F;span&gt;&lt;span style=&quot;color:#016692;&quot;&gt;=&lt;&#x2F;span&gt;&lt;span&gt;riscv
+&lt;&#x2F;span&gt;&lt;&#x2F;code&gt;&lt;&#x2F;pre&gt;
+&lt;h3 id=&quot;shi-ji-wu-sidenotesuto&quot;&gt;実機無しでのテスト&lt;&#x2F;h3&gt;
+&lt;p&gt;ハマりポイントは特になし。verilator があれば動くはず。&lt;&#x2F;p&gt;
+</summary>
+        
+    </entry>
+</feed>

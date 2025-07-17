@@ -1,0 +1,220 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom" xml:lang="en">
+    <title>blog.wipeseals.me - micropython</title>
+    <subtitle>Miscellaneous logs...</subtitle>
+    <link rel="self" type="application/atom+xml" href="https://blog.wipeseals.me/tags/micropython/atom.xml"/>
+    <link rel="alternate" type="text/html" href="https://blog.wipeseals.me"/>
+    <generator uri="https://www.getzola.org/">Zola</generator>
+    <updated>2025-06-03T00:00:00+00:00</updated>
+    <id>https://blog.wipeseals.me/tags/micropython/atom.xml</id>
+    <entry xml:lang="en">
+        <title>RPi Pico PIO + DMA 転送覚書 (MicroPython 版)</title>
+        <published>2025-06-03T00:00:00+00:00</published>
+        <updated>2025-06-03T00:00:00+00:00</updated>
+        
+        <author>
+          <name>
+            
+              Unknown
+            
+          </name>
+        </author>
+        
+        <link rel="alternate" type="text/html" href="https://blog.wipeseals.me/blog/2025/rpi-pico-pio-dma/"/>
+        <id>https://blog.wipeseals.me/blog/2025/rpi-pico-pio-dma/</id>
+        
+        <content type="html" xml:base="https://blog.wipeseals.me/blog/2025/rpi-pico-pio-dma/">&lt;p&gt;MicroPython を用いて Raspberry Pi Pico の PIO と DMA を使う方法についての覚書。それぞれの情報は入手できるが、TX_FIFO&#x2F;RX_FIFO 両方に DMA する例がなかったので書き残す。&lt;&#x2F;p&gt;
+&lt;p&gt;本内容は MicroPython のドキュメント並びに RP2040 の仕様書から抜粋した内容となっている。&lt;&#x2F;p&gt;
+&lt;h2 id=&quot;hw-shang-da-cheng-subekikoto&quot;&gt;HW 上達成すべきこと&lt;&#x2F;h2&gt;
+&lt;p&gt;&lt;code&gt;PIOx_BASE&lt;&#x2F;code&gt; + &lt;code&gt;(T|R)XFy&lt;&#x2F;code&gt; のアドレスに読み書きを行うこと。&lt;&#x2F;p&gt;
+&lt;p&gt;以下内容より PIO Address &lt;code&gt;x= (0|1)&lt;&#x2F;code&gt; と
+&lt;code&gt;(T|R)XFy&lt;&#x2F;code&gt; のアドレス &lt;code&gt;y= (0|1|2|3)&lt;&#x2F;code&gt; を組み合わせて、PIO の TX_FIFO&#x2F;RX_FIFO にアクセスする。&lt;&#x2F;p&gt;
+&lt;h3 id=&quot;piox-base&quot;&gt;&lt;code&gt;PIOx_BASE&lt;&#x2F;code&gt;&lt;&#x2F;h3&gt;
+&lt;p&gt;&lt;code&gt;PIOx_BASE&lt;&#x2F;code&gt; は、PIO の Base Address。 2.2. Address Map にて以下定義がなされている。&lt;&#x2F;p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;PIO0_BASE&lt;&#x2F;code&gt; = &lt;code&gt;0x50200000&lt;&#x2F;code&gt;&lt;&#x2F;li&gt;
+&lt;li&gt;&lt;code&gt;PIO1_BASE&lt;&#x2F;code&gt; = &lt;code&gt;0x50300000&lt;&#x2F;code&gt;&lt;&#x2F;li&gt;
+&lt;&#x2F;ul&gt;
+&lt;h3 id=&quot;t-r-xfy&quot;&gt;&lt;code&gt;(T|R)XFy&lt;&#x2F;code&gt;&lt;&#x2F;h3&gt;
+&lt;p&gt;&lt;code&gt;(T|R)XFy&lt;&#x2F;code&gt; は、PIO の TX_FIFO&#x2F;RX_FIFO のレジスタ。Chapter 3. PIO 3.7. List of Registers にて以下定義がなされている。&lt;&#x2F;p&gt;
+&lt;table&gt;&lt;thead&gt;&lt;tr&gt;&lt;th&gt;Offset&lt;&#x2F;th&gt;&lt;th&gt;Name&lt;&#x2F;th&gt;&lt;&#x2F;tr&gt;&lt;&#x2F;thead&gt;&lt;tbody&gt;
+&lt;tr&gt;&lt;td&gt;0x010&lt;&#x2F;td&gt;&lt;td&gt;&lt;code&gt;TXF0&lt;&#x2F;code&gt;&lt;&#x2F;td&gt;&lt;&#x2F;tr&gt;
+&lt;tr&gt;&lt;td&gt;0x014&lt;&#x2F;td&gt;&lt;td&gt;&lt;code&gt;TXF1&lt;&#x2F;code&gt;&lt;&#x2F;td&gt;&lt;&#x2F;tr&gt;
+&lt;tr&gt;&lt;td&gt;0x018&lt;&#x2F;td&gt;&lt;td&gt;&lt;code&gt;TXF2&lt;&#x2F;code&gt;&lt;&#x2F;td&gt;&lt;&#x2F;tr&gt;
+&lt;tr&gt;&lt;td&gt;0x01C&lt;&#x2F;td&gt;&lt;td&gt;&lt;code&gt;TXF3&lt;&#x2F;code&gt;&lt;&#x2F;td&gt;&lt;&#x2F;tr&gt;
+&lt;tr&gt;&lt;td&gt;0x020&lt;&#x2F;td&gt;&lt;td&gt;&lt;code&gt;RXF0&lt;&#x2F;code&gt;&lt;&#x2F;td&gt;&lt;&#x2F;tr&gt;
+&lt;tr&gt;&lt;td&gt;0x024&lt;&#x2F;td&gt;&lt;td&gt;&lt;code&gt;RXF1&lt;&#x2F;code&gt;&lt;&#x2F;td&gt;&lt;&#x2F;tr&gt;
+&lt;tr&gt;&lt;td&gt;0x028&lt;&#x2F;td&gt;&lt;td&gt;&lt;code&gt;RXF2&lt;&#x2F;code&gt;&lt;&#x2F;td&gt;&lt;&#x2F;tr&gt;
+&lt;tr&gt;&lt;td&gt;0x02C&lt;&#x2F;td&gt;&lt;td&gt;&lt;code&gt;RXF3&lt;&#x2F;code&gt;&lt;&#x2F;td&gt;&lt;&#x2F;tr&gt;
+&lt;&#x2F;tbody&gt;&lt;&#x2F;table&gt;
+&lt;p&gt;FIFO の空きに関連する情報は Offset 0x008 &lt;code&gt;FDEBUG&lt;&#x2F;code&gt; レジスタの &lt;code&gt;TXSTALL&lt;&#x2F;code&gt;, &lt;code&gt;TXOVER&lt;&#x2F;code&gt;, &lt;code&gt;RXUNDER&lt;&#x2F;code&gt;, &lt;code&gt;RXSTALL&lt;&#x2F;code&gt; 及び FLEVEL の &lt;code&gt;(T|R)Xy&lt;&#x2F;code&gt;から確認できる。&lt;&#x2F;p&gt;
+&lt;h3 id=&quot;dma-niokeru-fifo-status-noque-ren&quot;&gt;DMA における FIFO Status の確認&lt;&#x2F;h3&gt;
+&lt;p&gt;DMA が一方的にデータ転送しても FIFO にデータがないのに読み出したり、あるのに書き込んで溢れてしまう。これを防ぐため、ペリフェラル（ここでは PIO）のペースでデータ転送を行えるようなしくみがあり、 Data Request (DREQ) と呼ばれる設定を行う。&lt;&#x2F;p&gt;
+&lt;p&gt;2.5.3.1 System DREQ Table の設定があり、PIO に関連する内容は以下のようになっている。&lt;&#x2F;p&gt;
+&lt;p&gt;&lt;code&gt;DREQ# = PIO# * 4 + (4 if RX else 0) + SM#&lt;&#x2F;code&gt;&lt;&#x2F;p&gt;
+&lt;table&gt;&lt;thead&gt;&lt;tr&gt;&lt;th&gt;PIO&lt;&#x2F;th&gt;&lt;th&gt;SM&lt;&#x2F;th&gt;&lt;th&gt;PORT&lt;&#x2F;th&gt;&lt;th&gt;DREQ#&lt;&#x2F;th&gt;&lt;th&gt;Description&lt;&#x2F;th&gt;&lt;&#x2F;tr&gt;&lt;&#x2F;thead&gt;&lt;tbody&gt;
+&lt;tr&gt;&lt;td&gt;0&lt;&#x2F;td&gt;&lt;td&gt;0&lt;&#x2F;td&gt;&lt;td&gt;TX&lt;&#x2F;td&gt;&lt;td&gt;0&lt;&#x2F;td&gt;&lt;td&gt;PIO0 SM0 TX DREQ&lt;&#x2F;td&gt;&lt;&#x2F;tr&gt;
+&lt;tr&gt;&lt;td&gt;0&lt;&#x2F;td&gt;&lt;td&gt;0&lt;&#x2F;td&gt;&lt;td&gt;TX&lt;&#x2F;td&gt;&lt;td&gt;1&lt;&#x2F;td&gt;&lt;td&gt;PIO0 SM1 TX DREQ&lt;&#x2F;td&gt;&lt;&#x2F;tr&gt;
+&lt;tr&gt;&lt;td&gt;0&lt;&#x2F;td&gt;&lt;td&gt;0&lt;&#x2F;td&gt;&lt;td&gt;TX&lt;&#x2F;td&gt;&lt;td&gt;2&lt;&#x2F;td&gt;&lt;td&gt;PIO0 SM2 TX DREQ&lt;&#x2F;td&gt;&lt;&#x2F;tr&gt;
+&lt;tr&gt;&lt;td&gt;0&lt;&#x2F;td&gt;&lt;td&gt;0&lt;&#x2F;td&gt;&lt;td&gt;TX&lt;&#x2F;td&gt;&lt;td&gt;3&lt;&#x2F;td&gt;&lt;td&gt;PIO0 SM3 TX DREQ&lt;&#x2F;td&gt;&lt;&#x2F;tr&gt;
+&lt;tr&gt;&lt;td&gt;0&lt;&#x2F;td&gt;&lt;td&gt;0&lt;&#x2F;td&gt;&lt;td&gt;RX&lt;&#x2F;td&gt;&lt;td&gt;4&lt;&#x2F;td&gt;&lt;td&gt;PIO0 SM0 RX DREQ&lt;&#x2F;td&gt;&lt;&#x2F;tr&gt;
+&lt;tr&gt;&lt;td&gt;0&lt;&#x2F;td&gt;&lt;td&gt;0&lt;&#x2F;td&gt;&lt;td&gt;RX&lt;&#x2F;td&gt;&lt;td&gt;5&lt;&#x2F;td&gt;&lt;td&gt;PIO0 SM1 RX DREQ&lt;&#x2F;td&gt;&lt;&#x2F;tr&gt;
+&lt;tr&gt;&lt;td&gt;0&lt;&#x2F;td&gt;&lt;td&gt;0&lt;&#x2F;td&gt;&lt;td&gt;RX&lt;&#x2F;td&gt;&lt;td&gt;6&lt;&#x2F;td&gt;&lt;td&gt;PIO0 SM2 RX DREQ&lt;&#x2F;td&gt;&lt;&#x2F;tr&gt;
+&lt;tr&gt;&lt;td&gt;0&lt;&#x2F;td&gt;&lt;td&gt;0&lt;&#x2F;td&gt;&lt;td&gt;RX&lt;&#x2F;td&gt;&lt;td&gt;7&lt;&#x2F;td&gt;&lt;td&gt;PIO0 SM3 RX DREQ&lt;&#x2F;td&gt;&lt;&#x2F;tr&gt;
+&lt;tr&gt;&lt;td&gt;1&lt;&#x2F;td&gt;&lt;td&gt;0&lt;&#x2F;td&gt;&lt;td&gt;TX&lt;&#x2F;td&gt;&lt;td&gt;8&lt;&#x2F;td&gt;&lt;td&gt;PIO1 SM0 TX DREQ&lt;&#x2F;td&gt;&lt;&#x2F;tr&gt;
+&lt;tr&gt;&lt;td&gt;1&lt;&#x2F;td&gt;&lt;td&gt;0&lt;&#x2F;td&gt;&lt;td&gt;TX&lt;&#x2F;td&gt;&lt;td&gt;9&lt;&#x2F;td&gt;&lt;td&gt;PIO1 SM1 TX DREQ&lt;&#x2F;td&gt;&lt;&#x2F;tr&gt;
+&lt;tr&gt;&lt;td&gt;1&lt;&#x2F;td&gt;&lt;td&gt;0&lt;&#x2F;td&gt;&lt;td&gt;TX&lt;&#x2F;td&gt;&lt;td&gt;10&lt;&#x2F;td&gt;&lt;td&gt;PIO1 SM2 TX DREQ&lt;&#x2F;td&gt;&lt;&#x2F;tr&gt;
+&lt;tr&gt;&lt;td&gt;1&lt;&#x2F;td&gt;&lt;td&gt;0&lt;&#x2F;td&gt;&lt;td&gt;TX&lt;&#x2F;td&gt;&lt;td&gt;11&lt;&#x2F;td&gt;&lt;td&gt;PIO1 SM3 TX DREQ&lt;&#x2F;td&gt;&lt;&#x2F;tr&gt;
+&lt;tr&gt;&lt;td&gt;1&lt;&#x2F;td&gt;&lt;td&gt;0&lt;&#x2F;td&gt;&lt;td&gt;RX&lt;&#x2F;td&gt;&lt;td&gt;12&lt;&#x2F;td&gt;&lt;td&gt;PIO1 SM0 RX DREQ&lt;&#x2F;td&gt;&lt;&#x2F;tr&gt;
+&lt;tr&gt;&lt;td&gt;1&lt;&#x2F;td&gt;&lt;td&gt;0&lt;&#x2F;td&gt;&lt;td&gt;RX&lt;&#x2F;td&gt;&lt;td&gt;13&lt;&#x2F;td&gt;&lt;td&gt;PIO1 SM1 RX DREQ&lt;&#x2F;td&gt;&lt;&#x2F;tr&gt;
+&lt;tr&gt;&lt;td&gt;1&lt;&#x2F;td&gt;&lt;td&gt;0&lt;&#x2F;td&gt;&lt;td&gt;RX&lt;&#x2F;td&gt;&lt;td&gt;14&lt;&#x2F;td&gt;&lt;td&gt;PIO1 SM2 RX DREQ&lt;&#x2F;td&gt;&lt;&#x2F;tr&gt;
+&lt;tr&gt;&lt;td&gt;1&lt;&#x2F;td&gt;&lt;td&gt;0&lt;&#x2F;td&gt;&lt;td&gt;RX&lt;&#x2F;td&gt;&lt;td&gt;15&lt;&#x2F;td&gt;&lt;td&gt;PIO1 SM3 RX DREQ&lt;&#x2F;td&gt;&lt;&#x2F;tr&gt;
+&lt;&#x2F;tbody&gt;&lt;&#x2F;table&gt;
+&lt;h2 id=&quot;micropython-denoshi-zhuang&quot;&gt;MicroPython での実装&lt;&#x2F;h2&gt;
+&lt;p&gt;DMA class, PIO class, StateMachine class を使って、PIO の TX_FIFO&#x2F;RX_FIFO に DMA 転送を行う。&lt;&#x2F;p&gt;
+&lt;p&gt;入力されたデータを Echo する PIO プログラムを実行し、TX_FIFO と RX_FIFO の両方に DMA 転送を行う例を示す。&lt;&#x2F;p&gt;
+&lt;pre data-lang=&quot;python&quot; style=&quot;background-color:#ffffff;color:#010101;&quot; class=&quot;language-python &quot;&gt;&lt;code class=&quot;language-python&quot; data-lang=&quot;python&quot;&gt;&lt;span style=&quot;color:#898989;&quot;&gt;# 送受信するデータ
+&lt;&#x2F;span&gt;&lt;span&gt;tx_data &lt;&#x2F;span&gt;&lt;span style=&quot;color:#016692;&quot;&gt;= &lt;&#x2F;span&gt;&lt;span&gt;array.&lt;&#x2F;span&gt;&lt;span style=&quot;color:#696989;&quot;&gt;array&lt;&#x2F;span&gt;&lt;span&gt;(&lt;&#x2F;span&gt;&lt;span style=&quot;color:#009f78;&quot;&gt;&amp;quot;I&amp;quot;&lt;&#x2F;span&gt;&lt;span&gt;, [&lt;&#x2F;span&gt;&lt;span style=&quot;color:#8c008a;&quot;&gt;0x12345678&lt;&#x2F;span&gt;&lt;span&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#8c008a;&quot;&gt;0x9ABCDEF0&lt;&#x2F;span&gt;&lt;span&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#8c008a;&quot;&gt;0xDEADBEEF&lt;&#x2F;span&gt;&lt;span&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#8c008a;&quot;&gt;0xFEEDFACE&lt;&#x2F;span&gt;&lt;span&gt;]) &lt;&#x2F;span&gt;&lt;span style=&quot;color:#898989;&quot;&gt;# test data
+&lt;&#x2F;span&gt;&lt;span&gt;rx_data &lt;&#x2F;span&gt;&lt;span style=&quot;color:#016692;&quot;&gt;= &lt;&#x2F;span&gt;&lt;span&gt;array.&lt;&#x2F;span&gt;&lt;span style=&quot;color:#696989;&quot;&gt;array&lt;&#x2F;span&gt;&lt;span&gt;(&lt;&#x2F;span&gt;&lt;span style=&quot;color:#009f78;&quot;&gt;&amp;quot;I&amp;quot;&lt;&#x2F;span&gt;&lt;span&gt;, [&lt;&#x2F;span&gt;&lt;span style=&quot;color:#8c008a;&quot;&gt;0&lt;&#x2F;span&gt;&lt;span&gt;] &lt;&#x2F;span&gt;&lt;span style=&quot;color:#016692;&quot;&gt;* &lt;&#x2F;span&gt;&lt;span style=&quot;color:#7a7025;&quot;&gt;len&lt;&#x2F;span&gt;&lt;span&gt;(tx_data))
+&lt;&#x2F;span&gt;&lt;span&gt;
+&lt;&#x2F;span&gt;&lt;span&gt;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#898989;&quot;&gt;# PIO プログラムの定義
+&lt;&#x2F;span&gt;&lt;span&gt;@rp2.&lt;&#x2F;span&gt;&lt;span style=&quot;color:#696989;&quot;&gt;asm_pio&lt;&#x2F;span&gt;&lt;span&gt;(
+&lt;&#x2F;span&gt;&lt;span&gt;    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#898989;&quot;&gt;# out, sideset, shift方向, autopush等の設定がここで行える
+&lt;&#x2F;span&gt;&lt;span&gt;)
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#016692;&quot;&gt;def &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a15001;&quot;&gt;pio_echoback&lt;&#x2F;span&gt;&lt;span&gt;():
+&lt;&#x2F;span&gt;&lt;span&gt;    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#898989;&quot;&gt;# PIO asm本体。ここではTX_FIFOの内容をRX_FIFOにそのまま返す
+&lt;&#x2F;span&gt;&lt;span&gt;    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#696989;&quot;&gt;wrap_target&lt;&#x2F;span&gt;&lt;span&gt;()
+&lt;&#x2F;span&gt;&lt;span&gt;    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#696989;&quot;&gt;pull&lt;&#x2F;span&gt;&lt;span&gt;(block)
+&lt;&#x2F;span&gt;&lt;span&gt;    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#696989;&quot;&gt;out&lt;&#x2F;span&gt;&lt;span&gt;(x, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#8c008a;&quot;&gt;32&lt;&#x2F;span&gt;&lt;span&gt;)
+&lt;&#x2F;span&gt;&lt;span&gt;    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#696989;&quot;&gt;in_&lt;&#x2F;span&gt;&lt;span&gt;(x, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#8c008a;&quot;&gt;32&lt;&#x2F;span&gt;&lt;span&gt;)
+&lt;&#x2F;span&gt;&lt;span&gt;    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#696989;&quot;&gt;push&lt;&#x2F;span&gt;&lt;span&gt;(block)
+&lt;&#x2F;span&gt;&lt;span&gt;    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#696989;&quot;&gt;wrap&lt;&#x2F;span&gt;&lt;span&gt;()
+&lt;&#x2F;span&gt;&lt;span&gt;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#898989;&quot;&gt;# PIO0 State Machine 0を起動
+&lt;&#x2F;span&gt;&lt;span&gt;sm0 &lt;&#x2F;span&gt;&lt;span style=&quot;color:#016692;&quot;&gt;= &lt;&#x2F;span&gt;&lt;span&gt;rp2.&lt;&#x2F;span&gt;&lt;span style=&quot;color:#696989;&quot;&gt;StateMachine&lt;&#x2F;span&gt;&lt;span&gt;(&lt;&#x2F;span&gt;&lt;span style=&quot;color:#8c008a;&quot;&gt;0&lt;&#x2F;span&gt;&lt;span&gt;)
+&lt;&#x2F;span&gt;&lt;span&gt;sm0.&lt;&#x2F;span&gt;&lt;span style=&quot;color:#696989;&quot;&gt;init&lt;&#x2F;span&gt;&lt;span&gt;(
+&lt;&#x2F;span&gt;&lt;span&gt;    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#696989;&quot;&gt;prog&lt;&#x2F;span&gt;&lt;span style=&quot;color:#016692;&quot;&gt;=&lt;&#x2F;span&gt;&lt;span&gt;pio_echoback,
+&lt;&#x2F;span&gt;&lt;span&gt;    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#696989;&quot;&gt;freq&lt;&#x2F;span&gt;&lt;span style=&quot;color:#016692;&quot;&gt;=&lt;&#x2F;span&gt;&lt;span style=&quot;color:#8c008a;&quot;&gt;125_000_000&lt;&#x2F;span&gt;&lt;span&gt;,  &lt;&#x2F;span&gt;&lt;span style=&quot;color:#898989;&quot;&gt;# 125MHz
+&lt;&#x2F;span&gt;&lt;span&gt;    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#898989;&quot;&gt;# pin設定, 周波数設定等の設定が行える
+&lt;&#x2F;span&gt;&lt;span&gt;)
+&lt;&#x2F;span&gt;&lt;span&gt;sm0.&lt;&#x2F;span&gt;&lt;span style=&quot;color:#696989;&quot;&gt;active&lt;&#x2F;span&gt;&lt;span&gt;(&lt;&#x2F;span&gt;&lt;span style=&quot;color:#8c008a;&quot;&gt;1&lt;&#x2F;span&gt;&lt;span&gt;)
+&lt;&#x2F;span&gt;&lt;span&gt;
+&lt;&#x2F;span&gt;&lt;span&gt;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#898989;&quot;&gt;# Setup TX DMA
+&lt;&#x2F;span&gt;&lt;span&gt;tx_dma0 &lt;&#x2F;span&gt;&lt;span style=&quot;color:#016692;&quot;&gt;= &lt;&#x2F;span&gt;&lt;span&gt;rp2.&lt;&#x2F;span&gt;&lt;span style=&quot;color:#696989;&quot;&gt;DMA&lt;&#x2F;span&gt;&lt;span&gt;()
+&lt;&#x2F;span&gt;&lt;span&gt;tx_dma0_ctrl &lt;&#x2F;span&gt;&lt;span style=&quot;color:#016692;&quot;&gt;= &lt;&#x2F;span&gt;&lt;span&gt;tx_dma0.&lt;&#x2F;span&gt;&lt;span style=&quot;color:#696989;&quot;&gt;pack_ctrl&lt;&#x2F;span&gt;&lt;span&gt;(
+&lt;&#x2F;span&gt;&lt;span&gt;    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#696989;&quot;&gt;size&lt;&#x2F;span&gt;&lt;span style=&quot;color:#016692;&quot;&gt;=&lt;&#x2F;span&gt;&lt;span style=&quot;color:#8c008a;&quot;&gt;2&lt;&#x2F;span&gt;&lt;span&gt;,  &lt;&#x2F;span&gt;&lt;span style=&quot;color:#898989;&quot;&gt;# 0=1byte, 1=2byte, 2=4byte転送
+&lt;&#x2F;span&gt;&lt;span&gt;    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#696989;&quot;&gt;inc_read&lt;&#x2F;span&gt;&lt;span style=&quot;color:#016692;&quot;&gt;=&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;True&lt;&#x2F;span&gt;&lt;span&gt;,
+&lt;&#x2F;span&gt;&lt;span&gt;    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#696989;&quot;&gt;inc_write&lt;&#x2F;span&gt;&lt;span style=&quot;color:#016692;&quot;&gt;=&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;False&lt;&#x2F;span&gt;&lt;span&gt;,  &lt;&#x2F;span&gt;&lt;span style=&quot;color:#898989;&quot;&gt;# PIO0 TXF0は場所固定なのでincrementしない
+&lt;&#x2F;span&gt;&lt;span&gt;    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#696989;&quot;&gt;treq_sel&lt;&#x2F;span&gt;&lt;span style=&quot;color:#016692;&quot;&gt;=&lt;&#x2F;span&gt;&lt;span style=&quot;color:#8c008a;&quot;&gt;0&lt;&#x2F;span&gt;&lt;span&gt;,  &lt;&#x2F;span&gt;&lt;span style=&quot;color:#898989;&quot;&gt;# PIO0 SM0 TX DREQ
+&lt;&#x2F;span&gt;&lt;span&gt;)
+&lt;&#x2F;span&gt;&lt;span&gt;tx_dma0.&lt;&#x2F;span&gt;&lt;span style=&quot;color:#696989;&quot;&gt;config&lt;&#x2F;span&gt;&lt;span&gt;(
+&lt;&#x2F;span&gt;&lt;span&gt;    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#696989;&quot;&gt;read&lt;&#x2F;span&gt;&lt;span style=&quot;color:#016692;&quot;&gt;=&lt;&#x2F;span&gt;&lt;span&gt;tx_data,  &lt;&#x2F;span&gt;&lt;span style=&quot;color:#898989;&quot;&gt;# 転送元データをそのまま渡す
+&lt;&#x2F;span&gt;&lt;span&gt;    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#696989;&quot;&gt;write&lt;&#x2F;span&gt;&lt;span style=&quot;color:#016692;&quot;&gt;=&lt;&#x2F;span&gt;&lt;span&gt;sm0,  &lt;&#x2F;span&gt;&lt;span style=&quot;color:#898989;&quot;&gt;# state machine をそのまま渡す
+&lt;&#x2F;span&gt;&lt;span&gt;    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#696989;&quot;&gt;count&lt;&#x2F;span&gt;&lt;span style=&quot;color:#016692;&quot;&gt;=&lt;&#x2F;span&gt;&lt;span style=&quot;color:#7a7025;&quot;&gt;len&lt;&#x2F;span&gt;&lt;span&gt;(
+&lt;&#x2F;span&gt;&lt;span&gt;        tx_data
+&lt;&#x2F;span&gt;&lt;span&gt;    ),  &lt;&#x2F;span&gt;&lt;span style=&quot;color:#898989;&quot;&gt;# 転送byte数ではなく、pack_ctrlのsizeで指定した単位での転送数なので注意
+&lt;&#x2F;span&gt;&lt;span&gt;    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#696989;&quot;&gt;ctrl&lt;&#x2F;span&gt;&lt;span style=&quot;color:#016692;&quot;&gt;=&lt;&#x2F;span&gt;&lt;span&gt;tx_dma0_ctrl,
+&lt;&#x2F;span&gt;&lt;span&gt;    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#696989;&quot;&gt;trigger&lt;&#x2F;span&gt;&lt;span style=&quot;color:#016692;&quot;&gt;=&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;True&lt;&#x2F;span&gt;&lt;span&gt;,  &lt;&#x2F;span&gt;&lt;span style=&quot;color:#898989;&quot;&gt;# 開始
+&lt;&#x2F;span&gt;&lt;span&gt;)
+&lt;&#x2F;span&gt;&lt;span&gt;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#898989;&quot;&gt;# Setup RX DMA
+&lt;&#x2F;span&gt;&lt;span&gt;rx_dma0 &lt;&#x2F;span&gt;&lt;span style=&quot;color:#016692;&quot;&gt;= &lt;&#x2F;span&gt;&lt;span&gt;rp2.&lt;&#x2F;span&gt;&lt;span style=&quot;color:#696989;&quot;&gt;DMA&lt;&#x2F;span&gt;&lt;span&gt;()
+&lt;&#x2F;span&gt;&lt;span&gt;rx_dma0_ctrl &lt;&#x2F;span&gt;&lt;span style=&quot;color:#016692;&quot;&gt;= &lt;&#x2F;span&gt;&lt;span&gt;rx_dma0.&lt;&#x2F;span&gt;&lt;span style=&quot;color:#696989;&quot;&gt;pack_ctrl&lt;&#x2F;span&gt;&lt;span&gt;(
+&lt;&#x2F;span&gt;&lt;span&gt;    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#696989;&quot;&gt;size&lt;&#x2F;span&gt;&lt;span style=&quot;color:#016692;&quot;&gt;=&lt;&#x2F;span&gt;&lt;span style=&quot;color:#8c008a;&quot;&gt;2&lt;&#x2F;span&gt;&lt;span&gt;,  &lt;&#x2F;span&gt;&lt;span style=&quot;color:#898989;&quot;&gt;# 0=1byte, 1=2byte, 2=4byte転送
+&lt;&#x2F;span&gt;&lt;span&gt;    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#696989;&quot;&gt;inc_read&lt;&#x2F;span&gt;&lt;span style=&quot;color:#016692;&quot;&gt;=&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;False&lt;&#x2F;span&gt;&lt;span&gt;,  &lt;&#x2F;span&gt;&lt;span style=&quot;color:#898989;&quot;&gt;# PIO0 RXF0は場所固定なのでincrementしない
+&lt;&#x2F;span&gt;&lt;span&gt;    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#696989;&quot;&gt;inc_write&lt;&#x2F;span&gt;&lt;span style=&quot;color:#016692;&quot;&gt;=&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;True&lt;&#x2F;span&gt;&lt;span&gt;,
+&lt;&#x2F;span&gt;&lt;span&gt;    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#696989;&quot;&gt;treq_sel&lt;&#x2F;span&gt;&lt;span style=&quot;color:#016692;&quot;&gt;=&lt;&#x2F;span&gt;&lt;span style=&quot;color:#8c008a;&quot;&gt;4&lt;&#x2F;span&gt;&lt;span&gt;,  &lt;&#x2F;span&gt;&lt;span style=&quot;color:#898989;&quot;&gt;# PIO0 SM0 RX DREQ
+&lt;&#x2F;span&gt;&lt;span&gt;)
+&lt;&#x2F;span&gt;&lt;span&gt;rx_dma0.&lt;&#x2F;span&gt;&lt;span style=&quot;color:#696989;&quot;&gt;config&lt;&#x2F;span&gt;&lt;span&gt;(
+&lt;&#x2F;span&gt;&lt;span&gt;    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#696989;&quot;&gt;read&lt;&#x2F;span&gt;&lt;span style=&quot;color:#016692;&quot;&gt;=&lt;&#x2F;span&gt;&lt;span&gt;sm0,  &lt;&#x2F;span&gt;&lt;span style=&quot;color:#898989;&quot;&gt;# state machine をそのまま渡す
+&lt;&#x2F;span&gt;&lt;span&gt;    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#696989;&quot;&gt;write&lt;&#x2F;span&gt;&lt;span style=&quot;color:#016692;&quot;&gt;=&lt;&#x2F;span&gt;&lt;span&gt;rx_data,  &lt;&#x2F;span&gt;&lt;span style=&quot;color:#898989;&quot;&gt;# 転送先データをそのまま渡す
+&lt;&#x2F;span&gt;&lt;span&gt;    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#696989;&quot;&gt;count&lt;&#x2F;span&gt;&lt;span style=&quot;color:#016692;&quot;&gt;=&lt;&#x2F;span&gt;&lt;span style=&quot;color:#7a7025;&quot;&gt;len&lt;&#x2F;span&gt;&lt;span&gt;(
+&lt;&#x2F;span&gt;&lt;span&gt;        tx_data
+&lt;&#x2F;span&gt;&lt;span&gt;    ),  &lt;&#x2F;span&gt;&lt;span style=&quot;color:#898989;&quot;&gt;# 転送byte数ではなく、pack_ctrlのsizeで指定した単位での転送数なので注意
+&lt;&#x2F;span&gt;&lt;span&gt;    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#696989;&quot;&gt;ctrl&lt;&#x2F;span&gt;&lt;span style=&quot;color:#016692;&quot;&gt;=&lt;&#x2F;span&gt;&lt;span&gt;rx_dma0_ctrl,
+&lt;&#x2F;span&gt;&lt;span&gt;    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#696989;&quot;&gt;trigger&lt;&#x2F;span&gt;&lt;span style=&quot;color:#016692;&quot;&gt;=&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;True&lt;&#x2F;span&gt;&lt;span&gt;,
+&lt;&#x2F;span&gt;&lt;span&gt;)
+&lt;&#x2F;span&gt;&lt;span&gt;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#898989;&quot;&gt;# 転送完了待ち
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#016692;&quot;&gt;while &lt;&#x2F;span&gt;&lt;span&gt;rx_dma0.&lt;&#x2F;span&gt;&lt;span style=&quot;color:#696989;&quot;&gt;active&lt;&#x2F;span&gt;&lt;span&gt;():
+&lt;&#x2F;span&gt;&lt;span&gt;    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#016692;&quot;&gt;pass
+&lt;&#x2F;span&gt;&lt;span&gt;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#898989;&quot;&gt;# 結果確認
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#016692;&quot;&gt;for &lt;&#x2F;span&gt;&lt;span&gt;i &lt;&#x2F;span&gt;&lt;span style=&quot;color:#016692;&quot;&gt;in &lt;&#x2F;span&gt;&lt;span style=&quot;color:#7a7025;&quot;&gt;range&lt;&#x2F;span&gt;&lt;span&gt;(&lt;&#x2F;span&gt;&lt;span style=&quot;color:#7a7025;&quot;&gt;len&lt;&#x2F;span&gt;&lt;span&gt;(rx_data)):
+&lt;&#x2F;span&gt;&lt;span&gt;    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#7a7025;&quot;&gt;print&lt;&#x2F;span&gt;&lt;span&gt;(&lt;&#x2F;span&gt;&lt;span style=&quot;color:#877611;&quot;&gt;f&lt;&#x2F;span&gt;&lt;span style=&quot;color:#009f78;&quot;&gt;&amp;quot;TX Data[&lt;&#x2F;span&gt;&lt;span&gt;{i}&lt;&#x2F;span&gt;&lt;span style=&quot;color:#009f78;&quot;&gt;]: &lt;&#x2F;span&gt;&lt;span&gt;{tx_data[i]&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;:#010x&lt;&#x2F;span&gt;&lt;span&gt;}&lt;&#x2F;span&gt;&lt;span style=&quot;color:#009f78;&quot;&gt;, RX Data[&lt;&#x2F;span&gt;&lt;span&gt;{i}&lt;&#x2F;span&gt;&lt;span style=&quot;color:#009f78;&quot;&gt;]: &lt;&#x2F;span&gt;&lt;span&gt;{rx_data[i]&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;:#010x&lt;&#x2F;span&gt;&lt;span&gt;}&lt;&#x2F;span&gt;&lt;span style=&quot;color:#009f78;&quot;&gt;&amp;quot;&lt;&#x2F;span&gt;&lt;span&gt;)
+&lt;&#x2F;span&gt;&lt;span&gt;    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#016692;&quot;&gt;assert &lt;&#x2F;span&gt;&lt;span&gt;tx_data[i] &lt;&#x2F;span&gt;&lt;span style=&quot;color:#016692;&quot;&gt;== &lt;&#x2F;span&gt;&lt;span&gt;rx_data[i], (
+&lt;&#x2F;span&gt;&lt;span&gt;        &lt;&#x2F;span&gt;&lt;span style=&quot;color:#877611;&quot;&gt;f&lt;&#x2F;span&gt;&lt;span style=&quot;color:#009f78;&quot;&gt;&amp;quot;Data mismatch at index &lt;&#x2F;span&gt;&lt;span&gt;{i}&lt;&#x2F;span&gt;&lt;span style=&quot;color:#009f78;&quot;&gt;: &lt;&#x2F;span&gt;&lt;span&gt;{tx_data[i]&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;:#010x&lt;&#x2F;span&gt;&lt;span&gt;}&lt;&#x2F;span&gt;&lt;span style=&quot;color:#009f78;&quot;&gt; != &lt;&#x2F;span&gt;&lt;span&gt;{rx_data[i]&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;:#010x&lt;&#x2F;span&gt;&lt;span&gt;}&lt;&#x2F;span&gt;&lt;span style=&quot;color:#009f78;&quot;&gt;&amp;quot;
+&lt;&#x2F;span&gt;&lt;span&gt;    )
+&lt;&#x2F;span&gt;&lt;span&gt;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#898989;&quot;&gt;# 終了処理
+&lt;&#x2F;span&gt;&lt;span&gt;sm0.&lt;&#x2F;span&gt;&lt;span style=&quot;color:#696989;&quot;&gt;active&lt;&#x2F;span&gt;&lt;span&gt;(&lt;&#x2F;span&gt;&lt;span style=&quot;color:#8c008a;&quot;&gt;0&lt;&#x2F;span&gt;&lt;span&gt;)
+&lt;&#x2F;span&gt;&lt;span&gt;tx_dma0.&lt;&#x2F;span&gt;&lt;span style=&quot;color:#696989;&quot;&gt;close&lt;&#x2F;span&gt;&lt;span&gt;()
+&lt;&#x2F;span&gt;&lt;span&gt;rx_dma0.&lt;&#x2F;span&gt;&lt;span style=&quot;color:#696989;&quot;&gt;close&lt;&#x2F;span&gt;&lt;span&gt;()
+&lt;&#x2F;span&gt;&lt;&#x2F;code&gt;&lt;&#x2F;pre&gt;
+&lt;p&gt;出力&lt;&#x2F;p&gt;
+&lt;pre data-lang=&quot;log&quot; style=&quot;background-color:#ffffff;color:#010101;&quot; class=&quot;language-log &quot;&gt;&lt;code class=&quot;language-log&quot; data-lang=&quot;log&quot;&gt;&lt;span&gt;TX Data[0]: 0x12345678, RX Data[0]: 0x12345678
+&lt;&#x2F;span&gt;&lt;span&gt;TX Data[1]: 0x9abcdef0, RX Data[1]: 0x9abcdef0
+&lt;&#x2F;span&gt;&lt;span&gt;TX Data[2]: 0xdeadbeef, RX Data[2]: 0xdeadbeef
+&lt;&#x2F;span&gt;&lt;span&gt;TX Data[3]: 0xfeedface, RX Data[3]: 0xfeedface
+&lt;&#x2F;span&gt;&lt;&#x2F;code&gt;&lt;&#x2F;pre&gt;
+&lt;h2 id=&quot;tips&quot;&gt;Tips&lt;&#x2F;h2&gt;
+&lt;h3 id=&quot;byteswap-sitai&quot;&gt;byteswap したい&lt;&#x2F;h3&gt;
+&lt;p&gt;pio program 中でエンディアンが入れ替わってしまうケースなどを想定。BSWAP option があり、これは DMA の設定で行える&lt;&#x2F;p&gt;
+&lt;pre data-lang=&quot;python&quot; style=&quot;background-color:#ffffff;color:#010101;&quot; class=&quot;language-python &quot;&gt;&lt;code class=&quot;language-python&quot; data-lang=&quot;python&quot;&gt;&lt;span style=&quot;color:#898989;&quot;&gt;# Setup RX DMA
+&lt;&#x2F;span&gt;&lt;span&gt;rx_dma0 &lt;&#x2F;span&gt;&lt;span style=&quot;color:#016692;&quot;&gt;= &lt;&#x2F;span&gt;&lt;span&gt;rp2.&lt;&#x2F;span&gt;&lt;span style=&quot;color:#696989;&quot;&gt;DMA&lt;&#x2F;span&gt;&lt;span&gt;()
+&lt;&#x2F;span&gt;&lt;span&gt;rx_dma0_ctrl &lt;&#x2F;span&gt;&lt;span style=&quot;color:#016692;&quot;&gt;= &lt;&#x2F;span&gt;&lt;span&gt;rx_dma0.&lt;&#x2F;span&gt;&lt;span style=&quot;color:#696989;&quot;&gt;pack_ctrl&lt;&#x2F;span&gt;&lt;span&gt;(
+&lt;&#x2F;span&gt;&lt;span&gt;    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#696989;&quot;&gt;size&lt;&#x2F;span&gt;&lt;span style=&quot;color:#016692;&quot;&gt;=&lt;&#x2F;span&gt;&lt;span style=&quot;color:#8c008a;&quot;&gt;2&lt;&#x2F;span&gt;&lt;span&gt;,  &lt;&#x2F;span&gt;&lt;span style=&quot;color:#898989;&quot;&gt;# 0=1byte, 1=2byte, 2=4byte転送
+&lt;&#x2F;span&gt;&lt;span&gt;    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#696989;&quot;&gt;inc_read&lt;&#x2F;span&gt;&lt;span style=&quot;color:#016692;&quot;&gt;=&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;False&lt;&#x2F;span&gt;&lt;span&gt;,  &lt;&#x2F;span&gt;&lt;span style=&quot;color:#898989;&quot;&gt;# PIO0 RXF0は場所固定なのでincrementしない
+&lt;&#x2F;span&gt;&lt;span&gt;    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#696989;&quot;&gt;inc_write&lt;&#x2F;span&gt;&lt;span style=&quot;color:#016692;&quot;&gt;=&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;True&lt;&#x2F;span&gt;&lt;span&gt;,
+&lt;&#x2F;span&gt;&lt;span&gt;    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#696989;&quot;&gt;bswap&lt;&#x2F;span&gt;&lt;span style=&quot;color:#016692;&quot;&gt;=&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;True&lt;&#x2F;span&gt;&lt;span&gt;,  &lt;&#x2F;span&gt;&lt;span style=&quot;color:#898989;&quot;&gt;# 受信データはBig Endianなので、バイトオーダーを反転
+&lt;&#x2F;span&gt;&lt;span&gt;    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#696989;&quot;&gt;treq_sel&lt;&#x2F;span&gt;&lt;span style=&quot;color:#016692;&quot;&gt;=&lt;&#x2F;span&gt;&lt;span style=&quot;color:#8c008a;&quot;&gt;4&lt;&#x2F;span&gt;&lt;span&gt;,  &lt;&#x2F;span&gt;&lt;span style=&quot;color:#898989;&quot;&gt;# PIO0 SM0 RX DREQ
+&lt;&#x2F;span&gt;&lt;span&gt;)
+&lt;&#x2F;span&gt;&lt;&#x2F;code&gt;&lt;&#x2F;pre&gt;
+&lt;p&gt;実行結果&lt;&#x2F;p&gt;
+&lt;pre data-lang=&quot;log&quot; style=&quot;background-color:#ffffff;color:#010101;&quot; class=&quot;language-log &quot;&gt;&lt;code class=&quot;language-log&quot; data-lang=&quot;log&quot;&gt;&lt;span&gt;TX Data[0]: 0x12345678, RX Data[0]: 0x78563412
+&lt;&#x2F;span&gt;&lt;span&gt;Traceback (most recent call last):
+&lt;&#x2F;span&gt;&lt;span&gt;  File &amp;quot;&amp;lt;stdin&amp;gt;&amp;quot;, line 444, in &amp;lt;module&amp;gt;
+&lt;&#x2F;span&gt;&lt;span&gt;AssertionError: Data mismatch at index 0: 0x12345678 != 0x78563412
+&lt;&#x2F;span&gt;&lt;&#x2F;code&gt;&lt;&#x2F;pre&gt;
+&lt;h3 id=&quot;1byte-zutuzhuan-song-sitai&quot;&gt;1byte ずつ転送したい&lt;&#x2F;h3&gt;
+&lt;p&gt;&lt;code&gt;size=0&lt;&#x2F;code&gt; を指定することで、1byte ずつ転送できる。転送カウント数に注意&lt;&#x2F;p&gt;
+&lt;pre data-lang=&quot;python&quot; style=&quot;background-color:#ffffff;color:#010101;&quot; class=&quot;language-python &quot;&gt;&lt;code class=&quot;language-python&quot; data-lang=&quot;python&quot;&gt;&lt;span style=&quot;color:#898989;&quot;&gt;# Setup TX DMA
+&lt;&#x2F;span&gt;&lt;span&gt;tx_dma0 &lt;&#x2F;span&gt;&lt;span style=&quot;color:#016692;&quot;&gt;= &lt;&#x2F;span&gt;&lt;span&gt;rp2.&lt;&#x2F;span&gt;&lt;span style=&quot;color:#696989;&quot;&gt;DMA&lt;&#x2F;span&gt;&lt;span&gt;()
+&lt;&#x2F;span&gt;&lt;span&gt;tx_dma0_ctrl &lt;&#x2F;span&gt;&lt;span style=&quot;color:#016692;&quot;&gt;= &lt;&#x2F;span&gt;&lt;span&gt;tx_dma0.&lt;&#x2F;span&gt;&lt;span style=&quot;color:#696989;&quot;&gt;pack_ctrl&lt;&#x2F;span&gt;&lt;span&gt;(
+&lt;&#x2F;span&gt;&lt;span&gt;    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#696989;&quot;&gt;size&lt;&#x2F;span&gt;&lt;span style=&quot;color:#016692;&quot;&gt;=&lt;&#x2F;span&gt;&lt;span style=&quot;color:#8c008a;&quot;&gt;0&lt;&#x2F;span&gt;&lt;span&gt;,  &lt;&#x2F;span&gt;&lt;span style=&quot;color:#898989;&quot;&gt;# 0=1byte, 1=2byte, 2=4byte転送
+&lt;&#x2F;span&gt;&lt;span&gt;    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#696989;&quot;&gt;inc_read&lt;&#x2F;span&gt;&lt;span style=&quot;color:#016692;&quot;&gt;=&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;True&lt;&#x2F;span&gt;&lt;span&gt;,
+&lt;&#x2F;span&gt;&lt;span&gt;    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#696989;&quot;&gt;inc_write&lt;&#x2F;span&gt;&lt;span style=&quot;color:#016692;&quot;&gt;=&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;False&lt;&#x2F;span&gt;&lt;span&gt;,  &lt;&#x2F;span&gt;&lt;span style=&quot;color:#898989;&quot;&gt;# PIO0 TXF0は場所固定なのでincrementしない
+&lt;&#x2F;span&gt;&lt;span&gt;    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#696989;&quot;&gt;treq_sel&lt;&#x2F;span&gt;&lt;span style=&quot;color:#016692;&quot;&gt;=&lt;&#x2F;span&gt;&lt;span style=&quot;color:#8c008a;&quot;&gt;0&lt;&#x2F;span&gt;&lt;span&gt;,  &lt;&#x2F;span&gt;&lt;span style=&quot;color:#898989;&quot;&gt;# PIO0 SM0 TX DREQ
+&lt;&#x2F;span&gt;&lt;span&gt;)
+&lt;&#x2F;span&gt;&lt;span&gt;tx_dma0.&lt;&#x2F;span&gt;&lt;span style=&quot;color:#696989;&quot;&gt;config&lt;&#x2F;span&gt;&lt;span&gt;(
+&lt;&#x2F;span&gt;&lt;span&gt;    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#696989;&quot;&gt;read&lt;&#x2F;span&gt;&lt;span style=&quot;color:#016692;&quot;&gt;=&lt;&#x2F;span&gt;&lt;span&gt;tx_data,  &lt;&#x2F;span&gt;&lt;span style=&quot;color:#898989;&quot;&gt;# 転送元データをそのまま渡す
+&lt;&#x2F;span&gt;&lt;span&gt;    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#696989;&quot;&gt;write&lt;&#x2F;span&gt;&lt;span style=&quot;color:#016692;&quot;&gt;=&lt;&#x2F;span&gt;&lt;span&gt;sm0,  &lt;&#x2F;span&gt;&lt;span style=&quot;color:#898989;&quot;&gt;# state machine をそのまま渡す
+&lt;&#x2F;span&gt;&lt;span&gt;    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#696989;&quot;&gt;count&lt;&#x2F;span&gt;&lt;span style=&quot;color:#016692;&quot;&gt;=&lt;&#x2F;span&gt;&lt;span style=&quot;color:#7a7025;&quot;&gt;len&lt;&#x2F;span&gt;&lt;span&gt;(tx_data) &lt;&#x2F;span&gt;&lt;span style=&quot;color:#016692;&quot;&gt;* &lt;&#x2F;span&gt;&lt;span style=&quot;color:#8c008a;&quot;&gt;4&lt;&#x2F;span&gt;&lt;span&gt;,  &lt;&#x2F;span&gt;&lt;span style=&quot;color:#898989;&quot;&gt;# 転送byte数ではなく、pack_ctrlのsizeで指定した単位での転送数なので注意
+&lt;&#x2F;span&gt;&lt;span&gt;    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#696989;&quot;&gt;ctrl&lt;&#x2F;span&gt;&lt;span style=&quot;color:#016692;&quot;&gt;=&lt;&#x2F;span&gt;&lt;span&gt;tx_dma0_ctrl,
+&lt;&#x2F;span&gt;&lt;span&gt;    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#696989;&quot;&gt;trigger&lt;&#x2F;span&gt;&lt;span style=&quot;color:#016692;&quot;&gt;=&lt;&#x2F;span&gt;&lt;span style=&quot;color:#333366;&quot;&gt;True&lt;&#x2F;span&gt;&lt;span&gt;,  &lt;&#x2F;span&gt;&lt;span style=&quot;color:#898989;&quot;&gt;# 開始
+&lt;&#x2F;span&gt;&lt;span&gt;)
+&lt;&#x2F;span&gt;&lt;span&gt;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#898989;&quot;&gt;# RX側も同様に修正
+&lt;&#x2F;span&gt;&lt;&#x2F;code&gt;&lt;&#x2F;pre&gt;
+&lt;p&gt;結果&lt;&#x2F;p&gt;
+&lt;pre data-lang=&quot;log&quot; style=&quot;background-color:#ffffff;color:#010101;&quot; class=&quot;language-log &quot;&gt;&lt;code class=&quot;language-log&quot; data-lang=&quot;log&quot;&gt;&lt;span&gt;TX Data[0]: 0x12345678, RX Data[0]: 0x12345678
+&lt;&#x2F;span&gt;&lt;span&gt;TX Data[1]: 0x9abcdef0, RX Data[1]: 0x9abcdef0
+&lt;&#x2F;span&gt;&lt;span&gt;TX Data[2]: 0xdeadbeef, RX Data[2]: 0xdeadbeef
+&lt;&#x2F;span&gt;&lt;span&gt;TX Data[3]: 0xfeedface, RX Data[3]: 0xfeedface
+&lt;&#x2F;span&gt;&lt;&#x2F;code&gt;&lt;&#x2F;pre&gt;
+&lt;h3 id=&quot;sniff-sitai-chain-sitai&quot;&gt;sniff したい、chain したい、...&lt;&#x2F;h3&gt;
+&lt;p&gt;&lt;code&gt;DMA.pack_ctrl()&lt;&#x2F;code&gt; や園周辺を読むと概ねやりたいことは記載があるはず。先に示した例を下に改造・改良していくことを推奨。&lt;&#x2F;p&gt;
+&lt;p&gt;&lt;a href=&quot;https:&#x2F;&#x2F;micropython-docs-ja.readthedocs.io&#x2F;ja&#x2F;latest&#x2F;library&#x2F;rp2.DMA.html#rp2.DMA.pack_ctrl&quot;&gt;MicroPython library - rp2.DMA&lt;&#x2F;a&gt;&lt;&#x2F;p&gt;
+&lt;h2 id=&quot;zhong-warini&quot;&gt;終わりに&lt;&#x2F;h2&gt;
+&lt;p&gt;&lt;code&gt;DMA.config&lt;&#x2F;code&gt; の &lt;code&gt;read&lt;&#x2F;code&gt;, &lt;code&gt;write&lt;&#x2F;code&gt; に Peripheral が来るケースでの指定がいまいち読み取りづらかったので書き残した。&lt;&#x2F;p&gt;
+&lt;h2 id=&quot;reference&quot;&gt;Reference&lt;&#x2F;h2&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;https:&#x2F;&#x2F;micropython-docs-ja.readthedocs.io&#x2F;ja&#x2F;latest&#x2F;library&#x2F;rp2.html&quot;&gt;MicroPython library - rp2&lt;&#x2F;a&gt;&lt;&#x2F;li&gt;
+&lt;li&gt;&lt;a href=&quot;https:&#x2F;&#x2F;datasheets.raspberrypi.com&#x2F;rp2040&#x2F;rp2040-datasheet.pdf&quot;&gt;RP2040 Datasheet&lt;&#x2F;a&gt;&lt;&#x2F;li&gt;
+&lt;&#x2F;ul&gt;
+</content>
+        
+    </entry>
+</feed>

@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>blog.wipeseals.me</title>
+    
+    <meta http-equiv="content-type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+    <meta name="robots" content="noodp"/>
+
+    <link rel="stylesheet" href="https://blog.wipeseals.me/style.css">
+    <link rel="stylesheet" href="https://blog.wipeseals.me/color/blue-light.css">
+
+        <link rel="stylesheet" href="https://blog.wipeseals.me/color/background_light.css">
+    
+    <link rel="stylesheet" href="https://blog.wipeseals.me/font-hack.css">
+
+    <meta name="description" content="Miscellaneous logs...">
+
+    <meta property="og:description" content="Miscellaneous logs...">
+    <meta property="og:title" content="blog.wipeseals.me">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://blog.wipeseals.me/">
+
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:description" content="Miscellaneous logs...">
+    <meta name="twitter:title" content="blog.wipeseals.me">
+    <meta property="twitter:domain" content="blog.wipeseals.me">
+    <meta property="twitter:url" content="https://blog.wipeseals.me/">
+
+        <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico">
+    
+    </head>
+
+<body class="">
+<div class="container">
+    
+    <header class="header">
+        <div class="header__inner">
+            <div class="header__logo">
+                    
+                <a href="/" style="text-decoration: none;">
+                    <div class="logo">
+                      
+                            blog.wipeseals.me
+                        
+                    </div>
+                </a>
+            </div>
+        </div>
+
+        
+        
+                <nav class="menu">
+            <ul class="menu__inner">
+                <li class="active"><a href="https://blog.wipeseals.me">blog</a></li>
+            
+                <li><a href="https://blog.wipeseals.me/tags">tags</a></li>
+            
+                <li><a href="https://blog.wipeseals.me/archive">archive</a></li>
+            
+                <li><a href="https://blog.wipeseals.me/work">work</a></li>
+            
+                <li><a href="https://wipeseals.me">about</a></li>
+            
+                <li><a href="https://github.com/wipeseals" target="_blank" rel="noopener noreferrer">github</a></li>
+            </ul>
+        </nav>
+    
+    
+        
+    </header>
+    
+
+    <div class="content">
+        
+        <div class="posts">
+                <div class="post on-list">
+                    
+    <h1 class="post-title"><a href="https://blog.wipeseals.me/blog/2024/create-blog/">Blog を作る</a></h1>
+    <div class="post-meta-inline">
+        
+    <span class="post-date">
+            2024-11-10
+        </span>
+
+    </div>
+
+    
+        <span class="post-tags-inline">
+                :: tags:&nbsp;
+                <a class="post-tag" href="https://blog.wipeseals.me/tags/diary/">#diary</a></span>
+    
+
+
+                    <div class="post-content">
+            <p>何度目かはわからないがまだ懲りずにテックブログを作った。
+今年に入ってネット隠居やめつつあることや、技術以外の微妙なものの書き置き場所としては自分の置き場が欲しい背景がある...と、
+新型コロナウイルス感染症になっている間にぐるぐる考えていて、ちょうどいま病み上がりの今机に座る練習がてら作ってみた。
+まだ結構倦怠感があるのとおそらく後遺症ぽいがやたら疲れる。弊はリモートではないのでもう一日大事で休んだほうが良いかもしれない。</p>
+<p>ここ数年はあまりアウトプットこそしていなかったが、技術私生活ともにまとめておきたい事柄はあるので、気を見てぼちぼち更新していきたい。</p>
+
+        </div>
+
+                </div>
+            
+                <div class="post on-list">
+                    
+    <h1 class="post-title"><a href="https://blog.wipeseals.me/blog/2024/rpi-pio-nand/">Raspberry PI PIO で NANDアクセスを高速化する</a></h1>
+    <div class="post-meta-inline">
+        
+    <span class="post-date">
+            2024-10-30
+        </span>
+
+    </div>
+
+    
+        <span class="post-tags-inline">
+                :: tags:&nbsp;
+                <a class="post-tag" href="https://blog.wipeseals.me/tags/driver/">#Driver</a>&nbsp;
+                <a class="post-tag" href="https://blog.wipeseals.me/tags/embedded/">#Embedded</a>&nbsp;
+                <a class="post-tag" href="https://blog.wipeseals.me/tags/nand/">#NAND</a>&nbsp;
+                <a class="post-tag" href="https://blog.wipeseals.me/tags/pio/">#pio</a>&nbsp;
+                <a class="post-tag" href="https://blog.wipeseals.me/tags/raspberrypi/">#raspberrypi</a>&nbsp;
+                <a class="post-tag" href="https://blog.wipeseals.me/tags/slide/">#slide</a>&nbsp;
+                <a class="post-tag" href="https://blog.wipeseals.me/tags/tech/">#tech</a></span>
+    
+
+
+                    
+        <div class="post-content">
+            <p>登壇する機会があったのでその際の資料。RP2040 に搭載されている Programmable IO を用いて、Parallel Command I/F である NAND IC へのアクセスを高速化検討した話。</p>
+<p><a href="/2024/rpi-pio-nand/rpi-pio-nand.pdf">rpi-pio-nand.pdf</a></p>
+<p>資料は marp を使用して作成したので、以後は元になった資料の markdown 移植版</p>
+<h2 id="bei-jing">背景</h2>
+<p>最近 SSD 自作キット JISC-SSD で <del>時折放置してますが</del> 遊んでいます。
+途中まで C++で書いていましたが、気まぐれで Rust 再実装中...</p>
+<p>RPi Pico: RP2040 Cortex-M0+ DualCore @133MHz
+NAND Flash: KIOXIA TC58NVG0S3HTA00 1Gbit SLC ECC なし</p>
+<table><thead><tr><th>外観</th><th>回路図抜粋</th><th>RP2040 Block Diagram</th></tr></thead><tbody>
+<tr><td><img src="/2024/rpi-pio-nand/sashie01-scaled.jpg" alt="width:400px" /></td><td><img src="/2024/rpi-pio-nand/jisc-ssd-schema.png" alt="width:700px" /></td><td><img src="/2024/rpi-pio-nand/rp2040-diagram.png" alt="width:600px" /></td></tr>
+<tr><td></td><td>GPIO で NAND と直結</td><td></td></tr>
+</tbody></table>
+
+        </div>
+        <div>
+            <!-- &#xFE0E; -- force text style - some devices render this as emoji -->
+            <a class="read-more button" href="https://blog.wipeseals.me/blog/2024/rpi-pio-nand/">
+                <span class="button__text">Read more</span>&nbsp;
+                <span class="button__icon">&#8617;&#xFE0E;</span>
+            </a>
+        </div>
+    
+
+                </div>
+            
+                <div class="post on-list">
+                    
+    <h1 class="post-title"><a href="https://blog.wipeseals.me/blog/2024/usharp-asmdef/">U# assembly definition が定義されていない旨のエラー対処</a></h1>
+    <div class="post-meta-inline">
+        
+    <span class="post-date">
+            2024-10-01
+        </span>
+
+    </div>
+
+    
+        <span class="post-tags-inline">
+                :: tags:&nbsp;
+                <a class="post-tag" href="https://blog.wipeseals.me/tags/udonsharp/">#UdonSharp</a>&nbsp;
+                <a class="post-tag" href="https://blog.wipeseals.me/tags/unity/">#Unity</a>&nbsp;
+                <a class="post-tag" href="https://blog.wipeseals.me/tags/vrchat/">#VRChat</a>&nbsp;
+                <a class="post-tag" href="https://blog.wipeseals.me/tags/memo/">#memo</a>&nbsp;
+                <a class="post-tag" href="https://blog.wipeseals.me/tags/tech/">#tech</a></span>
+    
+
+
+                    
+        <div class="post-content">
+            <p>公開用に <code>Packages/</code> 側で U# のアプリケーションを作っているときに、以下でビルドエラーになったのでの備忘録。</p>
+<pre data-lang="log" style="background-color:#ffffff;color:#010101;" class="language-log "><code class="language-log" data-lang="log"><span>&#39;/Packages/XXX/XXX.cs&#39; does not belong to a U# assembly, have you made a U# assembly definition for the assembly the script is a part of?
+</span></code></pre>
+<p><del>エラーメッセージの通りで書き残すほどでもない気はするが、U# Assembly Definition についてあまり情報がなかったので書き残す</del></p>
+<p><em>記事を書いている途中に公式ドキュメントを見つけました。 <a href="https://udonsharp.docs.vrchat.com/migration/#does-not-belong-to-u-assembly">https://udonsharp.docs.vrchat.com/migration/#does-not-belong-to-u-assembly</a></em></p>
+<h2 id="assembly-definition-asmdef-nituite">Assembly Definition (asmdef) について</h2>
+<p>asmdef は定義済アセンブリを明示するための設定ファイル。</p>
+<p>Unity C#で記述した Script がコンパイルされる際、 asmdef で定義を明示しない場合は <code>Assembly-CSharp*</code> にまとめられる。
+自分の書いた Script とその他無関係の Script が同一のアセンブリにビルドされるため、クラス名の衝突であったりコンパイルの時間増加等の問題につながるため、特別な理由がなければ定義しておくほうが無難。</p>
+<p>参考: <a href="https://docs.unity3d.com/ja/2022.3/Manual/ScriptCompileOrderFolders.html">特殊フォルダーとスクリプトのコンパイル順 - Unity Documentation 2022.3</a></p>
+
+        </div>
+        <div>
+            <!-- &#xFE0E; -- force text style - some devices render this as emoji -->
+            <a class="read-more button" href="https://blog.wipeseals.me/blog/2024/usharp-asmdef/">
+                <span class="button__text">Read more</span>&nbsp;
+                <span class="button__icon">&#8617;&#xFE0E;</span>
+            </a>
+        </div>
+    
+
+                </div>
+            
+                <div class="post on-list">
+                    
+    <h1 class="post-title"><a href="https://blog.wipeseals.me/blog/2024/usbmsc/">RustでUSB Mass Storage Class Bulk-Only Transportを実装する</a></h1>
+    <div class="post-meta-inline">
+        
+    <span class="post-date">
+            2024-09-17
+        </span>
+
+    </div>
+
+    
+        <span class="post-tags-inline">
+                :: tags:&nbsp;
+                <a class="post-tag" href="https://blog.wipeseals.me/tags/driver/">#Driver</a>&nbsp;
+                <a class="post-tag" href="https://blog.wipeseals.me/tags/embedded/">#Embedded</a>&nbsp;
+                <a class="post-tag" href="https://blog.wipeseals.me/tags/rust/">#Rust</a>&nbsp;
+                <a class="post-tag" href="https://blog.wipeseals.me/tags/usb/">#USB</a>&nbsp;
+                <a class="post-tag" href="https://blog.wipeseals.me/tags/raspberrypi/">#raspberrypi</a>&nbsp;
+                <a class="post-tag" href="https://blog.wipeseals.me/tags/tech/">#tech</a></span>
+    
+
+
+                    
+        <div class="post-content">
+            <p>掲題の通り Rust で USB Mass Storage Class (MSC) Bulk-Only Transport を実装した。
+RAM 上の値を Disk Drive に見せかけたデバイスとして Windows から認識できるようになったので要所を書き残す。</p>
+<p>実装には Rust を使用し、 Raspberry pi pico (rp2040) 上で動作確認を行っている。実装の Framework には <a href="https://github.com/embassy-rs/embassy">embassy-rs</a> を使用した。</p>
+<h2 id="usb-tong-xin-nogou-cheng-she-ding">USB 通信の構成・設定</h2>
+<p><a href="https://www.usb.org/sites/default/files/usbmassbulk_10.pdf">Mass Storage Bulk Only 1.0 - usb.org</a> に基づいて実装する。具体的に以下の通信を行う。</p>
+<p><img src="/2024/usbmsc/usb-config.png" alt="usb-config.png" /></p>
+<h3 id="descriptor-gou-cheng">Descriptor 構成</h3>
+<ul>
+<li>USB Device
+<ul>
+<li>Device Descriptor (MSC Bulk Only Transport)</li>
+<li>Configuration Descriptor
+<ul>
+<li>Interface Descriptor0 (MSC Bulk Only Transport)
+<ul>
+<li>Endpoint Descriptor1: Bulk out</li>
+<li>Endpoint Descriptor2: Bulk in</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h3 id="usb-mass-storage-class">USB Mass Storage Class</h3>
+<p>USB（に限らない話だが）を用いた通信は Host/Device 双方の FW で共通のプロトコル定義に基づいた実装が必要だが、一般的に使われる機能については USB の仕様としてクラス定義されている。</p>
+<p>例: キーボード・マウス等入力デバイス定義 <a href="https://usb.org/sites/default/files/hid1_11.pdf">Device Class Definition for Human Interface Devices(HID)</a></p>
+<p>今日使われている OS で USB が使える環境にあれば、Host 側のドライバ実装は多くの場合用意されているので、独自のドライバ作成と署名・インストールの手順を省くことができる。
+開発者は Device 側の FW を定義に基づいて実装するだけで良い。</p>
+<p>このクラス定義のうち、外付け記憶装置を制御するための 1 つとして MSC がある。</p>
+
+        </div>
+        <div>
+            <!-- &#xFE0E; -- force text style - some devices render this as emoji -->
+            <a class="read-more button" href="https://blog.wipeseals.me/blog/2024/usbmsc/">
+                <span class="button__text">Read more</span>&nbsp;
+                <span class="button__icon">&#8617;&#xFE0E;</span>
+            </a>
+        </div>
+    
+
+                </div>
+            <div class="pagination">
+                <div class="pagination__buttons">
+                    <span class="button previous">
+                        <a href="https://blog.wipeseals.me/">
+                            <span class="button__icon">←</span>&nbsp;
+                            <span class="button__text">Newer posts</span>
+                        </a>
+                    </span>
+                
+                    <span class="button next">
+                        <a href="https://blog.wipeseals.me/page/3/">
+                            <span class="button__text">Older posts</span>&nbsp;
+                            <span class="button__icon">→</span>
+                        </a>
+                    </span>
+                </div>
+            </div>
+        </div>
+        
+    </div>
+
+    
+    <footer class="footer">
+        <div class="footer__inner">
+                <div class="copyright copyright--user">Copyright &copy; 2025 wipeseals</div>
+            </div>
+    </footer>
+    
+
+</div>
+</body>
+
+</html>
