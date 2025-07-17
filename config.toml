@@ -1,63 +1,36 @@
 base_url = "https://blog.wipeseals.me"
 title = "blog.wipeseals.me"
+theme = "terminimal"
+compile_sass = true
+build_search_index = true
 description = "Miscellaneous logs..."
-author = "wipeseals"
-default_language = "ja"
-generate_feeds = true
-feed_filenames = ["atom.xml"]
-theme = "kita"
-taxonomies = [{ name = "tags", rss = true, paginate_by = 5 }]
+taxonomies = [{ name = "tags", feed = true }]
 
 [markdown]
 highlight_code = true
-highlight_theme = "base16-ocean-dark"
+highlight_theme = "ir-white"
 
 [extra]
-math = true
-mermaid = true
-comment = false
-social_image = "icon.png"
+show_only_description = true
+accent_color = "blue-light"
+background_color = "light"
+logo_text = "blog.wipeseals.me"
+logo_home_link = "/"
+author = "wipeseals"
+copyright_html = "Copyright &copy; 2025 wipeseals"
+menu_items = [
+    { name = "blog", url = "$BASE_URL" },
 
-[extra.profile]
-name = "wipeseals"
-bio = "I'm interested in the intersection of hardware, software, and system reliability."
-avatar_url = "icon.png"
-
-[[extra.profile.social]]
-name = "github"
-url = "https://github.com/wipeseals"
-
-[[extra.profile.social]]
-name = "bluesky"
-url = "https://bsky.app/profile/wipeseals.me"
-
-[[extra.profile.social]]
-name = "gmail"
-url = "mailto:wipeseals+contact@example.com"
-
-[[extra.profile.social]]
-name = "rss"
-url = "$BASE_URL/atom.xml"
-
-[[extra.menu]]
-name = "blog"
-url = "$BASE_URL"
-
-[[extra.menu]]
-name = "tags"
-url = "$BASE_URL/tags"
-
-[[extra.menu]]
-name = "work"
-url = "$BASE_URL/work"
-
-[[extra.menu]]
-name = "about"
-url = "https://wipeseals.me"
-
-[[extra.menu]]
-name = "github"
-url = "https://github.com/wipeseals"
-
-[extra.footer]
-since = 2024
+    { name = "tags", url = "$BASE_URL/tags" },
+    { name = "archive", url = "$BASE_URL/archive" },
+    { name = "work", url = "$BASE_URL/work" },
+    { name = "about", url = "https://wipeseals.me" },
+    { name = "github", url = "https://github.com/wipeseals", newtab = true },
+]
+enable_post_view_navigation = true
+post_view_navigation_prompt = "Read more"
+default_language = "ja"
+use_full_hack_font = true
+favicon = "/favicon.ico"
+favicon_mimetype = "image/x-icon"
+page_titles = "combined"
